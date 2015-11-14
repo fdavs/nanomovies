@@ -4,6 +4,9 @@ android {
     compileSdkVersion 23
     buildToolsVersion "21.1.2"
 
+    ext.appProperties = new Properties()
+    appProperties.load(file("app.properties").newDataInputStream())
+
     defaultConfig {
         applicationId "no.skavdahl.udacity.popularmovies"
         minSdkVersion 15
@@ -12,9 +15,13 @@ android {
         versionName "1.0"
     }
     buildTypes {
+        debug {
+            resValue "string", "movie_api_key", appProperties.getProperty("movie_api_key")
+        }
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            resValue "string", "movie_api_key", appProperties.getProperty("movie_api_key")
         }
     }
 }
