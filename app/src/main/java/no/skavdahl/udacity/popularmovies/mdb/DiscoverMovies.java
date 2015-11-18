@@ -1,5 +1,6 @@
 package no.skavdahl.udacity.popularmovies.mdb;
 
+import android.net.Uri;
 import android.util.Log;
 
 import java.io.BufferedReader;
@@ -10,13 +11,13 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 
 /**
- * Encapsulates the network queries performed at themoviedb.org.
+ * Encapsulates /discover/movie network queries performed against themoviedb.org.
  *
  * @author fdavs
  */
-public class MoviesQuery {
+public class DiscoverMovies {
 
-	private static final String LOG_TAG = MoviesQuery.class.getSimpleName();
+	private static final String LOG_TAG = DiscoverMovies.class.getSimpleName();
 
 	/**
 	 * Queries themoviedb.org for the most popular movies. The response is returned
@@ -29,7 +30,7 @@ public class MoviesQuery {
 	 * @throws IOException if the query failed or returned a non-sensible result
 	 */
 	public String getPopularMovies(String apiKey) throws IOException {
-		String endpoint = "http://api.themoviedb.org/3/discover/movie?api_key=" + apiKey + "&page=1&sort_by=popularity.desc";
+		String endpoint = getDiscoverMovieURL(apiKey, 1, "popularity.desc");
 		return executeQuery(endpoint);
 	}
 
@@ -44,8 +45,26 @@ public class MoviesQuery {
 	 * @throws IOException if the query failed or returned a non-sensible result
 	 */
 	public String getHighestRatedMovies(String apiKey) throws IOException {
-		String endpoint = "http://api.themoviedb.org/3/discover/movie?api_key=" + apiKey + "&page=1&sort_by=vote_average.desc";
+		String endpoint = getDiscoverMovieURL(apiKey, 1, "vote_average.desc");
 		return executeQuery(endpoint);
+	}
+
+	/**
+	 * Returns the query URL to "discover movies" according to the provided parameters.
+	 *
+	 * @param apiKey The API key necessary to execute a query at themoviedb.org
+	 * @param page The page number to return for a long result
+	 * @param sortOrder How to sort the result
+	 *
+	 * @return a String with the URL that will perform the appropriate query at themoviedb.org.
+	 */
+	protected String getDiscoverMovieURL(String apiKey, int page, String sortOrder) {
+		return Uri.parse("http://api.themoviedb.org/3/discover/movie").buildUpon()
+			.appendQueryParameter("api_key", apiKey)
+			.appendQueryParameter("page", Integer.toString(page))
+			.appendQueryParameter("sort_by", sortOrder)
+			.build()
+			.toString();
 	}
 
 	/**
