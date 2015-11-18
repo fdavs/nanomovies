@@ -49,6 +49,10 @@ public class DiscoverMovies {
 		return executeQuery(endpoint);
 	}
 
+	public static String getPosterDownloadURL(String posterPath) {
+		return "http://image.tmdb.org/t/p/w185" + posterPath;
+	}
+
 	/**
 	 * Returns the query URL to "discover movies" according to the provided parameters.
 	 *
