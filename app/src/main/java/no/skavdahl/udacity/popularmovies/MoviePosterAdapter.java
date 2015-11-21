@@ -63,7 +63,7 @@ public class MoviePosterAdapter extends BaseAdapter {
 		}
 
 		Picasso.with(context)
-			.load(DiscoverMovies.getPosterDownloadURL(movies.get(position).getPosterPath()))
+			.load(DiscoverMovies.getPosterThumbnailDownloadURL(movies.get(position).getPosterPath()))
 				// TODO .placeholder(R.drawable.user_placeholder)
 				// TODO .error(R.drawable.user_placeholder_error)
 				//.resize(50, 50)

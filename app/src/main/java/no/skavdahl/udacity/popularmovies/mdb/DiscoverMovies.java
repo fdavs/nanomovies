@@ -49,8 +49,12 @@ public class DiscoverMovies {
 		return executeQuery(endpoint);
 	}
 
-	public static String getPosterDownloadURL(String posterPath) {
+	public static String getPosterThumbnailDownloadURL(String posterPath) {
 		return "http://image.tmdb.org/t/p/w185" + posterPath;
+	}
+
+	public static String getPosterFullsizeDownloadURL(String posterPath) {
+		return "http://image.tmdb.org/t/p/original" + posterPath;
 	}
 
 	/**

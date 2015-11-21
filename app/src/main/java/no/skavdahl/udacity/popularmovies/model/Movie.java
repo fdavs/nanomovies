@@ -1,5 +1,7 @@
 package no.skavdahl.udacity.popularmovies.model;
 
+import java.util.Date;
+
 /**
  * Represents a movie.
  *
@@ -11,13 +13,17 @@ public class Movie {
 	private final String posterPath;
 	private final String synopsis;
 	private final double popularity;
+	private final double userRating;
+	private final Date releaseDate;
 
-	public Movie(int movieDbId, String title, String posterPath, String synopsis, double popularity) {
+	public Movie(int movieDbId, Date releaseDate, String title, String posterPath, String synopsis, double popularity, double userRating) {
 		this.movieDbId = movieDbId;
 		this.title = title;
 		this.posterPath = posterPath;
 		this.synopsis = synopsis;
 		this.popularity = popularity;
+		this.userRating = userRating;
+		this.releaseDate = releaseDate;
 	}
 
 	/** Returns the integer identifier for this movie at themoviedb.org */
@@ -43,5 +49,15 @@ public class Movie {
 	/** Returns the movie's current popularity index. */
 	public double getPopularity() {
 		return popularity;
+	}
+
+	/** Returns the movie's current average rating */
+	public double getUserRating() {
+		return userRating;
+	}
+
+	/** Rethrns the movie's release date. */
+	public Date getReleaseDate() {
+		return releaseDate;
 	}
 }

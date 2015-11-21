@@ -1,6 +1,8 @@
 package no.skavdahl.udacity.popularmovies;
 
 import android.Manifest;
+import android.app.Activity;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.support.v4.app.Fragment;
 import android.os.Bundle;
@@ -15,6 +17,12 @@ import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.GridView;
 import android.widget.Toast;
+
+import org.json.JSONException;
+
+import no.skavdahl.udacity.popularmovies.mdb.DiscoverMovies;
+import no.skavdahl.udacity.popularmovies.mdb.DiscoverMoviesJSONAdapter;
+import no.skavdahl.udacity.popularmovies.model.Movie;
 
 /**
  * A placeholder fragment containing a simple view.
@@ -32,6 +40,8 @@ public class MainDiscoveryActivityFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater,
                              ViewGroup container,
                              Bundle savedInstanceState) {
+	    setHasOptionsMenu(true);
+
 	    viewAdapter = new MoviePosterAdapter(getContext());
 
 	    View view = inflater.inflate(R.layout.fragment_main_discovery, container, false);
@@ -41,11 +51,30 @@ public class MainDiscoveryActivityFragment extends Fragment {
 		posterGrid.setOnItemClickListener(new AdapterView.OnItemClickListener() {
 			@Override
 			public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-				Toast.makeText(getContext(), "You clicked the movie in position " + position + " with id " + id, Toast.LENGTH_LONG).show();
+				Movie clickedMovie = (Movie) viewAdapter.getItem(position);
+
+                String movieData;
+                try {
+                    DiscoverMoviesJSONAdapter adapter = new DiscoverMoviesJSONAdapter();
+                    movieData = adapter.toJSONString(clickedMovie);
+                }
+                catch (JSONException e) {
+                    // this error should never occur so this is mostly verifying an assertion
+                    Log.e(LOG_TAG, "Unable to convert data to JSON", e);
+                    return; // abort
+                }
+
+				Intent openMovieDetailsIntent = new Intent(getContext(), MovieDetailActivity.class);
+				openMovieDetailsIntent.putExtra("movie", movieData);
+
+				Activity contextActivity = MainDiscoveryActivityFragment.this.getActivity();
+				if (openMovieDetailsIntent.resolveActivity(contextActivity.getPackageManager()) != null) {
+					startActivity(openMovieDetailsIntent);
+				}
+
+				//Toast.makeText(getContext(), "You clicked the movie in position " + position + " with id " + id, Toast.LENGTH_LONG).show();
 			}
 		});
-
-	    setHasOptionsMenu(true);
 
 	    return view;
     }
