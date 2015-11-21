@@ -40,21 +40,21 @@ public class MovieDetailActivity extends AppCompatActivity {
 			return;
 		}
 
-		TextView movieTitleView = (TextView) findViewById(R.id.movieTitleTextView);
+		TextView movieTitleView = (TextView) findViewById(R.id.movie_title_textview);
 		movieTitleView.setText(movie.getTitle());
 
-		TextView synopsisView = (TextView) findViewById(R.id.synopsisTextView);
+		TextView synopsisView = (TextView) findViewById(R.id.synopsis_textview);
 		synopsisView.setText(movie.getSynopsis());
 
 		DateFormat dateFormat = android.text.format.DateFormat.getDateFormat(this);
-		TextView releaseDateTextView = (TextView) findViewById(R.id.releaseDateTextView);
+		TextView releaseDateTextView = (TextView) findViewById(R.id.release_date_textview);
 		releaseDateTextView.setText(dateFormat.format(movie.getReleaseDate()));
 
-		TextView userRatingTextView = (TextView) findViewById(R.id.userRatingTextView);
+		TextView userRatingTextView = (TextView) findViewById(R.id.user_rating_textview);
 		DecimalFormat numberFormat = new DecimalFormat("0.0");
 		userRatingTextView.setText(numberFormat.format(movie.getUserRating()));
 
-		ImageView posterView = (ImageView) findViewById(R.id.posterImageView);
+		ImageView posterView = (ImageView) findViewById(R.id.poster_imageview);
 		Picasso.with(this)
 			.load(DiscoverMovies.getPosterFullsizeDownloadURL(movie.getPosterPath()))
 				// TODO .placeholder(R.drawable.user_placeholder)

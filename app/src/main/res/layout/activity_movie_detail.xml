@@ -13,7 +13,7 @@
     <ImageView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:id="@+id/posterImageView"
+        android:id="@+id/poster_imageview"
         android:minHeight="100dp"
         android:contentDescription="@string/movie_poster"
         android:layout_alignParentTop="true"
@@ -27,8 +27,8 @@
         android:layout_height="wrap_content"
         android:textAppearance="?android:attr/textAppearanceLarge"
         android:text="Movie title"
-        android:id="@+id/movieTitleTextView"
-        android:layout_below="@+id/posterImageView"
+        android:id="@+id/movie_title_textview"
+        android:layout_below="@+id/poster_imageview"
         android:layout_alignParentLeft="true"
         android:layout_alignParentStart="true"/>
 
@@ -36,8 +36,8 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Synopsis"
-        android:id="@+id/synopsisTextView"
-        android:layout_below="@+id/movieTitleTextView"
+        android:id="@+id/synopsis_textview"
+        android:layout_below="@+id/movie_title_textview"
         android:layout_alignParentLeft="true"
         android:layout_alignParentStart="true"/>
 
@@ -45,8 +45,8 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="User Rating:"
-        android:id="@+id/userRatingLabel"
-        android:layout_below="@+id/synopsisTextView"
+        android:id="@+id/user_rating_label"
+        android:layout_below="@+id/synopsis_textview"
         android:layout_alignParentLeft="true"
         android:layout_alignParentStart="true"/>
 
@@ -54,18 +54,18 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="2.5"
-        android:id="@+id/userRatingTextView"
-        android:layout_alignTop="@+id/userRatingLabel"
-        android:layout_toRightOf="@+id/userRatingLabel"
-        android:layout_toEndOf="@+id/userRatingLabel"
+        android:id="@+id/user_rating_textview"
+        android:layout_alignTop="@+id/user_rating_label"
+        android:layout_toRightOf="@+id/user_rating_label"
+        android:layout_toEndOf="@+id/user_rating_label"
         android:layout_marginLeft="10dp"/>
 
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Release Date:"
-        android:id="@+id/releaseDateLabel"
-        android:layout_below="@+id/userRatingLabel"
+        android:id="@+id/release_rate_label"
+        android:layout_below="@+id/user_rating_label"
         android:layout_alignParentLeft="true"
         android:layout_alignParentStart="true"/>
 
@@ -73,8 +73,9 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="01.01.2015"
-        android:id="@+id/releaseDateTextView"
-        android:layout_below="@+id/userRatingTextView"
-        android:layout_alignLeft="@+id/userRatingTextView"
-        android:layout_alignStart="@+id/userRatingTextView"/>
+        android:id="@+id/release_date_textview"
+        android:layout_alignTop="@+id/release_rate_label"
+        android:layout_toRightOf="@+id/release_rate_label"
+        android:layout_toEndOf="@+id/release_rate_label"
+        android:layout_marginLeft="10dp"/>
 </RelativeLayout>
