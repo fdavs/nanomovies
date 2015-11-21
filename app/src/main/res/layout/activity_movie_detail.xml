@@ -10,12 +10,15 @@
     android:paddingTop="@dimen/activity_vertical_margin"
     tools:context="no.skavdahl.udacity.popularmovies.MovieDetailActivity">
 
-    <TextView
+    <ImageView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Synopsis"
-        android:id="@+id/synopsisTextView"
-        android:layout_below="@+id/posterImageView"
+        android:id="@+id/posterImageView"
+        android:minHeight="100dp"
+        android:contentDescription="@string/movie_poster"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentEnd="true"
         android:layout_alignParentLeft="true"
         android:layout_alignParentStart="true"/>
 
@@ -23,9 +26,18 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:textAppearance="?android:attr/textAppearanceLarge"
-        android:text="Movie Title"
+        android:text="Movie title"
         android:id="@+id/movieTitleTextView"
-        android:layout_alignParentTop="true"
+        android:layout_below="@+id/posterImageView"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true"/>
+
+   <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Synopsis"
+        android:id="@+id/synopsisTextView"
+        android:layout_below="@+id/movieTitleTextView"
         android:layout_alignParentLeft="true"
         android:layout_alignParentStart="true"/>
 
@@ -47,18 +59,6 @@
         android:layout_toRightOf="@+id/userRatingLabel"
         android:layout_toEndOf="@+id/userRatingLabel"
         android:layout_marginLeft="10dp"/>
-
-    <ImageView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:id="@+id/posterImageView"
-        android:layout_below="@+id/movieTitleTextView"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentStart="true"
-        android:layout_alignParentRight="true"
-        android:layout_alignParentEnd="true"
-        android:minHeight="100dp"
-        android:contentDescription="Movie poster"/>
 
     <TextView
         android:layout_width="wrap_content"

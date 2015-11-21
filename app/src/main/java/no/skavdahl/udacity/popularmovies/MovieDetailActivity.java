@@ -1,15 +1,14 @@
 package no.skavdahl.udacity.popularmovies;
 
-import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
+import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.squareup.picasso.Picasso;
 
-import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.text.DateFormat;
@@ -19,7 +18,7 @@ import no.skavdahl.udacity.popularmovies.mdb.DiscoverMovies;
 import no.skavdahl.udacity.popularmovies.mdb.DiscoverMoviesJSONAdapter;
 import no.skavdahl.udacity.popularmovies.model.Movie;
 
-public class MovieDetailActivity extends Activity {
+public class MovieDetailActivity extends AppCompatActivity {
 
 	private final String LOG_TAG = getClass().getSimpleName();
 
@@ -35,7 +34,7 @@ public class MovieDetailActivity extends Activity {
 			JSONObject obj = new JSONObject(startingIntent.getStringExtra("movie"));
 			movie = adapter.toMovie(obj);
 		}
-		catch (JSONException e) {
+		catch (Exception e) { // NPE if no intent, JSONException if parse error
 			Log.e(LOG_TAG, "Unable to access Intent extra data", e);
 			finish(); // abort the execution of this activity
 			return;
