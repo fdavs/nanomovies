@@ -14,6 +14,7 @@ import org.json.JSONObject;
 
 import java.text.DateFormat;
 import java.text.DecimalFormat;
+import java.util.Date;
 
 import no.skavdahl.udacity.popularmovies.mdb.DiscoverMovies;
 import no.skavdahl.udacity.popularmovies.mdb.DiscoverMoviesJSONAdapter;
@@ -52,9 +53,8 @@ public class MovieDetailActivity extends AppCompatActivity {
 		TextView synopsisView = (TextView) findViewById(R.id.synopsis_textview);
 		synopsisView.setText(movie.getSynopsis());
 
-		DateFormat dateFormat = android.text.format.DateFormat.getDateFormat(this);
 		TextView releaseDateTextView = (TextView) findViewById(R.id.release_date_textview);
-		releaseDateTextView.setText(dateFormat.format(movie.getReleaseDate()));
+		releaseDateTextView.setText(formatOptDate(movie.getReleaseDate()));
 
 		TextView userRatingTextView = (TextView) findViewById(R.id.user_rating_textview);
 		DecimalFormat numberFormat = new DecimalFormat("0.0");
@@ -65,7 +65,14 @@ public class MovieDetailActivity extends AppCompatActivity {
 		Picasso.with(this)
 			.load(DiscoverMovies.getPosterThumbnailDownloadURL(movie.getPosterPath()))
 			.into(posterView, new DownloadHiresPosterCallback(this, movie.getPosterPath(), posterView));
+	}
 
+	private String formatOptDate(final Date date) {
+		if (date == null)
+			return "";
+
+		DateFormat dateFormat = android.text.format.DateFormat.getDateFormat(this);
+		return dateFormat.format(date);
 	}
 
 	/**
@@ -73,7 +80,6 @@ public class MovieDetailActivity extends AppCompatActivity {
 	 * and updates the target ImageView when (read: not before) the download has completed.
 	 */
 	private static class DownloadHiresPosterCallback implements com.squareup.picasso.Callback {
-
 		private final String LOG_TAG = getClass().getSimpleName();
 
 		private final Context context;

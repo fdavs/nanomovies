@@ -57,7 +57,7 @@ public class DiscoverMoviesJSONAdapter extends JSONAdapter {
 	 */
 	public Movie toMovie(JSONObject obj) throws JSONException {
 		int id = obj.getInt(JSON_MOVIE_ID);
-		Date releaseDate = getDate(obj, JSON_MOVIE_RELEASE_DATE);
+		Date releaseDate = getOptDate(obj, JSON_MOVIE_RELEASE_DATE);
 		String title = obj.getString(JSON_MOVIE_TITLE);
 		String posterPath = obj.getString(JSON_MOVIE_POSTER_PATH);
 		String synopsis = obj.getString(JSON_MOVIE_SYNOPSIS);
@@ -79,7 +79,7 @@ public class DiscoverMoviesJSONAdapter extends JSONAdapter {
 	public String toJSONString(Movie movie) throws JSONException {
 		JSONObject obj = new JSONObject();
 		obj.put(JSON_MOVIE_ID, movie.getMovieDbId());
-		putDate(obj, JSON_MOVIE_RELEASE_DATE, movie.getReleaseDate());
+		putOptDate(obj, JSON_MOVIE_RELEASE_DATE, movie.getReleaseDate());
 		obj.put(JSON_MOVIE_TITLE, movie.getTitle());
 		obj.put(JSON_MOVIE_POSTER_PATH, movie.getPosterPath());
 		obj.put(JSON_MOVIE_SYNOPSIS, movie.getSynopsis());

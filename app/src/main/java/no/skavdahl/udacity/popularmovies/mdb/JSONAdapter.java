@@ -27,14 +27,18 @@ public abstract class JSONAdapter {
 	 *
 	 * @param obj The JSON object from which to read values
 	 * @param attrName The attribute of the JSON object to access. This attribute
-	 *                 must have a value formatted as yyyy-mm-dd.
+	 *                 must have a value formatted as yyyy-mm-dd or be an empty string.
 	 *
-	 * @return the value as a date.
+	 * @return the value as a date or <code>null</code> if the JSON object does not
+	 *         specify a date value.
 	 *
 	 * @throws JSONException if unable to parse the attribute value as a date.
 	 */
-	protected Date getDate(JSONObject obj, String attrName) throws JSONException {
-		String dateString = obj.getString(attrName);
+	protected Date getOptDate(JSONObject obj, String attrName) throws JSONException {
+		String dateString = obj.optString(attrName).trim();
+		if (dateString.length() == 0)
+			return null;
+
 		try {
 			DateFormat dateParser = new SimpleDateFormat(MOVIEDB_DATE_FORMAT, Locale.US);
 			return dateParser.parse(dateString);
@@ -56,7 +60,7 @@ public abstract class JSONAdapter {
 	 *
 	 * @see org.json.JSONObject#put(String, Object)
 	 */
-	protected void putDate(JSONObject obj, String attrName, Date value) throws JSONException {
+	protected void putOptDate(JSONObject obj, String attrName, Date value) throws JSONException {
 		if (value == null)
 			obj.put(attrName, null); // removes the existing value for the attribute
 		else {
