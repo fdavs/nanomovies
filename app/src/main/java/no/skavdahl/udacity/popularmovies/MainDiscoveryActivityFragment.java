@@ -2,7 +2,9 @@ package no.skavdahl.udacity.popularmovies;
 
 import android.Manifest;
 import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.support.v4.app.Fragment;
 import android.os.Bundle;
@@ -21,10 +23,13 @@ import android.widget.GridView;
 import org.json.JSONException;
 
 import no.skavdahl.udacity.popularmovies.mdb.DiscoverMoviesJSONAdapter;
+import no.skavdahl.udacity.popularmovies.mdb.DiscoveryMode;
 import no.skavdahl.udacity.popularmovies.model.Movie;
 
 /**
- * A placeholder fragment containing a simple view.
+ * The main Movie Discovery fragment.
+ *
+ * @author fdavs
  */
 public class MainDiscoveryActivityFragment extends Fragment {
 
@@ -32,7 +37,13 @@ public class MainDiscoveryActivityFragment extends Fragment {
 
 	private MoviePosterAdapter viewAdapter;
 
-    public MainDiscoveryActivityFragment() {
+	// It is recommended to keep a local reference to this ChangeListener to avoid
+	// garbage collection -- see the Android API docs at http://goo.gl/0yFyTy
+	// (SharedPreferences#registerOnSharedPreferenceChangeListener)
+	@SuppressWarnings({"FieldCanBeLocal", "unused"})
+	private SharedPreferences.OnSharedPreferenceChangeListener prefChangeListener;
+
+	public MainDiscoveryActivityFragment() {
     }
 
     @Override
@@ -41,50 +52,36 @@ public class MainDiscoveryActivityFragment extends Fragment {
                              Bundle savedInstanceState) {
 	    setHasOptionsMenu(true);
 
-	    viewAdapter = new MoviePosterAdapter(getContext());
+	    final View view = inflater.inflate(R.layout.fragment_main_discovery, container, false);
 
-	    View view = inflater.inflate(R.layout.fragment_main_discovery, container, false);
-
+	    // Configure the grid display of movie posters
 	    GridView posterGrid = (GridView) view.findViewById(R.id.poster_grid);
-	    posterGrid.setAdapter(viewAdapter);
+
+	    // -- how to display movie posters
+	    posterGrid.setAdapter(viewAdapter = new MoviePosterAdapter(getContext()));
+
+	    // -- how many posters to display on each row
+	    posterGrid.setColumnWidth(calculateOptimalColumnWidth());
+
+	    // -- what should happen when a movie poster is clicked
 		posterGrid.setOnItemClickListener(new AdapterView.OnItemClickListener() {
 			@Override
 			public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-				Movie clickedMovie = (Movie) viewAdapter.getItem(position);
-
-				String movieData;
-				try {
-					DiscoverMoviesJSONAdapter adapter = new DiscoverMoviesJSONAdapter();
-					movieData = adapter.toJSONString(clickedMovie);
-				}
-				catch (JSONException e) {
-					// this error should never occur so this is mostly verifying an assertion
-					Log.e(LOG_TAG, "Unable to convert data to JSON", e);
-					return; // abort
-				}
-
-				Intent openMovieDetailsIntent = new Intent(getContext(), MovieDetailActivity.class);
-				openMovieDetailsIntent.putExtra("movie", movieData);
-
-				Activity contextActivity = MainDiscoveryActivityFragment.this.getActivity();
-				if (openMovieDetailsIntent.resolveActivity(contextActivity.getPackageManager()) != null)
-					startActivity(openMovieDetailsIntent);
+				Movie selectedMovie = (Movie) viewAdapter.getItem(position);
+				openMovieDetailsActivity(selectedMovie);
 			}
 		});
-
-	    int optimalColumnWidth = calculateColumnWidth();
-	    posterGrid.setColumnWidth(optimalColumnWidth);
 
 	    return view;
     }
 
 	/**
 	 * Calculates the optimal column width based on the width of the display and an ideal
-	 * poster width of approximately 1 inch.
+	 * poster width of approximately one inch.
 	 *
 	 * @return tne optimal column width in pixels.
 	 */
-	private int calculateColumnWidth() {
+	private int calculateOptimalColumnWidth() {
 		DisplayMetrics dm = getResources().getDisplayMetrics();
 		double widthInches = ((double)dm.widthPixels) / dm.xdpi;
 		int numCols = (int) Math.round(widthInches);
@@ -92,26 +89,85 @@ public class MainDiscoveryActivityFragment extends Fragment {
 		return dm.widthPixels / numCols;
 	}
 
+	/**
+	 * Starts the Movie Details activity for the given movie.
+	 *
+	 * @param movie The movie for which to show details.
+	 */
+	private void openMovieDetailsActivity(final Movie movie) {
+		String movieData;
+		try {
+			DiscoverMoviesJSONAdapter adapter = new DiscoverMoviesJSONAdapter();
+			movieData = adapter.toJSONString(movie);
+		}
+		catch (JSONException e) {
+			// this error should never occur so this is mostly verifying an assertion
+			Log.e(LOG_TAG, "Unable to convert data to JSON", e);
+			return; // abort
+		}
+
+		Intent openMovieDetailsIntent = new Intent(getContext(), MovieDetailActivity.class);
+		openMovieDetailsIntent.putExtra("movie", movieData);
+
+		Activity contextActivity = MainDiscoveryActivityFragment.this.getActivity();
+		if (openMovieDetailsIntent.resolveActivity(contextActivity.getPackageManager()) != null)
+			startActivity(openMovieDetailsIntent);
+	}
+
     @Override
-    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+    public void onCreateOptionsMenu(final Menu menu, final MenuInflater inflater) {
         inflater.inflate(R.menu.menu_main_discovery, menu);
+
+	    configureOptionsMenu(menu);
+
+	    getActivity().getPreferences(Context.MODE_PRIVATE).registerOnSharedPreferenceChangeListener(
+		    prefChangeListener = new SharedPreferences.OnSharedPreferenceChangeListener() {
+			    @Override
+			    public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
+					if (!UserPreferences.DISCOVERY_MODE.equals(key))
+						return;
+
+				    configureOptionsMenu(menu);
+				    refreshMovies();
+			    }
+		    });
     }
+
+	private void configureOptionsMenu(final Menu menu) {
+		// ensure that the discovery mode menu options are checked appropriately
+		DiscoveryMode discoveryMode = UserPreferences.getDiscoveryModePreference(getActivity());
+
+		menu.findItem(R.id.action_popular_movies).setChecked(discoveryMode == DiscoveryMode.POPULAR_MOVIES);
+		menu.findItem(R.id.action_high_rated_movies).setChecked(discoveryMode == DiscoveryMode.HIGH_RATED_MOVIES);
+	}
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         int id = item.getItemId();
 
-        //noinspection SimplifiableIfStatement
-        if (id == R.id.action_refresh) {
-            refreshMovies();
-            return true;
+	    switch (id) {
+		    case R.id.action_popular_movies:
+			    UserPreferences.setDiscoverModePreference(getActivity(), DiscoveryMode.POPULAR_MOVIES);
+			    return true;
+		    case R.id.action_high_rated_movies:
+			    UserPreferences.setDiscoverModePreference(getActivity(), DiscoveryMode.HIGH_RATED_MOVIES);
+			    return true;
+		    case R.id.action_refresh:
+                refreshMovies();
+                return true;
+		    default:
+			    return super.onOptionsItemSelected(item);
         }
-
-        return super.onOptionsItemSelected(item);
     }
 
-    /**
-     * Re-issues the current query to themoviedb.org and updates the display with the
+	@Override
+	public void onStart() {
+		super.onStart();
+		refreshMovies();
+	}
+
+	/**
+     * Issues or re-issues the current query to themoviedb.org and updates the display with the
      * new results from the query.
      */
     private void refreshMovies() {
@@ -128,8 +184,9 @@ public class MainDiscoveryActivityFragment extends Fragment {
         }
 
         // permission granted, go ahead with the operation
-        String apiKey = getString(R.string.movie_api_key);
-        DiscoverMoviesTask task = new DiscoverMoviesTask(apiKey, viewAdapter);
+	    DiscoveryMode mode = UserPreferences.getDiscoveryModePreference(getActivity());
+	    String apiKey = getString(R.string.movie_api_key);
+        DiscoverMoviesTask task = new DiscoverMoviesTask(mode, apiKey, viewAdapter);
         task.execute();
     }
 }
