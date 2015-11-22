@@ -1,5 +1,6 @@
 package no.skavdahl.udacity.popularmovies;
 
+import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
@@ -18,6 +19,11 @@ import no.skavdahl.udacity.popularmovies.mdb.DiscoverMovies;
 import no.skavdahl.udacity.popularmovies.mdb.DiscoverMoviesJSONAdapter;
 import no.skavdahl.udacity.popularmovies.model.Movie;
 
+/**
+ * Activity for displaying movie details.
+ *
+ * @author fdavs
+ */
 public class MovieDetailActivity extends AppCompatActivity {
 
 	private final String LOG_TAG = getClass().getSimpleName();
@@ -27,7 +33,7 @@ public class MovieDetailActivity extends AppCompatActivity {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_movie_detail);
 
-		Movie movie;
+		final Movie movie;
 		try {
 			Intent startingIntent = getIntent();
 			DiscoverMoviesJSONAdapter adapter = new DiscoverMoviesJSONAdapter();
@@ -54,18 +60,70 @@ public class MovieDetailActivity extends AppCompatActivity {
 		DecimalFormat numberFormat = new DecimalFormat("0.0");
 		userRatingTextView.setText(numberFormat.format(movie.getUserRating()));
 
-		ImageView posterView = (ImageView) findViewById(R.id.poster_imageview);
+		// Show the thumbnail poster image first while loading a higher-resolution image
+		final ImageView posterView = (ImageView) findViewById(R.id.poster_imageview);
 		Picasso.with(this)
-			.load(DiscoverMovies.getPosterFullsizeDownloadURL(movie.getPosterPath()))
-				// TODO .placeholder(R.drawable.user_placeholder)
-				// TODO .error(R.drawable.user_placeholder_error)
-				//.resize(50, 50)
-				//.centerCrop()
-			.into(posterView);
+			.load(DiscoverMovies.getPosterThumbnailDownloadURL(movie.getPosterPath()))
+			.into(posterView, new DownloadHiresPosterCallback(this, movie.getPosterPath(), posterView));
+
 	}
 
 	@Override
 	public Intent getIntent() {
 		return super.getIntent();
+	}
+
+	/**
+	 * Picasso callback that downloads a high resolution image in the background
+	 * and updates the target ImageView when (read: not before) the download has completed.
+	 */
+	private static class DownloadHiresPosterCallback implements com.squareup.picasso.Callback {
+
+		private final String LOG_TAG = getClass().getSimpleName();
+
+		private final Context context;
+		private final String posterPath;
+		private final ImageView targetView;
+
+		public DownloadHiresPosterCallback(
+			final Context context,
+			final String posterPath,
+			final ImageView targetView) {
+
+			this.context = context;
+			this.posterPath = posterPath;
+			this.targetView = targetView;
+		}
+
+		@Override
+		public void onSuccess() {
+			final String downloadURL = DiscoverMovies.getPosterHiresDownloadURL(context, posterPath);
+
+			Picasso.with(context)
+				.load(downloadURL)
+				.fetch(new com.squareup.picasso.Callback() {
+					@Override
+					public void onSuccess() {
+						// Display the hires image now that it is cached
+						Picasso.with(context)
+							.load(downloadURL)
+							.into(targetView);
+					}
+
+					@Override
+					public void onError() {
+						logError(); // download of hires image failed
+					}
+				});
+		}
+
+		@Override
+		public void onError() {
+			logError(); // download of lowres image failed
+		}
+
+		private void logError() {
+			Log.w(LOG_TAG, "Picasso download failed with error");
+		}
 	}
 }

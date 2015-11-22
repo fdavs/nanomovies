@@ -1,6 +1,8 @@
 package no.skavdahl.udacity.popularmovies.mdb;
 
+import android.content.Context;
 import android.net.Uri;
+import android.util.DisplayMetrics;
 import android.util.Log;
 
 import java.io.BufferedReader;
@@ -53,8 +55,33 @@ public class DiscoverMovies {
 		return "http://image.tmdb.org/t/p/w185" + posterPath;
 	}
 
-	public static String getPosterFullsizeDownloadURL(String posterPath) {
-		return "http://image.tmdb.org/t/p/original" + posterPath;
+	/**
+	 * Returns the download URL for a high-resolution poster image. The meaning of "high
+	 * resolution" is determined by the device capabilities (screen resolution and connection
+	 * state).
+	 *
+	 * @return the download URL for the chosen resolution.
+	 */
+	public static String getPosterHiresDownloadURL(Context context, String posterPath) {
+		DisplayMetrics dm = context.getResources().getDisplayMetrics();
+
+		// TODO Consider device connectivity
+
+		// TODO Clean up this code (resolution selection)
+		int widths[] = new int[] { 92, 154, 185, 342, 500, 780, 1000 };
+		String options[]= new String[] { "w92", "w154", "w185", "w342", "w500", "w780", "original"};
+
+		String size = null;
+		for (int i = options.length - 1; i >= 0; --i) {
+			if (dm.widthPixels > widths[i]) {
+				size = options[i];
+				break;
+			}
+		}
+		if (size == null)
+			size = options[0];
+
+		return "http://image.tmdb.org/t/p/" + size + posterPath;
 	}
 
 	/**

@@ -1,81 +1,88 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout
+<ScrollView
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:paddingBottom="@dimen/activity_vertical_margin"
-    android:paddingLeft="@dimen/activity_horizontal_margin"
-    android:paddingRight="@dimen/activity_horizontal_margin"
-    android:paddingTop="@dimen/activity_vertical_margin"
-    tools:context="no.skavdahl.udacity.popularmovies.MovieDetailActivity">
+    android:orientation="vertical">
 
-    <ImageView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:id="@+id/poster_imageview"
-        android:minHeight="100dp"
-        android:contentDescription="@string/movie_poster"
-        android:layout_alignParentTop="true"
-        android:layout_alignParentRight="true"
-        android:layout_alignParentEnd="true"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentStart="true"/>
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:paddingBottom="@dimen/activity_vertical_margin"
+        android:paddingLeft="@dimen/activity_horizontal_margin"
+        android:paddingRight="@dimen/activity_horizontal_margin"
+        android:paddingTop="@dimen/activity_vertical_margin"
+        tools:context="no.skavdahl.udacity.popularmovies.MovieDetailActivity">
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:textAppearance="?android:attr/textAppearanceLarge"
-        android:text="Movie title"
-        android:id="@+id/movie_title_textview"
-        android:layout_below="@+id/poster_imageview"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentStart="true"/>
+        <ImageView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/poster_imageview"
+            android:adjustViewBounds="true"
+            android:minHeight="100dp"
+            android:contentDescription="@string/movie_poster"
+            android:layout_alignParentTop="true"
+            android:layout_alignParentRight="true"
+            android:layout_alignParentEnd="true"
+            android:layout_alignParentLeft="true"
+            android:layout_alignParentStart="true"/>
 
-   <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Synopsis"
-        android:id="@+id/synopsis_textview"
-        android:layout_below="@+id/movie_title_textview"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentStart="true"/>
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textAppearance="?android:attr/textAppearanceLarge"
+            android:text="Movie title"
+            android:id="@+id/movie_title_textview"
+            android:layout_below="@+id/poster_imageview"
+            android:layout_alignParentLeft="true"
+            android:layout_alignParentStart="true"/>
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="User Rating:"
-        android:id="@+id/user_rating_label"
-        android:layout_below="@+id/synopsis_textview"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentStart="true"/>
+       <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Synopsis"
+            android:id="@+id/synopsis_textview"
+            android:layout_below="@+id/movie_title_textview"
+            android:layout_alignParentLeft="true"
+            android:layout_alignParentStart="true"/>
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="2.5"
-        android:id="@+id/user_rating_textview"
-        android:layout_alignTop="@+id/user_rating_label"
-        android:layout_toRightOf="@+id/user_rating_label"
-        android:layout_toEndOf="@+id/user_rating_label"
-        android:layout_marginLeft="10dp"/>
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="User Rating:"
+            android:id="@+id/user_rating_label"
+            android:layout_below="@+id/synopsis_textview"
+            android:layout_alignParentLeft="true"
+            android:layout_alignParentStart="true"/>
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Release Date:"
-        android:id="@+id/release_rate_label"
-        android:layout_below="@+id/user_rating_label"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentStart="true"/>
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="2.5"
+            android:id="@+id/user_rating_textview"
+            android:layout_alignTop="@+id/user_rating_label"
+            android:layout_toRightOf="@+id/user_rating_label"
+            android:layout_toEndOf="@+id/user_rating_label"
+            android:layout_marginLeft="10dp"/>
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="01.01.2015"
-        android:id="@+id/release_date_textview"
-        android:layout_alignTop="@+id/release_rate_label"
-        android:layout_toRightOf="@+id/release_rate_label"
-        android:layout_toEndOf="@+id/release_rate_label"
-        android:layout_marginLeft="10dp"/>
-</RelativeLayout>
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Release Date:"
+            android:id="@+id/release_rate_label"
+            android:layout_below="@+id/user_rating_label"
+            android:layout_alignParentLeft="true"
+            android:layout_alignParentStart="true"/>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="01.01.2015"
+            android:id="@+id/release_date_textview"
+            android:layout_alignTop="@+id/release_rate_label"
+            android:layout_toRightOf="@+id/release_rate_label"
+            android:layout_toEndOf="@+id/release_rate_label"
+            android:layout_marginLeft="10dp"/>
+    </RelativeLayout>
+</ScrollView>
