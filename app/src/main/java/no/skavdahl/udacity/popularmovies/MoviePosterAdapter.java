@@ -4,7 +4,6 @@ import android.content.Context;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
-import android.widget.GridView;
 import android.widget.ImageView;
 
 import com.squareup.picasso.Picasso;
@@ -57,17 +56,14 @@ public class MoviePosterAdapter extends BaseAdapter {
 		}
 		else {
 			imageView = new ImageView(context);
-			imageView.setLayoutParams(new GridView.LayoutParams(185, 277)); // TODO constants for these poster sizes
-			imageView.setScaleType(ImageView.ScaleType.CENTER_CROP);
-			imageView.setPadding(8, 8, 8, 8);
+			imageView.setPadding(0, 0, 0, 0);
+			imageView.setAdjustViewBounds(true);
 		}
 
 		Picasso.with(context)
 			.load(DiscoverMovies.getPosterThumbnailDownloadURL(movies.get(position).getPosterPath()))
 				// TODO .placeholder(R.drawable.user_placeholder)
 				// TODO .error(R.drawable.user_placeholder_error)
-				//.resize(50, 50)
-				//.centerCrop()
 			.into(imageView);
 
 		return imageView;

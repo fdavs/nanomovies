@@ -7,6 +7,7 @@ import android.content.pm.PackageManager;
 import android.support.v4.app.Fragment;
 import android.os.Bundle;
 import android.support.v4.content.ContextCompat;
+import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -16,11 +17,9 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.GridView;
-import android.widget.Toast;
 
 import org.json.JSONException;
 
-import no.skavdahl.udacity.popularmovies.mdb.DiscoverMovies;
 import no.skavdahl.udacity.popularmovies.mdb.DiscoverMoviesJSONAdapter;
 import no.skavdahl.udacity.popularmovies.model.Movie;
 
@@ -46,38 +45,52 @@ public class MainDiscoveryActivityFragment extends Fragment {
 
 	    View view = inflater.inflate(R.layout.fragment_main_discovery, container, false);
 
-	    GridView posterGrid = (GridView) view.findViewById(R.id.posterGrid);
+	    GridView posterGrid = (GridView) view.findViewById(R.id.poster_grid);
 	    posterGrid.setAdapter(viewAdapter);
 		posterGrid.setOnItemClickListener(new AdapterView.OnItemClickListener() {
 			@Override
 			public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
 				Movie clickedMovie = (Movie) viewAdapter.getItem(position);
 
-                String movieData;
-                try {
-                    DiscoverMoviesJSONAdapter adapter = new DiscoverMoviesJSONAdapter();
-                    movieData = adapter.toJSONString(clickedMovie);
-                }
-                catch (JSONException e) {
-                    // this error should never occur so this is mostly verifying an assertion
-                    Log.e(LOG_TAG, "Unable to convert data to JSON", e);
-                    return; // abort
-                }
+				String movieData;
+				try {
+					DiscoverMoviesJSONAdapter adapter = new DiscoverMoviesJSONAdapter();
+					movieData = adapter.toJSONString(clickedMovie);
+				}
+				catch (JSONException e) {
+					// this error should never occur so this is mostly verifying an assertion
+					Log.e(LOG_TAG, "Unable to convert data to JSON", e);
+					return; // abort
+				}
 
 				Intent openMovieDetailsIntent = new Intent(getContext(), MovieDetailActivity.class);
 				openMovieDetailsIntent.putExtra("movie", movieData);
 
 				Activity contextActivity = MainDiscoveryActivityFragment.this.getActivity();
-				if (openMovieDetailsIntent.resolveActivity(contextActivity.getPackageManager()) != null) {
+				if (openMovieDetailsIntent.resolveActivity(contextActivity.getPackageManager()) != null)
 					startActivity(openMovieDetailsIntent);
-				}
-
-				//Toast.makeText(getContext(), "You clicked the movie in position " + position + " with id " + id, Toast.LENGTH_LONG).show();
 			}
 		});
 
+	    int optimalColumnWidth = calculateColumnWidth();
+	    posterGrid.setColumnWidth(optimalColumnWidth);
+
 	    return view;
     }
+
+	/**
+	 * Calculates the optimal column width based on the width of the display and an ideal
+	 * poster width of approximately 1 inch.
+	 *
+	 * @return tne optimal column width in pixels.
+	 */
+	private int calculateColumnWidth() {
+		DisplayMetrics dm = getResources().getDisplayMetrics();
+		double widthInches = ((double)dm.widthPixels) / dm.xdpi;
+		int numCols = (int) Math.round(widthInches);
+
+		return dm.widthPixels / numCols;
+	}
 
     @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
