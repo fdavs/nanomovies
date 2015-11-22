@@ -68,11 +68,6 @@ public class MovieDetailActivity extends AppCompatActivity {
 
 	}
 
-	@Override
-	public Intent getIntent() {
-		return super.getIntent();
-	}
-
 	/**
 	 * Picasso callback that downloads a high resolution image in the background
 	 * and updates the target ImageView when (read: not before) the download has completed.

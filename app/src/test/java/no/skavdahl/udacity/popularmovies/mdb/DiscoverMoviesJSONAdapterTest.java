@@ -5,14 +5,12 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.List;
 
-import org.assertj.core.data.Offset;
 import org.json.JSONException;
 
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-//import static org.junit.Assert.*;
 import static org.assertj.core.api.Assertions.*;
 
 import no.skavdahl.udacity.popularmovies.model.Movie;
