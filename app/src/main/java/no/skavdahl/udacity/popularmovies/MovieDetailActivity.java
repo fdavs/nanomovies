@@ -37,7 +37,7 @@ public class MovieDetailActivity extends AppCompatActivity {
 		final Movie movie;
 		try {
 			Intent startingIntent = getIntent();
-			DiscoverMoviesJSONAdapter adapter = new DiscoverMoviesJSONAdapter();
+			DiscoverMoviesJSONAdapter adapter = new DiscoverMoviesJSONAdapter(getResources());
 			JSONObject obj = new JSONObject(startingIntent.getStringExtra("movie"));
 			movie = adapter.toMovie(obj);
 		}
@@ -51,7 +51,7 @@ public class MovieDetailActivity extends AppCompatActivity {
 		movieTitleView.setText(movie.getTitle());
 
 		TextView synopsisView = (TextView) findViewById(R.id.synopsis_textview);
-		synopsisView.setText(movie.getSynopsis());
+		synopsisView.setText(formatOptString(movie.getSynopsis()));
 
 		TextView releaseDateTextView = (TextView) findViewById(R.id.release_date_textview);
 		releaseDateTextView.setText(formatOptDate(movie.getReleaseDate()));
@@ -62,9 +62,12 @@ public class MovieDetailActivity extends AppCompatActivity {
 
 		// Show the thumbnail poster image first while loading a higher-resolution image
 		final ImageView posterView = (ImageView) findViewById(R.id.poster_imageview);
-		Picasso.with(this)
-			.load(DiscoverMovies.getPosterThumbnailDownloadURL(movie.getPosterPath()))
-			.into(posterView, new DownloadHiresPosterCallback(this, movie.getPosterPath(), posterView));
+		PicassoUtils.displayWithFallback(this, movie, posterView,
+			new DownloadHiresPosterCallback(getBaseContext(), movie, posterView));
+	}
+
+	private String formatOptString(final String str) {
+		return (str != null) ? str : "";
 	}
 
 	private String formatOptDate(final Date date) {
@@ -79,26 +82,17 @@ public class MovieDetailActivity extends AppCompatActivity {
 	 * Picasso callback that downloads a high resolution image in the background
 	 * and updates the target ImageView when (read: not before) the download has completed.
 	 */
-	private static class DownloadHiresPosterCallback implements com.squareup.picasso.Callback {
-		private final String LOG_TAG = getClass().getSimpleName();
-
+	private static class DownloadHiresPosterCallback extends OfflinePosterCallback {
 		private final Context context;
-		private final String posterPath;
-		private final ImageView targetView;
 
-		public DownloadHiresPosterCallback(
-			final Context context,
-			final String posterPath,
-			final ImageView targetView) {
-
+		public DownloadHiresPosterCallback(final Context context, final Movie movie, final ImageView targetView) {
+			super(movie, targetView);
 			this.context = context;
-			this.posterPath = posterPath;
-			this.targetView = targetView;
 		}
 
 		@Override
 		public void onSuccess() {
-			final String downloadURL = DiscoverMovies.getPosterHiresDownloadURL(context, posterPath);
+			final String downloadURL = DiscoverMovies.getPosterHiresDownloadURL(context, getMovie().getPosterPath());
 
 			Picasso.with(context)
 				.load(downloadURL)
@@ -108,23 +102,19 @@ public class MovieDetailActivity extends AppCompatActivity {
 						// Display the hires image now that it is cached
 						Picasso.with(context)
 							.load(downloadURL)
-							.into(targetView);
+							.into(getTargetView());
 					}
 
 					@Override
 					public void onError() {
-						logError(); // download of hires image failed
+						// Keep the lowres version
 					}
 				});
 		}
 
 		@Override
 		public void onError() {
-			logError(); // download of lowres image failed
-		}
-
-		private void logError() {
-			Log.w(LOG_TAG, "Picasso download failed with error");
+			displayOfflinePoster();
 		}
 	}
 }

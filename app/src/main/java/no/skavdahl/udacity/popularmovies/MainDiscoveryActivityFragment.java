@@ -97,7 +97,7 @@ public class MainDiscoveryActivityFragment extends Fragment {
 	private void openMovieDetailsActivity(final Movie movie) {
 		String movieData;
 		try {
-			DiscoverMoviesJSONAdapter adapter = new DiscoverMoviesJSONAdapter();
+			DiscoverMoviesJSONAdapter adapter = new DiscoverMoviesJSONAdapter(null);
 			movieData = adapter.toJSONString(movie);
 		}
 		catch (JSONException e) {
@@ -186,7 +186,7 @@ public class MainDiscoveryActivityFragment extends Fragment {
         // permission granted, go ahead with the operation
 	    DiscoveryMode mode = UserPreferences.getDiscoveryModePreference(getActivity());
 	    String apiKey = getString(R.string.movie_api_key);
-        DiscoverMoviesTask task = new DiscoverMoviesTask(mode, apiKey, viewAdapter);
+        DiscoverMoviesTask task = new DiscoverMoviesTask(mode, apiKey, getResources(), viewAdapter);
         task.execute();
     }
 }

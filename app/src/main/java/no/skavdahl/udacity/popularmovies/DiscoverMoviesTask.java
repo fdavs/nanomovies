@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
 
+import android.content.res.Resources;
 import android.os.AsyncTask;
 import android.util.Log;
 
@@ -21,6 +22,7 @@ public class DiscoverMoviesTask extends AsyncTask<Void, Void, List<Movie>> {
 
 	private final String LOG_TAG = DiscoverMoviesTask.class.getSimpleName();
 	private final String apiKey;
+	private final Resources resources;
 	private final MoviePosterAdapter viewAdapter;
 	private final DiscoveryMode discoveryMode;
 
@@ -34,10 +36,12 @@ public class DiscoverMoviesTask extends AsyncTask<Void, Void, List<Movie>> {
 	public DiscoverMoviesTask(
 		final DiscoveryMode discoveryMode,
 		final String apiKey,
+		final Resources resources,
 		final MoviePosterAdapter viewAdapter) {
 
 		this.discoveryMode = discoveryMode;
 		this.apiKey = apiKey;
+		this.resources = resources;
 		this.viewAdapter = viewAdapter;
 	}
 
@@ -46,7 +50,7 @@ public class DiscoverMoviesTask extends AsyncTask<Void, Void, List<Movie>> {
 		try {
 			String jsonResponse = executeQuery();
 
-			DiscoverMoviesJSONAdapter jsonAdapter = new DiscoverMoviesJSONAdapter();
+			DiscoverMoviesJSONAdapter jsonAdapter = new DiscoverMoviesJSONAdapter(resources);
 			return jsonAdapter.getMoviesList(jsonResponse);
 		}
 		catch (Exception e) {

@@ -59,7 +59,7 @@ public class DiscoverMoviesJSONAdapterTest {
 
 
 	private List<Movie> fromJSON(String json) throws JSONException {
-		DiscoverMoviesJSONAdapter adapter = new DiscoverMoviesJSONAdapter();
+		DiscoverMoviesJSONAdapter adapter = new DiscoverMoviesJSONAdapter(null);
 		return adapter.getMoviesList(json);
 	}
 
@@ -81,7 +81,7 @@ public class DiscoverMoviesJSONAdapterTest {
 	/** Verifies that a collection of movies are correctly parsed from the JSON string. */
 	@Test
 	public void testCorrectNumberOfMoviesInResult() throws JSONException {
-		DiscoverMoviesJSONAdapter adapter = new DiscoverMoviesJSONAdapter();
+		DiscoverMoviesJSONAdapter adapter = new DiscoverMoviesJSONAdapter(null);
 		List<Movie> movies = adapter.getMoviesList(discoveryResultJSON);
 
 		assertThat(movies).hasSize(20);

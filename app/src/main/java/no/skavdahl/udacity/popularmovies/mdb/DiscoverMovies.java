@@ -1,6 +1,7 @@
 package no.skavdahl.udacity.popularmovies.mdb;
 
 import android.content.Context;
+import android.graphics.Point;
 import android.net.Uri;
 import android.util.DisplayMetrics;
 import android.util.Log;
@@ -20,6 +21,12 @@ import java.net.URL;
 public class DiscoverMovies {
 
 	private static final String LOG_TAG = DiscoverMovies.class.getSimpleName();
+
+	/** Standard "small" poster width in pixels */
+	// Note: Could have used android.util.Size but this requires API level 21
+	// Note: This size was found by measuring a poster from themoviedb.org
+	// TODO Refactor: move to another class not tied specifically to themoviedb.org
+	public static final Point POSTER_SIZE_PIXELS = new Point(185, 283);
 
 	/**
 	 * Queries themoviedb.org for the most popular movies. The response is returned
@@ -52,22 +59,22 @@ public class DiscoverMovies {
 	}
 
 	public static String getPosterThumbnailDownloadURL(String posterPath) {
-		return "http://image.tmdb.org/t/p/w185" + posterPath;
+		return "http://image.tmdb.org/t/p/w" + POSTER_SIZE_PIXELS.x + posterPath;
 	}
 
 	/**
-	 * Returns the download URL for a high-resolution poster image. The meaning of "high
+	 * Returns a download URL for a high-resolution poster image. The meaning of "high
 	 * resolution" is determined by the device capabilities (screen resolution and connection
 	 * state).
 	 *
-	 * @return the download URL for the chosen resolution.
+	 * @return a download URL for a higher-resolution poster image.
 	 */
 	public static String getPosterHiresDownloadURL(Context context, String posterPath) {
 		DisplayMetrics dm = context.getResources().getDisplayMetrics();
 
 		// TODO Consider device connectivity
 
-		// TODO Clean up this code (resolution selection)
+		// TODO Refactor: Clean up this code (resolution selection)
 		int widths[] = new int[] { 92, 154, 185, 342, 500, 780, 1000 };
 		String options[]= new String[] { "w92", "w154", "w185", "w342", "w500", "w780", "original"};
 

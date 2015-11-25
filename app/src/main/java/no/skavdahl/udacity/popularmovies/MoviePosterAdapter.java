@@ -49,23 +49,19 @@ public class MoviePosterAdapter extends BaseAdapter {
 
 	@Override
 	public View getView(int position, View convertView, ViewGroup parent) {
-		ImageView imageView;
+		ImageView posterView;
 
 		if (convertView != null) {
-			imageView = (ImageView) convertView;
+			posterView = (ImageView) convertView;
 		}
 		else {
-			imageView = new ImageView(context);
-			imageView.setPadding(0, 0, 0, 0);
-			imageView.setAdjustViewBounds(true);
+			posterView = new ImageView(context);
+			posterView.setPadding(0, 0, 0, 0);
+			posterView.setAdjustViewBounds(true);
 		}
 
-		Picasso.with(context)
-			.load(DiscoverMovies.getPosterThumbnailDownloadURL(movies.get(position).getPosterPath()))
-				// TODO .placeholder(R.drawable.user_placeholder)
-				// TODO .error(R.drawable.user_placeholder_error)
-			.into(imageView);
+		PicassoUtils.displayWithFallback(context, movies.get(position), posterView, null);
 
-		return imageView;
+		return posterView;
 	}
 }
