@@ -31,9 +31,8 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:textAppearance="?android:attr/textAppearanceLarge"
-            android:text="Movie title"
-            android:id="@+id/movie_title_textview"
+            android:text="@string/movie_synopsis"
+            android:id="@+id/synopsis_textview"
             android:layout_below="@+id/poster_imageview"
             android:layout_alignParentLeft="true"
             android:layout_alignParentStart="true"/>
@@ -41,17 +40,8 @@
        <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Synopsis"
-            android:id="@+id/synopsis_textview"
-            android:layout_below="@+id/movie_title_textview"
-            android:layout_alignParentLeft="true"
-            android:layout_alignParentStart="true"/>
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="User Rating:"
-            android:id="@+id/user_rating_label"
+            android:text="@string/movie_title"
+            android:id="@+id/movie_title_textview"
             android:layout_below="@+id/synopsis_textview"
             android:layout_alignParentLeft="true"
             android:layout_alignParentStart="true"/>
@@ -59,32 +49,19 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="2.5"
+            android:text="@string/movie_user_rating"
             android:id="@+id/user_rating_textview"
-            android:layout_alignTop="@+id/user_rating_label"
-            android:layout_toRightOf="@+id/user_rating_label"
-            android:layout_toEndOf="@+id/user_rating_label"
-            android:layout_marginLeft="10dp"
-            android:layout_marginStart="10dp"/>
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Release Date:"
-            android:id="@+id/release_rate_label"
-            android:layout_below="@+id/user_rating_label"
+            android:layout_below="@+id/movie_title_textview"
             android:layout_alignParentLeft="true"
             android:layout_alignParentStart="true"/>
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="01.01.2015"
-            android:id="@+id/release_date_textview"
-            android:layout_alignTop="@+id/release_rate_label"
-            android:layout_toRightOf="@+id/release_rate_label"
-            android:layout_toEndOf="@+id/release_rate_label"
-            android:layout_marginLeft="10dp"
-            android:layout_marginStart="10dp"/>
+            android:text="$string/movie_release_date"
+            android:id="@+id/release_rate_textview"
+            android:layout_below="@+id/user_rating_textview"
+            android:layout_alignParentLeft="true"
+            android:layout_alignParentStart="true"/>
     </RelativeLayout>
 </ScrollView>

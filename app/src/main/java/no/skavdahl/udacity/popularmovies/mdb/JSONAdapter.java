@@ -22,6 +22,22 @@ public abstract class JSONAdapter {
 	private final String MOVIEDB_DATE_FORMAT = "yyyy-MM-dd";
 
 	/**
+	 * Returns the value mapped by name if it exists. If the value does not exist,
+	 * or is the value "null", {@code null} is returned.
+	 *
+	 * @param obj The JSON object from which to read values
+	 * @param attrName The attribute of the JSON object to access
+	 *
+	 * @return the value as a string or {@code null}.
+	 *
+	 * @throws JSONException if unable to access the attribute value.
+	 */
+	protected String getOptString(JSONObject obj, String attrName) throws JSONException {
+		String value = obj.optString(attrName, null);
+		return "null".equals(value) ? null : value;
+	}
+
+	/**
 	 * Returns the value mapped by name if it exists and can be parsed as a date string
 	 * formatted as yyyy-mm-dd, or throws if no such mapping exists.
 	 *
@@ -35,8 +51,12 @@ public abstract class JSONAdapter {
 	 * @throws JSONException if unable to parse the attribute value as a date.
 	 */
 	protected Date getOptDate(JSONObject obj, String attrName) throws JSONException {
-		String dateString = obj.optString(attrName).trim();
-		if (dateString.length() == 0)
+		String dateString = obj.optString(attrName);
+		if (dateString == null)
+			return null;
+
+		dateString = dateString.trim();
+		if (dateString.length() == 0 || "null".equals(dateString))
 			return null;
 
 		try {

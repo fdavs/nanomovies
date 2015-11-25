@@ -13,7 +13,6 @@ import com.squareup.picasso.Picasso;
 import org.json.JSONObject;
 
 import java.text.DateFormat;
-import java.text.DecimalFormat;
 import java.util.Date;
 
 import no.skavdahl.udacity.popularmovies.mdb.DiscoverMovies;
@@ -47,32 +46,36 @@ public class MovieDetailActivity extends AppCompatActivity {
 			return;
 		}
 
+		final Context context = getBaseContext();
+
 		TextView movieTitleView = (TextView) findViewById(R.id.movie_title_textview);
-		movieTitleView.setText(movie.getTitle());
+		movieTitleView.setText(context.getString(R.string.movie_title, movie.getTitle()));
 
 		TextView synopsisView = (TextView) findViewById(R.id.synopsis_textview);
-		synopsisView.setText(formatOptString(movie.getSynopsis()));
+		synopsisView.setText(
+			context.getString(R.string.movie_synopsis, formatOptString(movie.getSynopsis(), "")));
 
-		TextView releaseDateTextView = (TextView) findViewById(R.id.release_date_textview);
-		releaseDateTextView.setText(formatOptDate(movie.getReleaseDate()));
+		TextView releaseDateTextView = (TextView) findViewById(R.id.release_rate_textview);
+		releaseDateTextView.setText(
+			context.getString(R.string.movie_release_date, formatOptDate(movie.getReleaseDate(),
+				context.getString(R.string.data_unknown))));
 
 		TextView userRatingTextView = (TextView) findViewById(R.id.user_rating_textview);
-		DecimalFormat numberFormat = new DecimalFormat("0.0");
-		userRatingTextView.setText(numberFormat.format(movie.getUserRating()));
+		userRatingTextView.setText(context.getString(R.string.movie_user_rating, movie.getUserRating()));
 
 		// Show the thumbnail poster image first while loading a higher-resolution image
 		final ImageView posterView = (ImageView) findViewById(R.id.poster_imageview);
-		PicassoUtils.displayWithFallback(this, movie, posterView,
-			new DownloadHiresPosterCallback(getBaseContext(), movie, posterView));
+		PicassoUtils.displayWithFallback(context, movie, posterView,
+			new DownloadHiresPosterCallback(context, movie, posterView));
 	}
 
-	private String formatOptString(final String str) {
-		return (str != null) ? str : "";
+	private String formatOptString(final String str, final String fallback) {
+		return (str != null) ? str : fallback;
 	}
 
-	private String formatOptDate(final Date date) {
+	private String formatOptDate(final Date date, final String fallback) {
 		if (date == null)
-			return "";
+			return fallback;
 
 		DateFormat dateFormat = android.text.format.DateFormat.getDateFormat(this);
 		return dateFormat.format(date);
@@ -94,6 +97,12 @@ public class MovieDetailActivity extends AppCompatActivity {
 		public void onSuccess() {
 			final String downloadURL = DiscoverMovies.getPosterHiresDownloadURL(context, getMovie().getPosterPath());
 
+			// preload the hi-res poster image with "fetch" rather than "load", putting it
+			// in Picasso's cache.
+			// "load" makes Picasso take control over the target ImageView immediately,
+			// overriding the low-res picture with a "progress picture" until the download
+			// operation has completed. "fetch()" on the other hand doesn't touch the
+			// ImageView at all but simply puts the downloaded picture in the cache.
 			Picasso.with(context)
 				.load(downloadURL)
 				.fetch(new com.squareup.picasso.Callback() {

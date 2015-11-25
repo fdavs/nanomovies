@@ -103,9 +103,9 @@ public class DiscoverMoviesJSONAdapter extends JSONAdapter {
 	public Movie toMovie(JSONObject obj) throws JSONException {
 		int id = obj.getInt(JSON_MOVIE_ID);
 		Date releaseDate = getOptDate(obj, JSON_MOVIE_RELEASE_DATE);
-		String title = obj.optString(JSON_MOVIE_TITLE, null);
-		String posterPath = obj.optString(JSON_MOVIE_POSTER_PATH, null);
-		String synopsis = obj.optString(JSON_MOVIE_SYNOPSIS, null);
+		String title = getOptString(obj, JSON_MOVIE_TITLE);
+		String posterPath = getOptString(obj, JSON_MOVIE_POSTER_PATH);
+		String synopsis = getOptString(obj, JSON_MOVIE_SYNOPSIS);
 		double popularity = obj.optDouble(JSON_MOVIE_POPULARITY, Movie.DEFAULT_POPULARITY);
 		double userRating = obj.optDouble(JSON_MOVIE_USER_RATING, Movie.DEFAULT_USER_RATING);
 		int fallbackColor = obj.optInt(JSON_MOVIE_EXT_COLOR, generateColorCode());
@@ -121,6 +121,8 @@ public class DiscoverMoviesJSONAdapter extends JSONAdapter {
 	 * @return a 4-byte value that can be interpreted as an ARGB color.
 	 */
 	private int generateColorCode() {
+		// if we have access to the color resources, choose a color from Android's
+		// Material Design palette.
 		if (resources != null) {
 			int start = R.array.mdcolor_50;
 			int end = R.array.mdcolor_A700;
@@ -137,8 +139,9 @@ public class DiscoverMoviesJSONAdapter extends JSONAdapter {
 			}
 		}
 
-		// fallback, primarily for use with unit tests in which 'resources' are absent
-		else return rnd.nextInt(0x01000000);
+		// otherwise -- primarily in unit tests in which 'resources' are absent --
+		// just choose a random color
+		else return 0xFF000000 | rnd.nextInt(0x01000000);
 	}
 
 
