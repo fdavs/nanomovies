@@ -57,11 +57,12 @@ public class MainDiscoveryActivityFragment extends Fragment {
 	    // Configure the grid display of movie posters
 	    GridView posterGrid = (GridView) view.findViewById(R.id.poster_grid);
 
-	    // -- how to display movie posters
-	    posterGrid.setAdapter(viewAdapter = new MoviePosterAdapter(getContext()));
-
 	    // -- how many posters to display on each row
-	    posterGrid.setColumnWidth(calculateOptimalColumnWidth());
+	    int posterViewWidth = calculateOptimalColumnWidth();
+	    posterGrid.setColumnWidth(posterViewWidth);
+
+	    // -- how to display movie posters
+	    posterGrid.setAdapter(viewAdapter = new MoviePosterAdapter(getContext(), posterViewWidth));
 
 	    // -- what should happen when a movie poster is clicked
 		posterGrid.setOnItemClickListener(new AdapterView.OnItemClickListener() {

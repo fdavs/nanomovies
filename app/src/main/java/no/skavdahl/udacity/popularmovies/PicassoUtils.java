@@ -16,13 +16,13 @@ import no.skavdahl.udacity.popularmovies.model.Movie;
  */
 public class PicassoUtils {
 	public static void displayWithFallback(Context context, Movie movie, ImageView targetView, com.squareup.picasso.Callback callback) {
-		/*if (movie.getPosterPath() != null) {
+		if (movie.getPosterPath() != null) {
 			Picasso.with(context)
 				.load(DiscoverMovies.getPosterThumbnailDownloadURL(movie.getPosterPath()))
 				.error(OfflinePoster.forMovie(movie))
 				.into(targetView, callback);
 		}
-		else*/
+		else
 			targetView.setImageDrawable(OfflinePoster.forMovie(movie));
 	}
 }

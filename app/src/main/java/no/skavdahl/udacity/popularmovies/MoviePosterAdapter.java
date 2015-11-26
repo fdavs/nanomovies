@@ -6,8 +6,6 @@ import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.ImageView;
 
-import com.squareup.picasso.Picasso;
-
 import java.util.Collections;
 import java.util.List;
 
@@ -22,9 +20,13 @@ import no.skavdahl.udacity.popularmovies.model.Movie;
 public class MoviePosterAdapter extends BaseAdapter {
 	private final Context context;
 	private List<Movie> movies = Collections.emptyList();
+	private final int posterViewWidth;
+	private final int posterViewHeight;
 
-	public MoviePosterAdapter(Context context) {
+	public MoviePosterAdapter(final Context context, final int posterViewWidth) {
 		this.context = context;
+		this.posterViewWidth = posterViewWidth;
+		this.posterViewHeight = posterViewWidth * DiscoverMovies.POSTER_SIZE_PIXELS.y / DiscoverMovies.POSTER_SIZE_PIXELS.x;
 	}
 
 	public void setMovies(List<Movie> movies) {
@@ -57,7 +59,8 @@ public class MoviePosterAdapter extends BaseAdapter {
 		else {
 			posterView = new ImageView(context);
 			posterView.setPadding(0, 0, 0, 0);
-			posterView.setAdjustViewBounds(true);
+			posterView.setScaleType(ImageView.ScaleType.CENTER_CROP);
+			posterView.setLayoutParams(new ViewGroup.LayoutParams(posterViewWidth, posterViewHeight));
 		}
 
 		PicassoUtils.displayWithFallback(context, movies.get(position), posterView, null);
