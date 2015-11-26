@@ -76,6 +76,18 @@ public class MainDiscoveryActivityFragment extends Fragment {
 	    return view;
     }
 
+	@Override
+	public void onDestroyView() {
+		super.onDestroyView();
+
+		if (prefChangeListener != null) {
+			getActivity()
+				.getPreferences(Context.MODE_PRIVATE)
+				.unregisterOnSharedPreferenceChangeListener(prefChangeListener);
+			prefChangeListener = null;
+		}
+	}
+
 	/**
 	 * Calculates the optimal column width based on the width of the display and an ideal
 	 * poster width of approximately one inch.
