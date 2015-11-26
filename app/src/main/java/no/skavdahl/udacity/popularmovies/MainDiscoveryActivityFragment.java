@@ -33,7 +33,7 @@ import no.skavdahl.udacity.popularmovies.model.Movie;
  */
 public class MainDiscoveryActivityFragment extends Fragment {
 
-    private final String LOG_TAG = MainDiscoveryActivityFragment.class.getSimpleName();
+    private final String LOG_TAG = getClass().getSimpleName();
 
 	private MoviePosterAdapter viewAdapter;
 
