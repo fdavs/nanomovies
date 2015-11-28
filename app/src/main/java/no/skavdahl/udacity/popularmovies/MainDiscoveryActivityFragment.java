@@ -40,7 +40,6 @@ public class MainDiscoveryActivityFragment extends Fragment {
 	// It is recommended to keep a local reference to this ChangeListener to avoid
 	// garbage collection -- see the Android API docs at http://goo.gl/0yFyTy
 	// (SharedPreferences#registerOnSharedPreferenceChangeListener)
-	@SuppressWarnings({"FieldCanBeLocal", "unused"})
 	private SharedPreferences.OnSharedPreferenceChangeListener prefChangeListener;
 
 	public MainDiscoveryActivityFragment() {

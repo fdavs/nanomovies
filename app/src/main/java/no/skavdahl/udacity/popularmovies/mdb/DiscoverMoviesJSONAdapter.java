@@ -39,10 +39,6 @@ public class DiscoverMoviesJSONAdapter extends JSONAdapter {
 	private final String JSON_MOVIE_USER_RATING = "vote_average";
 	private final String JSON_MOVIE_RELEASE_DATE = "release_date";
 
-	// --- additional attribute names used internally ---
-
-	private final String JSON_MOVIE_EXT_COLOR = "color";
-
 	// --- class properties ---
 
 	private final Resources resources;
@@ -108,30 +104,31 @@ public class DiscoverMoviesJSONAdapter extends JSONAdapter {
 		String synopsis = getOptString(obj, JSON_MOVIE_SYNOPSIS);
 		double popularity = obj.optDouble(JSON_MOVIE_POPULARITY, Movie.DEFAULT_POPULARITY);
 		double userRating = obj.optDouble(JSON_MOVIE_USER_RATING, Movie.DEFAULT_USER_RATING);
-		int fallbackColor = obj.optInt(JSON_MOVIE_EXT_COLOR, generateColorCode());
+		int fallbackColor = generateColorCode(title);
 
 		return new Movie(id, releaseDate, title, posterPath, synopsis, popularity, userRating, fallbackColor);
 	}
 
 	/**
-	 * Generates a random (more or less) color code. The generated number will be in
-	 * the range 0xFF000000 through 0xFFFFFFFF and should be interpreted as four bytes
-	 * representing the alpha, R, G and B components respectively.
+	 * Generates a color code associated with the given movie title. The title is used
+	 * as a base for the calculation in order to generate a reproducible result (the same
+	 * color is generated every time). The generated number will be in the range 0xFF000000
+	 * through 0xFFFFFFFF and should be interpreted as four bytes representing the alpha,
+	 * R, G and B components respectively.
+	 *
+	 * @param title The movie title from which to start the calculation.
 	 *
 	 * @return a 4-byte value that can be interpreted as an ARGB color.
 	 */
-	private int generateColorCode() {
+	private int generateColorCode(String title) {
 		// if we have access to the color resources, choose a color from Android's
 		// Material Design palette.
 		if (resources != null) {
-			int start = R.array.mdcolor_50;
-			int end = R.array.mdcolor_A700;
-
-			int groupIndex = rnd.nextInt(end - start + 1) + start;
+			int groupIndex = R.array.mdcolor_500;
 			TypedArray group = resources.obtainTypedArray(groupIndex);
 
 			try {
-				int index = rnd.nextInt(group.length());
+				int index = Math.abs(title.hashCode() % group.length());
 				return group.getColor(index, Color.WHITE);
 			}
 			finally {
@@ -163,7 +160,6 @@ public class DiscoverMoviesJSONAdapter extends JSONAdapter {
 		obj.put(JSON_MOVIE_SYNOPSIS, movie.getSynopsis());
 		obj.put(JSON_MOVIE_POPULARITY, movie.getPopularity());
 		obj.put(JSON_MOVIE_USER_RATING, movie.getUserRating());
-		obj.put(JSON_MOVIE_EXT_COLOR, movie.getFallbackColorCode());
 
 		return obj.toString();
 	}
