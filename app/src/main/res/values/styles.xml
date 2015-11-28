@@ -3,6 +3,7 @@
     <!-- Movie discovery theme -->
     <style name="MovieDiscoveryTheme" parent="AppTheme">
         <item name="android:background">#ff000000</item>
+        <item name="android:textColor">#ffffffff</item>
     </style>
 
     <!-- Base application theme. -->

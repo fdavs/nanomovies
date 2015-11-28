@@ -10,7 +10,7 @@
     <!-- strings in the Movie Detail fragment -->
     <string name="movie_title">Title: <xliff:g id="title" example="Inside Out">%1$s</xliff:g></string>
     <string name="movie_synopsis"><xliff:g id="synopsis" example="Growing up can be a bumpy road, and it's no exception for Riley...">%1$s</xliff:g></string>
-    <string name="movie_user_rating">User rating: <xliff:g id="rating" example="8.1 ">%1$2.1f</xliff:g></string>
+    <string name="movie_user_rating">User rating: <xliff:g id="rating" example="8.1 ">%1$2.1f</xliff:g> / 10</string>
     <string name="movie_release_date">Release date: <xliff:g id="date" example="6/19/2015">%1$s</xliff:g></string>
     <string name="movie_poster">Movie poster</string>
     <string name="data_unknown">&lt;unknown&gt;</string>
