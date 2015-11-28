@@ -16,9 +16,9 @@
             android:checked="false"
             app:showAsAction="never"/>
     </group>
-    <item
+    <!--<item
         android:id="@+id/action_refresh"
         android:orderInCategory="90"
         android:title="@string/action_refresh"
-        app:showAsAction="ifRoom"/>
+        app:showAsAction="ifRoom"/>-->
 </menu>

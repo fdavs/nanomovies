@@ -125,7 +125,19 @@ public class DiscoverMovies {
 		// This code is based on the GitHub Gist provided for the Sunshine app
 		// https://gist.github.com/udacityandroid/d6a7bb21904046a91695
 
-		Log.v(LOG_TAG, "Issuing GET request " + endpoint);
+		// TODO cache query result
+
+		if (Log.isLoggable(LOG_TAG, Log.VERBOSE)) {
+			// don't log the api key
+			int keyStart = endpoint.indexOf("key=") + "key=".length();
+			int keyEnd = endpoint.indexOf("&", keyStart);
+			if (keyEnd < 0)
+				keyEnd = endpoint.length();
+
+			String loggedEndpoint = endpoint.substring(0, keyStart) + "..." + endpoint.substring(keyEnd);
+
+			Log.v(LOG_TAG, "Issuing GET request " + loggedEndpoint);
+		}
 
 		HttpURLConnection connection = null;
 

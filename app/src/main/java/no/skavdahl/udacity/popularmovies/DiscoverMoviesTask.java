@@ -4,7 +4,7 @@ import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
 
-import android.content.res.Resources;
+import android.content.Context;
 import android.os.AsyncTask;
 import android.util.Log;
 
@@ -20,29 +20,40 @@ import no.skavdahl.udacity.popularmovies.mdb.DiscoverMoviesJSONAdapter;
  */
 public class DiscoverMoviesTask extends AsyncTask<Void, Void, List<Movie>> {
 
+	public interface Listener {
+		void onDownloadSuccess(List<Movie> movies);
+		void onNetworkFailure();
+	}
+
 	private final String LOG_TAG = DiscoverMoviesTask.class.getSimpleName();
+
 	private final String apiKey;
-	private final Resources resources;
-	private final MoviePosterAdapter viewAdapter;
+	private final Context context;
 	private final DiscoveryMode discoveryMode;
+	private final Listener listener;
+
+	/** Set to true if the task fails with an error. */
+	private boolean failed;
 
 	/**
 	 * Prepares a movie discovery task.
 	 *
 	 * @param discoveryMode how to discover movies
 	 * @param apiKey the API key with which to perform the server queries
-	 * @param viewAdapter the adapter to which to send the query response
+	 * @param context Access to the application environment (resources)
+	 * @param listener An implementation that will be notified when the task has completed
+	 *                 (whether with failure or success)
 	 */
 	public DiscoverMoviesTask(
 		final DiscoveryMode discoveryMode,
 		final String apiKey,
-		final Resources resources,
-		final MoviePosterAdapter viewAdapter) {
+		final Context context,
+		final Listener listener) {
 
 		this.discoveryMode = discoveryMode;
 		this.apiKey = apiKey;
-		this.resources = resources;
-		this.viewAdapter = viewAdapter;
+		this.context = context;
+		this.listener = listener;
 	}
 
 	@Override
@@ -50,11 +61,16 @@ public class DiscoverMoviesTask extends AsyncTask<Void, Void, List<Movie>> {
 		try {
 			String jsonResponse = executeQuery();
 
-			DiscoverMoviesJSONAdapter jsonAdapter = new DiscoverMoviesJSONAdapter(resources);
+			DiscoverMoviesJSONAdapter jsonAdapter = new DiscoverMoviesJSONAdapter(context.getResources());
 			return jsonAdapter.getMoviesList(jsonResponse);
 		}
 		catch (Exception e) {
 			Log.e(LOG_TAG, "Movie discovery failed with error", e);
+
+			synchronized (this) {
+				failed = true;
+			}
+
 			return Collections.emptyList();
 		}
 	}
@@ -73,6 +89,14 @@ public class DiscoverMoviesTask extends AsyncTask<Void, Void, List<Movie>> {
 
 	@Override
 	protected void onPostExecute(List<Movie> movies) {
-		viewAdapter.setMovies(movies);
+		boolean failed;
+		synchronized (this) {
+			failed = this.failed;
+		}
+
+		if (failed)
+			listener.onNetworkFailure();
+		else
+			listener.onDownloadSuccess(movies);
 	}
 }

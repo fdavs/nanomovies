@@ -1,13 +1,26 @@
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
     <string name="app_name">Popular Movies</string>
-    <string name="action_settings">Settings</string>
-    <string name="action_refresh">Refresh</string>
+
+    <!-- strings in the Options Menu -->
+    <!-- string name="action_settings">Settings</string -->
+    <!-- string name="action_refresh">Refresh</string -->>
+    <string name="action_popular_movies">Popular movies</string>
+    <string name="action_high_rated_movies">Highest rated movies</string>
+
+    <!-- strings in the Movie Detail fragment -->
     <string name="movie_title">Title: <xliff:g id="title" example="Inside Out">%1$s</xliff:g></string>
     <string name="movie_synopsis"><xliff:g id="synopsis" example="Growing up can be a bumpy road, and it's no exception for Riley...">%1$s</xliff:g></string>
     <string name="movie_user_rating">User rating: <xliff:g id="rating" example="8.1 ">%1$2.1f</xliff:g></string>
     <string name="movie_release_date">Release date: <xliff:g id="date" example="6/19/2015">%1$s</xliff:g></string>
     <string name="movie_poster">Movie poster</string>
     <string name="data_unknown">&lt;unknown&gt;</string>
-    <string name="action_popular_movies">Popular movies</string>
-    <string name="action_high_rated_movies">Highest rated movies</string>
+
+    <!-- error messages -->
+    <string name="no_permission_try_again">This app needs permission to access the internet in order to download movie information.</string>
+    <string name="no_network_try_again">Could not connect to the server database. Verify your connection settings or try again later.</string>
+
+    <!-- common buttons -->
+    <string name="ok">Ok</string>
+    <string name="exit">Exit</string>
+    <string name="try_again">Try again</string>
 </resources>

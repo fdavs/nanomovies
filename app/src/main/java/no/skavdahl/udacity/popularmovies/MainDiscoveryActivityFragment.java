@@ -3,12 +3,14 @@ package no.skavdahl.udacity.popularmovies;
 import android.Manifest;
 import android.app.Activity;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.support.v4.app.Fragment;
 import android.os.Bundle;
 import android.support.v4.content.ContextCompat;
+import android.support.v7.app.AlertDialog;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -21,6 +23,8 @@ import android.widget.AdapterView;
 import android.widget.GridView;
 
 import org.json.JSONException;
+
+import java.util.List;
 
 import no.skavdahl.udacity.popularmovies.mdb.DiscoverMoviesJSONAdapter;
 import no.skavdahl.udacity.popularmovies.mdb.DiscoveryMode;
@@ -136,8 +140,8 @@ public class MainDiscoveryActivityFragment extends Fragment {
 		    prefChangeListener = new SharedPreferences.OnSharedPreferenceChangeListener() {
 			    @Override
 			    public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
-					if (!UserPreferences.DISCOVERY_MODE.equals(key))
-						return;
+				    if (!UserPreferences.DISCOVERY_MODE.equals(key))
+					    return;
 
 				    configureOptionsMenu(menu);
 				    refreshMovies();
@@ -164,9 +168,9 @@ public class MainDiscoveryActivityFragment extends Fragment {
 		    case R.id.action_high_rated_movies:
 			    UserPreferences.setDiscoverModePreference(getActivity(), DiscoveryMode.HIGH_RATED_MOVIES);
 			    return true;
-		    case R.id.action_refresh:
-                refreshMovies();
-                return true;
+		    //case R.id.action_refresh:
+            //    refreshMovies();
+            //    return true;
 		    default:
 			    return super.onOptionsItemSelected(item);
         }
@@ -190,15 +194,51 @@ public class MainDiscoveryActivityFragment extends Fragment {
 
         if (permissionCheck != PackageManager.PERMISSION_GRANTED) {
             Log.w(LOG_TAG, "Operation canceled: permission denied by user: " + Manifest.permission.INTERNET);
-            // TODO We should inform the user that the operation is aborted due to missing permission
-            //      hence it is clear why the screen doesn't update
+
+            // Inform the user that the operation is aborted due to missing permission
+            // so it is clear why the screen doesn't update
+	        showFailureDialog(R.string.no_permission_try_again);
+
             return;
         }
 
         // permission granted, go ahead with the operation
 	    DiscoveryMode mode = UserPreferences.getDiscoveryModePreference(getActivity());
 	    String apiKey = getString(R.string.movie_api_key);
-        DiscoverMoviesTask task = new DiscoverMoviesTask(mode, apiKey, getResources(), viewAdapter);
+        DiscoverMoviesTask task = new DiscoverMoviesTask(mode, apiKey, getActivity(),
+	        new DiscoverMoviesTask.Listener() {
+			    @Override
+			    public void onDownloadSuccess(List<Movie> movies) {
+				    viewAdapter.setMovies(movies);
+			    }
+
+			    @Override
+			    public void onNetworkFailure() {
+				    showFailureDialog(R.string.no_network_try_again);
+			    }
+		    }
+        );
         task.execute();
     }
+
+	private void showFailureDialog(int messageId) {
+		AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(getContext());
+		alertDialogBuilder.setMessage(messageId);
+
+		alertDialogBuilder.setPositiveButton(R.string.try_again, new DialogInterface.OnClickListener() {
+			@Override
+			public void onClick(DialogInterface dialog, int which) {
+				refreshMovies();
+			}
+		});
+		alertDialogBuilder.setNegativeButton(R.string.exit, new DialogInterface.OnClickListener() {
+			@Override
+			public void onClick(DialogInterface dialog, int which) {
+				getActivity().finish();
+			}
+		});
+
+		AlertDialog alertDialog = alertDialogBuilder.create();
+		alertDialog.show();
+	}
 }
