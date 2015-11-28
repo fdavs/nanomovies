@@ -29,7 +29,7 @@ public class MoviePosterAdapter extends BaseAdapter {
 		this.posterViewHeight = posterViewWidth * DiscoverMovies.POSTER_SIZE_PIXELS.y / DiscoverMovies.POSTER_SIZE_PIXELS.x;
 	}
 
-	public void setMovies(List<Movie> movies) {
+	public void setMovies(final List<Movie> movies) {
 		this.movies = movies;
 		notifyDataSetChanged();
 	}
@@ -46,7 +46,8 @@ public class MoviePosterAdapter extends BaseAdapter {
 
 	@Override
 	public long getItemId(int position) {
-		return 0; // TODO Implement this method
+		// we don't use this value so we can return anything
+		return 0;
 	}
 
 	@Override
