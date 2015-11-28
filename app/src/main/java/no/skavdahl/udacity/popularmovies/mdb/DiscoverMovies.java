@@ -101,11 +101,14 @@ public class DiscoverMovies {
 	 * @return a String with the URL that will perform the appropriate query at themoviedb.org.
 	 */
 	protected String getDiscoverMovieURL(String apiKey, int page, String sortOrder) {
-		return Uri.parse("http://api.themoviedb.org/3/discover/movie").buildUpon()
+		String baseUrl =
+			("vote_average.desc".equals(sortOrder))
+				? "http://api.themoviedb.org/3/movie/top_rated"
+				: "http://api.themoviedb.org/3/movie/popular";
+
+		return Uri.parse(baseUrl).buildUpon()
 			.appendQueryParameter("api_key", apiKey)
 			.appendQueryParameter("page", Integer.toString(page))
-			.appendQueryParameter("sort_by", sortOrder)
-			.build()
 			.toString();
 	}
 
