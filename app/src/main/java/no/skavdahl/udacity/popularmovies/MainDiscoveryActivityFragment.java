@@ -39,6 +39,7 @@ public class MainDiscoveryActivityFragment extends Fragment {
 
     private final String LOG_TAG = getClass().getSimpleName();
 
+	private GridView posterGrid;
 	private MoviePosterAdapter viewAdapter;
 
 	// It is recommended to keep a local reference to this ChangeListener to avoid
@@ -46,7 +47,17 @@ public class MainDiscoveryActivityFragment extends Fragment {
 	// (SharedPreferences#registerOnSharedPreferenceChangeListener)
 	private SharedPreferences.OnSharedPreferenceChangeListener prefChangeListener;
 
+	private final static String PREF_SCROLL_INDEX = "scroll.index";
+	private final static String PREF_SCROLL_OFFSET = "scroll.offset";
+
+	/**
+	 * Local copy of saved instance state between onCreateView and the successful
+	 * async loading of movie posters.
+	 */
+	private Bundle savedInstanceState;
+
 	public MainDiscoveryActivityFragment() {
+		Log.i(LOG_TAG, "MainDiscoveryActivityFragment created");
     }
 
     @Override
@@ -58,7 +69,7 @@ public class MainDiscoveryActivityFragment extends Fragment {
 	    final View view = inflater.inflate(R.layout.fragment_main_discovery, container, false);
 
 	    // Configure the grid display of movie posters
-	    GridView posterGrid = (GridView) view.findViewById(R.id.poster_grid);
+	    posterGrid = (GridView) view.findViewById(R.id.poster_grid);
 
 	    // -- how many posters to display on each row
 	    int posterViewWidth = calculateOptimalColumnWidth();
@@ -76,8 +87,44 @@ public class MainDiscoveryActivityFragment extends Fragment {
 			}
 		});
 
+	    // -- scroll to the previously saved position in the list
+	    this.savedInstanceState = savedInstanceState;
+
 	    return view;
     }
+
+	@Override
+	public void onSaveInstanceState(Bundle outState) {
+		saveGridScrollPosition(outState);
+		super.onSaveInstanceState(outState);
+	}
+
+	private void saveGridScrollPosition(Bundle outState) {
+		int index = posterGrid.getFirstVisiblePosition();
+
+		int offset = 0;
+		if (index < posterGrid.getChildCount()) { // it's possible that the list is empty
+			final View first = posterGrid.getChildAt(index);
+			if (null != first)
+				offset = first.getTop();
+		}
+
+		Log.d(LOG_TAG, "GRID POSITION index=" + index + " offset=" + offset);
+
+		outState.putInt(PREF_SCROLL_INDEX, index);
+		outState.putInt(PREF_SCROLL_OFFSET, offset);
+	}
+
+	private void restoreGridScrollPosition(Bundle savedInstanceState) {
+		if (savedInstanceState == null)
+			return;
+
+		int index = savedInstanceState.getInt(PREF_SCROLL_INDEX);
+		posterGrid.setSelection(index + 1);
+
+		int offset = savedInstanceState.getInt(PREF_SCROLL_OFFSET);
+		posterGrid.scrollBy(0, -offset);
+	}
 
 	@Override
 	public void onDestroyView() {
@@ -210,6 +257,12 @@ public class MainDiscoveryActivityFragment extends Fragment {
 			    @Override
 			    public void onDownloadSuccess(List<Movie> movies) {
 				    viewAdapter.setMovies(movies);
+
+				    // restore previously scroll position (if any)
+				    if (savedInstanceState != null) {
+					    restoreGridScrollPosition(savedInstanceState);
+					    savedInstanceState = null;
+				    }
 			    }
 
 			    @Override
@@ -221,6 +274,11 @@ public class MainDiscoveryActivityFragment extends Fragment {
         task.execute();
     }
 
+	/**
+	 * Displays a dialog informing the user that the refreshMovies() operation failed
+	 * with a critical error (network down or required permission denied). The user gets the
+	 * choice between retrying the operation og closing the activity.
+	 */
 	private void showFailureDialog(int messageId) {
 		AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(getContext());
 		alertDialogBuilder.setMessage(messageId);
