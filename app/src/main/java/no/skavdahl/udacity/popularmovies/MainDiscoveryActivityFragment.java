@@ -202,6 +202,7 @@ public class MainDiscoveryActivityFragment extends Fragment {
 
 		menu.findItem(R.id.action_popular_movies).setChecked(discoveryMode == DiscoveryMode.POPULAR_MOVIES);
 		menu.findItem(R.id.action_high_rated_movies).setChecked(discoveryMode == DiscoveryMode.HIGH_RATED_MOVIES);
+		menu.findItem(R.id.action_new_movies).setChecked(discoveryMode == DiscoveryMode.NEW_MOVIES);
 	}
 
     @Override
@@ -214,6 +215,9 @@ public class MainDiscoveryActivityFragment extends Fragment {
 			    return true;
 		    case R.id.action_high_rated_movies:
 			    UserPreferences.setDiscoverModePreference(getActivity(), DiscoveryMode.HIGH_RATED_MOVIES);
+			    return true;
+		    case R.id.action_new_movies:
+			    UserPreferences.setDiscoverModePreference(getActivity(), DiscoveryMode.NEW_MOVIES);
 			    return true;
 		    //case R.id.action_refresh:
             //    refreshMovies();

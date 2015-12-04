@@ -13,7 +13,10 @@ public enum DiscoveryMode {
 	POPULAR_MOVIES(0),
 
 	/** Discover movies by their rating score. */
-	HIGH_RATED_MOVIES(1);
+	HIGH_RATED_MOVIES(1),
+
+	/** Discover movies by their release date. */
+	NEW_MOVIES(2);
 
 	/** The default discovery mode. */
 	public static DiscoveryMode DEFAULT = POPULAR_MOVIES;

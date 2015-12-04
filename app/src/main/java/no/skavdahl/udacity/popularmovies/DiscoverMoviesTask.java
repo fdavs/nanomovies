@@ -82,6 +82,8 @@ public class DiscoverMoviesTask extends AsyncTask<Void, Void, List<Movie>> {
 				return query.getPopularMovies(apiKey);
 			case HIGH_RATED_MOVIES:
 				return query.getHighestRatedMovies(apiKey);
+			case NEW_MOVIES:
+				return query.getNewMovies(apiKey);
 			default:
 				throw new AssertionError("Invalid discovery mode: " + discoveryMode);
 		}

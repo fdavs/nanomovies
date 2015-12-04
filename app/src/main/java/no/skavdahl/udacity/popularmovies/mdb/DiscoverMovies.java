@@ -39,7 +39,7 @@ public class DiscoverMovies {
 	 * @throws IOException if the query failed or returned a non-sensible result
 	 */
 	public String getPopularMovies(String apiKey) throws IOException {
-		String endpoint = getDiscoverMovieURL(apiKey, 1, "popularity.desc");
+		String endpoint = getDiscoverMovieURL(apiKey, "popular", 1);
 		return executeQuery(endpoint);
 	}
 
@@ -54,7 +54,21 @@ public class DiscoverMovies {
 	 * @throws IOException if the query failed or returned a non-sensible result
 	 */
 	public String getHighestRatedMovies(String apiKey) throws IOException {
-		String endpoint = getDiscoverMovieURL(apiKey, 1, "vote_average.desc");
+		String endpoint = getDiscoverMovieURL(apiKey, "top_rated", 1);
+		return executeQuery(endpoint);
+	}
+
+	/**
+	 * Queries themoviedb.org for new movies. The response is returned as a raw JSON string.
+	 *
+	 * @param apiKey The API key necessary to perform a query at themoviedb.org
+	 *
+	 * @return the JSON string response
+	 *
+	 * @throws IOException if the query failed or returned a non-sensible result
+	 */
+	public String getNewMovies(String apiKey) throws IOException {
+		String endpoint = getDiscoverMovieURL(apiKey, "now_playing", 1);
 		return executeQuery(endpoint);
 	}
 
@@ -95,18 +109,15 @@ public class DiscoverMovies {
 	 * Returns the query URL to "discover movies" according to the provided parameters.
 	 *
 	 * @param apiKey The API key necessary to execute a query at themoviedb.org
+	 * @param listName The name of the list to return
 	 * @param page The page number to return for a long result
-	 * @param sortOrder How to sort the result
 	 *
 	 * @return a String with the URL that will perform the appropriate query at themoviedb.org.
 	 */
-	protected String getDiscoverMovieURL(String apiKey, int page, String sortOrder) {
-		String baseUrl =
-			("vote_average.desc".equals(sortOrder))
-				? "http://api.themoviedb.org/3/movie/top_rated"
-				: "http://api.themoviedb.org/3/movie/popular";
-
-		return Uri.parse(baseUrl).buildUpon()
+	protected String getDiscoverMovieURL(String apiKey, String listName, int page) {
+		String MOVIEDB_DISCOVERY_BASEURL = "http://api.themoviedb.org/3/movie"; // TODO extract constant
+		return Uri.parse(MOVIEDB_DISCOVERY_BASEURL).buildUpon()
+			.appendPath(listName)
 			.appendQueryParameter("api_key", apiKey)
 			.appendQueryParameter("page", Integer.toString(page))
 			.toString();
