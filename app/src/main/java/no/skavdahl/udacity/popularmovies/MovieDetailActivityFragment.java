@@ -20,6 +20,7 @@ import java.util.Date;
 
 import no.skavdahl.udacity.popularmovies.mdb.DiscoverMovies;
 import no.skavdahl.udacity.popularmovies.mdb.DiscoverMoviesJSONAdapter;
+import no.skavdahl.udacity.popularmovies.mdb.Request;
 import no.skavdahl.udacity.popularmovies.model.Movie;
 
 /**
@@ -100,7 +101,7 @@ public class MovieDetailActivityFragment extends Fragment {
 
 		@Override
 		public void onSuccess() {
-			final String downloadURL = DiscoverMovies.getPosterHiresDownloadURL(context, getMovie().getPosterPath());
+			final String downloadURL = Request.getPosterHiresDownloadURL(context, getMovie().getPosterPath());
 
 			// preload the hi-res poster image with "fetch" rather than "load", putting it
 			// in Picasso's cache.

@@ -8,7 +8,7 @@ import android.content.Context;
 import android.os.AsyncTask;
 import android.util.Log;
 
-import no.skavdahl.udacity.popularmovies.mdb.DiscoveryMode;
+import no.skavdahl.udacity.popularmovies.mdb.StandardMovieList;
 import no.skavdahl.udacity.popularmovies.model.Movie;
 import no.skavdahl.udacity.popularmovies.mdb.DiscoverMovies;
 import no.skavdahl.udacity.popularmovies.mdb.DiscoverMoviesJSONAdapter;
@@ -29,7 +29,7 @@ public class DiscoverMoviesTask extends AsyncTask<Void, Void, List<Movie>> {
 
 	private final String apiKey;
 	private final Context context;
-	private final DiscoveryMode discoveryMode;
+	private final StandardMovieList movieList;
 	private final Listener listener;
 
 	/** Set to true if the task fails with an error. */
@@ -38,19 +38,19 @@ public class DiscoverMoviesTask extends AsyncTask<Void, Void, List<Movie>> {
 	/**
 	 * Prepares a movie discovery task.
 	 *
-	 * @param discoveryMode how to discover movies
+	 * @param movieList which movie list to retrieve
 	 * @param apiKey the API key with which to perform the server queries
 	 * @param context Access to the application environment (resources)
 	 * @param listener An implementation that will be notified when the task has completed
 	 *                 (whether with failure or success)
 	 */
 	public DiscoverMoviesTask(
-		final DiscoveryMode discoveryMode,
+		final StandardMovieList movieList,
 		final String apiKey,
 		final Context context,
 		final Listener listener) {
 
-		this.discoveryMode = discoveryMode;
+		this.movieList = movieList;
 		this.apiKey = apiKey;
 		this.context = context;
 		this.listener = listener;
@@ -77,16 +77,7 @@ public class DiscoverMoviesTask extends AsyncTask<Void, Void, List<Movie>> {
 
 	private String executeQuery() throws IOException {
 		DiscoverMovies query = new DiscoverMovies();
-		switch (discoveryMode) {
-			case POPULAR_MOVIES:
-				return query.getPopularMovies(apiKey);
-			case HIGH_RATED_MOVIES:
-				return query.getHighestRatedMovies(apiKey);
-			case NEW_MOVIES:
-				return query.getNewMovies(apiKey);
-			default:
-				throw new AssertionError("Invalid discovery mode: " + discoveryMode);
-		}
+		return query.discoverMovies(apiKey, movieList);
 	}
 
 	@Override

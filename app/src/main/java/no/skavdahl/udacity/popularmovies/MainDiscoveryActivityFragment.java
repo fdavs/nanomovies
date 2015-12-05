@@ -27,7 +27,7 @@ import org.json.JSONException;
 import java.util.List;
 
 import no.skavdahl.udacity.popularmovies.mdb.DiscoverMoviesJSONAdapter;
-import no.skavdahl.udacity.popularmovies.mdb.DiscoveryMode;
+import no.skavdahl.udacity.popularmovies.mdb.StandardMovieList;
 import no.skavdahl.udacity.popularmovies.model.Movie;
 
 /**
@@ -187,7 +187,7 @@ public class MainDiscoveryActivityFragment extends Fragment {
 		    prefChangeListener = new SharedPreferences.OnSharedPreferenceChangeListener() {
 			    @Override
 			    public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
-				    if (!UserPreferences.DISCOVERY_MODE.equals(key))
+				    if (!UserPreferences.MOVIE_LIST.equals(key))
 					    return;
 
 				    configureOptionsMenu(menu);
@@ -198,11 +198,11 @@ public class MainDiscoveryActivityFragment extends Fragment {
 
 	private void configureOptionsMenu(final Menu menu) {
 		// ensure that the discovery mode menu options are checked appropriately
-		DiscoveryMode discoveryMode = UserPreferences.getDiscoveryModePreference(getActivity());
+		StandardMovieList movieList = UserPreferences.getDiscoveryPreference(getActivity());
 
-		menu.findItem(R.id.action_popular_movies).setChecked(discoveryMode == DiscoveryMode.POPULAR_MOVIES);
-		menu.findItem(R.id.action_high_rated_movies).setChecked(discoveryMode == DiscoveryMode.HIGH_RATED_MOVIES);
-		menu.findItem(R.id.action_new_movies).setChecked(discoveryMode == DiscoveryMode.NEW_MOVIES);
+		menu.findItem(R.id.action_popular_movies).setChecked(movieList == StandardMovieList.POPULAR);
+		menu.findItem(R.id.action_high_rated_movies).setChecked(movieList == StandardMovieList.TOP_RATED);
+		menu.findItem(R.id.action_new_movies).setChecked(movieList == StandardMovieList.NOW_PLAYING);
 	}
 
     @Override
@@ -211,13 +211,13 @@ public class MainDiscoveryActivityFragment extends Fragment {
 
 	    switch (id) {
 		    case R.id.action_popular_movies:
-			    UserPreferences.setDiscoverModePreference(getActivity(), DiscoveryMode.POPULAR_MOVIES);
+			    UserPreferences.setDiscoveryPreference(getActivity(), StandardMovieList.POPULAR);
 			    return true;
 		    case R.id.action_high_rated_movies:
-			    UserPreferences.setDiscoverModePreference(getActivity(), DiscoveryMode.HIGH_RATED_MOVIES);
+			    UserPreferences.setDiscoveryPreference(getActivity(), StandardMovieList.TOP_RATED);
 			    return true;
 		    case R.id.action_new_movies:
-			    UserPreferences.setDiscoverModePreference(getActivity(), DiscoveryMode.NEW_MOVIES);
+			    UserPreferences.setDiscoveryPreference(getActivity(), StandardMovieList.NOW_PLAYING);
 			    return true;
 		    //case R.id.action_refresh:
             //    refreshMovies();
@@ -254,9 +254,9 @@ public class MainDiscoveryActivityFragment extends Fragment {
         }
 
         // permission granted, go ahead with the operation
-	    DiscoveryMode mode = UserPreferences.getDiscoveryModePreference(getActivity());
+	    StandardMovieList movieList = UserPreferences.getDiscoveryPreference(getActivity());
 	    String apiKey = getString(R.string.movie_api_key);
-        DiscoverMoviesTask task = new DiscoverMoviesTask(mode, apiKey, getActivity(),
+        DiscoverMoviesTask task = new DiscoverMoviesTask(movieList, apiKey, getActivity(),
 	        new DiscoverMoviesTask.Listener() {
 			    @Override
 			    public void onDownloadSuccess(List<Movie> movies) {

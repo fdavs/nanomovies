@@ -6,6 +6,7 @@ import android.widget.ImageView;
 import com.squareup.picasso.Picasso;
 
 import no.skavdahl.udacity.popularmovies.mdb.DiscoverMovies;
+import no.skavdahl.udacity.popularmovies.mdb.Request;
 import no.skavdahl.udacity.popularmovies.model.Movie;
 
 /**
@@ -18,7 +19,7 @@ public class PicassoUtils {
 	public static void displayWithFallback(Context context, Movie movie, ImageView targetView, com.squareup.picasso.Callback callback) {
 		if (movie.getPosterPath() != null) {
 			Picasso.with(context)
-				.load(DiscoverMovies.getPosterThumbnailDownloadURL(movie.getPosterPath()))
+				.load(Request.getPosterThumbnailDownloadURL(movie.getPosterPath(), DiscoverMovies.POSTER_SIZE_PIXELS.x))
 				.error(OfflinePoster.forMovie(movie))
 				.into(targetView, callback);
 		}
