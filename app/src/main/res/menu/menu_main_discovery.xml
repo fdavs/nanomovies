@@ -6,20 +6,15 @@
         <item
             android:id="@+id/action_popular_movies"
             android:title="@string/action_popular_movies"
-            android:checkable="true"
             android:checked="true"
             app:showAsAction="never"/>
         <item
             android:id="@+id/action_new_movies"
             android:title="@string/action_new_movies"
-            android:checkable="true"
-            android:checked="false"
             app:showAsAction="never"/>
         <item
             android:id="@+id/action_high_rated_movies"
             android:title="@string/action_high_rated_movies"
-            android:checkable="true"
-            android:checked="false"
             app:showAsAction="never"/>
     </group>
     <!--<item
