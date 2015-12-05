@@ -11,7 +11,7 @@ service.
 
 * Known Issues / TODO
 
-# Redesign the movie detail view -- the movie information is hidden below the full-screen poster
+# Test the movie detail view on lower resolution screens
 
 
 

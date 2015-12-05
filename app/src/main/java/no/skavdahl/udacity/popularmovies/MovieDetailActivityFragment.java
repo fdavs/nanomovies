@@ -15,10 +15,11 @@ import com.squareup.picasso.Picasso;
 
 import org.json.JSONObject;
 
-import java.text.DateFormat;
+import java.util.Calendar;
 import java.util.Date;
+import java.util.GregorianCalendar;
+import java.util.Locale;
 
-import no.skavdahl.udacity.popularmovies.mdb.DiscoverMovies;
 import no.skavdahl.udacity.popularmovies.mdb.DiscoverMoviesJSONAdapter;
 import no.skavdahl.udacity.popularmovies.mdb.Request;
 import no.skavdahl.udacity.popularmovies.model.Movie;
@@ -65,12 +66,21 @@ public class MovieDetailActivityFragment extends Fragment {
 				context.getString(R.string.data_unknown))));
 
 		TextView userRatingTextView = (TextView) view.findViewById(R.id.user_rating_textview);
-		userRatingTextView.setText(context.getString(R.string.movie_user_rating, movie.getUserRating()));
+		userRatingTextView.setText(
+			context.getString(R.string.movie_user_rating, movie.getVoteAverage(), movie.getVoteCount()));
 
 		// Show the thumbnail poster image first while loading a higher-resolution image
 		final ImageView posterView = (ImageView) view.findViewById(R.id.poster_imageview);
 		PicassoUtils.displayWithFallback(context, movie, posterView,
 			new DownloadHiresPosterCallback(context, movie, posterView));
+
+		final ImageView backdropView = (ImageView) view.findViewById(R.id.backdrop_imageview);
+		String path = movie.getBackdropPath();
+		if (path == null)
+			path = movie.getPosterPath();
+		Picasso.with(context)
+			.load(Request.getPosterHiresDownloadURL(context, path))
+			.into(backdropView);
 
 		return view;
 	}
@@ -83,8 +93,13 @@ public class MovieDetailActivityFragment extends Fragment {
 		if (date == null)
 			return fallback;
 
-		DateFormat dateFormat = android.text.format.DateFormat.getDateFormat(getActivity());
-		return dateFormat.format(date);
+		Calendar cal = GregorianCalendar.getInstance(Locale.getDefault());
+		cal.setTime(date);
+
+		return Integer.toString(cal.get(Calendar.YEAR));
+		//
+		//DateFormat dateFormat = android.text.format.DateFormat.getDateFormat(getActivity());
+		//return dateFormat.format(date);
 	}
 
 	/**

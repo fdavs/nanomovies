@@ -52,7 +52,7 @@ public class Request {
 		// TODO Consider device connectivity
 
 		// TODO Refactor: Clean up this code (resolution selection)
-		int widths[] = new int[] { 92, 154, 185, 342, 500, 780, 1000 };
+		int widths[] = new int[] { 92, 154, 185, 342, 500, 780, 1024 };
 		String options[]= new String[] { "w92", "w154", "w185", "w342", "w500", "w780", "original"};
 
 		String size = null;

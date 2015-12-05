@@ -34,10 +34,13 @@ public class DiscoverMoviesJSONAdapter extends JSONAdapter {
 	private final String JSON_MOVIE_ID = "id";
 	private final String JSON_MOVIE_TITLE = "title";
 	private final String JSON_MOVIE_POSTER_PATH = "poster_path";
+	private final String JSON_MOVIE_BACKDROP_PATH = "backdrop_path";
 	private final String JSON_MOVIE_SYNOPSIS = "overview";
 	private final String JSON_MOVIE_POPULARITY = "popularity";
-	private final String JSON_MOVIE_USER_RATING = "vote_average";
+	private final String JSON_MOVIE_VOTE_AVERAGE = "vote_average";
+	private final String JSON_MOVIE_VOTE_COUNT = "vote_count";
 	private final String JSON_MOVIE_RELEASE_DATE = "release_date";
+	private final String JSON_MOVIE_GENRES = "genre_ids";
 
 	// --- class properties ---
 
@@ -101,12 +104,15 @@ public class DiscoverMoviesJSONAdapter extends JSONAdapter {
 		Date releaseDate = getOptDate(obj, JSON_MOVIE_RELEASE_DATE);
 		String title = getOptString(obj, JSON_MOVIE_TITLE);
 		String posterPath = getOptString(obj, JSON_MOVIE_POSTER_PATH);
+		String backdropPath = getOptString(obj, JSON_MOVIE_BACKDROP_PATH);
 		String synopsis = getOptString(obj, JSON_MOVIE_SYNOPSIS);
 		double popularity = obj.optDouble(JSON_MOVIE_POPULARITY, Movie.DEFAULT_POPULARITY);
-		double userRating = obj.optDouble(JSON_MOVIE_USER_RATING, Movie.DEFAULT_USER_RATING);
+		double voteAverage = obj.optDouble(JSON_MOVIE_VOTE_AVERAGE, Movie.DEFAULT_VOTE_AVERAGE);
+		int voteCount = obj.optInt(JSON_MOVIE_VOTE_COUNT, Movie.DEFAULT_VOTE_COUNT);
+		List<Integer> genreList = getOptIntArray(obj.optJSONArray(JSON_MOVIE_GENRES));
 		int fallbackColor = generateColorCode(title);
 
-		return new Movie(id, releaseDate, title, posterPath, synopsis, popularity, userRating, fallbackColor);
+		return new Movie(id, releaseDate, title, posterPath, backdropPath, synopsis, popularity, voteAverage, voteCount, genreList, fallbackColor);
 	}
 
 	/**
@@ -154,12 +160,15 @@ public class DiscoverMoviesJSONAdapter extends JSONAdapter {
 	public String toJSONString(Movie movie) throws JSONException {
 		JSONObject obj = new JSONObject();
 		obj.put(JSON_MOVIE_ID, movie.getMovieDbId());
-		putOptDate(obj, JSON_MOVIE_RELEASE_DATE, movie.getReleaseDate());
 		obj.put(JSON_MOVIE_TITLE, movie.getTitle());
 		obj.put(JSON_MOVIE_POSTER_PATH, movie.getPosterPath());
+		obj.put(JSON_MOVIE_BACKDROP_PATH, movie.getBackdropPath());
 		obj.put(JSON_MOVIE_SYNOPSIS, movie.getSynopsis());
 		obj.put(JSON_MOVIE_POPULARITY, movie.getPopularity());
-		obj.put(JSON_MOVIE_USER_RATING, movie.getUserRating());
+		obj.put(JSON_MOVIE_VOTE_AVERAGE, movie.getVoteAverage());
+		obj.put(JSON_MOVIE_VOTE_COUNT, movie.getVoteCount());
+		putOptDate(obj, JSON_MOVIE_RELEASE_DATE, movie.getReleaseDate());
+		putOptArray(obj, JSON_MOVIE_GENRES, movie.getGenres());
 
 		return obj.toString();
 	}
