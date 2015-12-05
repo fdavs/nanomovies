@@ -6,7 +6,8 @@
     <!-- string name="action_refresh">Refresh</string -->>
     <string name="action_new_movies">New movies</string>
     <string name="action_popular_movies">Popular movies</string>
-    <string name="action_high_rated_movies">Top rated movies</string>
+    <string name="action_top_rated_movies">Top rated movies</string>
+    <string name="action_upcoming_movies">Upcoming movies</string>
 
     <!-- strings in the Movie Detail fragment -->
     <string name="movie_title">Title: <xliff:g id="title" example="Inside Out">%1$s</xliff:g></string>

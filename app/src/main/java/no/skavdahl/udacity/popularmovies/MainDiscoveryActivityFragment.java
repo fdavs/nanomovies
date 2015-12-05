@@ -198,41 +198,56 @@ public class MainDiscoveryActivityFragment extends Fragment {
 
 	private void configureOptionsMenu(final Menu menu) {
 		// ensure that the movie list radio buttons are checked appropriately
-		StandardMovieList movieList = UserPreferences.getDiscoveryPreference(getActivity());
-		switch (movieList) {
-			case TOP_RATED:
-				menu.findItem(R.id.action_high_rated_movies).setChecked(true);
-				break;
-			case NOW_PLAYING:
-				menu.findItem(R.id.action_new_movies).setChecked(true);
-				break;
-			default:
-				menu.findItem(R.id.action_popular_movies).setChecked(true);
-				break;
-		}
+		// NOTE It is possible to store selected menu item id directly in the UserPreferences
+		// avoiding the need to map between menu item ids and movie list names. However,
+		// I'm not sure how stable a menu item id is. Will it survive an upgrade to a
+		// newer version of the app? Saving the movie list name seems more stable and safer
+		// (not to mention readable).
+		StandardMovieList selectedMovieList = UserPreferences.getDiscoveryPreference(getActivity());
+		int menuItem = mapMovieListToMenuItem(selectedMovieList);
+		if (menuItem > 0)
+			menu.findItem(menuItem).setChecked(true);
 	}
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        int id = item.getItemId();
-
-	    switch (id) {
-		    case R.id.action_popular_movies:
-			    UserPreferences.setDiscoveryPreference(getActivity(), StandardMovieList.POPULAR);
-			    return true;
-		    case R.id.action_high_rated_movies:
-			    UserPreferences.setDiscoveryPreference(getActivity(), StandardMovieList.TOP_RATED);
-			    return true;
-		    case R.id.action_new_movies:
-			    UserPreferences.setDiscoveryPreference(getActivity(), StandardMovieList.NOW_PLAYING);
-			    return true;
-		    //case R.id.action_refresh:
-            //    refreshMovies();
-            //    return true;
-		    default:
-			    return super.onOptionsItemSelected(item);
-        }
+	    StandardMovieList movieList = mapMenuItemToMovieList(item.getItemId());
+		if (movieList != null) {
+			UserPreferences.setDiscoveryPreference(getActivity(), movieList);
+			return true;
+		}
+		else return super.onOptionsItemSelected(item);
     }
+
+	private int mapMovieListToMenuItem(StandardMovieList movieList) {
+		switch (movieList) {
+			case POPULAR:
+				return R.id.action_popular_movies;
+			case TOP_RATED:
+				return R.id.action_top_rated_movies;
+			case NOW_PLAYING:
+				return R.id.action_new_movies;
+			case UPCOMING:
+				return R.id.action_upcoming_movies;
+			default:
+				return 0;
+		}
+	}
+
+	private StandardMovieList mapMenuItemToMovieList(int menuItemId) {
+		switch (menuItemId) {
+			case R.id.action_popular_movies:
+				return StandardMovieList.POPULAR;
+			case R.id.action_top_rated_movies:
+				return StandardMovieList.TOP_RATED;
+			case R.id.action_new_movies:
+				return StandardMovieList.NOW_PLAYING;
+			case R.id.action_upcoming_movies:
+				return StandardMovieList.UPCOMING;
+			default:
+				return null;
+		}
+	}
 
 	@Override
 	public void onStart() {
