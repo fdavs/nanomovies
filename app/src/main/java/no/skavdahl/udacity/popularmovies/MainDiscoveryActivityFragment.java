@@ -197,12 +197,19 @@ public class MainDiscoveryActivityFragment extends Fragment {
     }
 
 	private void configureOptionsMenu(final Menu menu) {
-		// ensure that the discovery mode menu options are checked appropriately
+		// ensure that the movie list radio buttons are checked appropriately
 		StandardMovieList movieList = UserPreferences.getDiscoveryPreference(getActivity());
-
-		menu.findItem(R.id.action_popular_movies).setChecked(movieList == StandardMovieList.POPULAR);
-		menu.findItem(R.id.action_high_rated_movies).setChecked(movieList == StandardMovieList.TOP_RATED);
-		menu.findItem(R.id.action_new_movies).setChecked(movieList == StandardMovieList.NOW_PLAYING);
+		switch (movieList) {
+			case TOP_RATED:
+				menu.findItem(R.id.action_high_rated_movies).setChecked(true);
+				break;
+			case NOW_PLAYING:
+				menu.findItem(R.id.action_new_movies).setChecked(true);
+				break;
+			default:
+				menu.findItem(R.id.action_popular_movies).setChecked(true);
+				break;
+		}
 	}
 
     @Override

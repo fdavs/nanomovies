@@ -3,10 +3,10 @@
       xmlns:tools="http://schemas.android.com/tools"
       tools:context="no.skavdahl.udacity.popularmovies.MainDiscoveryActivity">
     <group android:checkableBehavior="single">
+        <!-- checked state is handled programmatically -->
         <item
             android:id="@+id/action_popular_movies"
             android:title="@string/action_popular_movies"
-            android:checked="true"
             app:showAsAction="never"/>
         <item
             android:id="@+id/action_new_movies"
