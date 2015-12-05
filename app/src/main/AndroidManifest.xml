@@ -20,7 +20,9 @@
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
         </activity>
-        <activity android:name=".MovieDetailActivity">
+        <activity
+            android:name=".MovieDetailActivity"
+            android:label="@string/activity_detail_name">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="no.skavdahl.udacity.popularmovies.MainDiscoveryActivity" />

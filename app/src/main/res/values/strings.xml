@@ -10,6 +10,7 @@
     <string name="action_upcoming_movies">Upcoming movies</string>
 
     <!-- strings in the Movie Detail fragment -->
+    <string name="activity_detail_name">Movie Details</string>
     <string name="movie_title"><xliff:g id="title" example="Inside Out">%1$s</xliff:g></string>
     <string name="movie_synopsis"><xliff:g id="synopsis" example="Growing up can be a bumpy road, and it's no exception for Riley...">%1$s</xliff:g></string>
     <string name="movie_user_rating"><xliff:g id="rating" example="8.1">%1$2.1f</xliff:g> / 10  (<xliff:g id="count" example="25">%2$d</xliff:g> votes)</string>
@@ -20,7 +21,7 @@
 
     <!-- error messages -->
     <string name="no_permission_try_again">This app needs permission to access the internet in order to download movie information.</string>
-    <string name="no_network_try_again">Could not connect to the server database. Verify your connection settings or try again later.</string>
+    <string name="no_network_try_again">Could not connect to the movie database. Verify your connection settings or try again later.</string>
 
     <!-- common buttons -->
     <string name="ok">Ok</string>
