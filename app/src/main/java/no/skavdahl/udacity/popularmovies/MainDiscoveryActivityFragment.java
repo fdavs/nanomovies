@@ -207,6 +207,10 @@ public class MainDiscoveryActivityFragment extends Fragment {
 		int menuItem = mapMovieListToMenuItem(selectedMovieList);
 		if (menuItem > 0)
 			menu.findItem(menuItem).setChecked(true);
+
+		// set activity title
+		int titleId = mapMovieListToTitle(selectedMovieList);
+		getActivity().setTitle(titleId);
 	}
 
     @Override
@@ -232,6 +236,22 @@ public class MainDiscoveryActivityFragment extends Fragment {
 			default:
 				return 0;
 		}
+	}
+
+	private int mapMovieListToTitle(StandardMovieList movieList) {
+		switch (movieList) {
+			case POPULAR:
+				return R.string.action_popular_movies;
+			case TOP_RATED:
+				return R.string.action_top_rated_movies;
+			case NOW_PLAYING:
+				return R.string.action_new_movies;
+			case UPCOMING:
+				return R.string.action_upcoming_movies;
+			default:
+				return R.string.app_name;
+		}
+
 	}
 
 	private StandardMovieList mapMenuItemToMovieList(int menuItemId) {
