@@ -65,7 +65,7 @@ public class MoviePosterAdapter extends BaseAdapter {
 			posterView.setLayoutParams(new ViewGroup.LayoutParams(posterViewWidth, posterViewHeight));
 		}
 
-		PicassoUtils.displayWithFallback(context, movies.get(position), posterView, null);
+		PicassoUtils.displayPosterWithOfflineFallback(context, movies.get(position), posterView);
 
 		return posterView;
 	}

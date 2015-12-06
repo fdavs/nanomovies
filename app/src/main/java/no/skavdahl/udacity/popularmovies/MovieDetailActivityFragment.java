@@ -63,7 +63,7 @@ public class MovieDetailActivityFragment extends Fragment {
 
 		TextView releaseDateTextView = (TextView) view.findViewById(R.id.release_rate_textview);
 		releaseDateTextView.setText(
-			context.getString(R.string.movie_release_date, formatOptDate(movie.getReleaseDate(),
+			context.getString(R.string.movie_release_date, formatOptYear(movie.getReleaseDate(),
 				context.getString(R.string.data_unknown))));
 
 		TextView userRatingTextView = (TextView) view.findViewById(R.id.user_rating_textview);
@@ -73,29 +73,21 @@ public class MovieDetailActivityFragment extends Fragment {
 				movie.getVoteCount(), // quantity
 				movie.getVoteAverage(), movie.getVoteCount())); // format args
 
-		// Show the thumbnail poster image first while loading a higher-resolution image
 		final ImageView posterView = (ImageView) view.findViewById(R.id.poster_imageview);
-		PicassoUtils.displayWithFallback(context, movie, posterView,
-			new DownloadHiresPosterCallback(context, movie, posterView));
+		PicassoUtils.displayPosterWithOfflineFallback(context, movie, posterView);
 
 		final ImageView backdropView = (ImageView) view.findViewById(R.id.backdrop_imageview);
-		DisplayMetrics dm = context.getResources().getDisplayMetrics();
-
-		String path = movie.getBackdropPath();
-		if (path == null)
-			path = movie.getPosterPath();
-		Picasso.with(context)
-			.load(Request.getImageDownloadURL(Request.ImageType.BACKDROP, path, dm.widthPixels))
-			.into(backdropView);
+		PicassoUtils.displayBackdrop(context, movie, backdropView);
 
 		return view;
 	}
+
 
 	private String formatOptString(final String str, final String fallback) {
 		return (str != null) ? str : fallback;
 	}
 
-	private String formatOptDate(final Date date, final String fallback) {
+	private String formatOptYear(final Date date, final String fallback) {
 		if (date == null)
 			return fallback;
 
@@ -103,59 +95,5 @@ public class MovieDetailActivityFragment extends Fragment {
 		cal.setTime(date);
 
 		return Integer.toString(cal.get(Calendar.YEAR));
-		//
-		//DateFormat dateFormat = android.text.format.DateFormat.getDateFormat(getActivity());
-		//return dateFormat.format(date);
-	}
-
-	/**
-	 * Picasso callback that downloads a high resolution image in the background
-	 * and updates the target ImageView when (read: not before) the download has completed.
-	 */
-	private static class DownloadHiresPosterCallback extends OfflinePosterCallback {
-		private final Context context;
-
-		public DownloadHiresPosterCallback(final Context context, final Movie movie, final ImageView targetView) {
-			super(movie, targetView);
-			this.context = context;
-		}
-
-		@Override
-		public void onSuccess() {
-			final DisplayMetrics dm = context.getResources().getDisplayMetrics();
-
-			final String downloadURL = Request.getImageDownloadURL(
-				Request.ImageType.POSTER,
-				getMovie().getPosterPath(),
-				dm.widthPixels);
-
-			// preload the hi-res poster image with "fetch" rather than "load", putting it
-			// in Picasso's cache.
-			// "load" makes Picasso take control over the target ImageView immediately,
-			// overriding the low-res picture with a "progress picture" until the download
-			// operation has completed. "fetch()" on the other hand doesn't touch the
-			// ImageView at all but simply puts the downloaded picture in the cache.
-			Picasso.with(context)
-				.load(downloadURL)
-				.fetch(new com.squareup.picasso.Callback() {
-					@Override
-					public void onSuccess() {
-						// Display the hires image now that it is cached
-						Picasso.with(context)
-							.load(downloadURL)
-							.into(getTargetView());
-					}
-
-					@Override
-					public void onError() {
-						// Keep the lowres version
-					}
-				});
-		}
-
-		@Override
-		public void onError() {
-			displayOfflinePoster();
-		}
 	}
 }
