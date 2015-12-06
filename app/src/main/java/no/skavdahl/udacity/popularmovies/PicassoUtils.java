@@ -20,10 +20,10 @@ public class PicassoUtils {
 		if (movie.getPosterPath() != null) {
 			Picasso.with(context)
 				.load(Request.getPosterThumbnailDownloadURL(movie.getPosterPath(), DiscoverMovies.POSTER_SIZE_PIXELS.x))
-				.error(OfflinePoster.forMovie(movie))
+				.error(OfflinePoster.forMovie(context, movie))
 				.into(targetView, callback);
 		}
 		else
-			targetView.setImageDrawable(OfflinePoster.forMovie(movie));
+			targetView.setImageDrawable(OfflinePoster.forMovie(context, movie));
 	}
 }

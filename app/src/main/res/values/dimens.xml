@@ -6,6 +6,15 @@
 
     <dimen name="vertical_space">8dp</dimen>
 
+    <!-- Dimensions for movie posters -->
+    <!-- Width must match one of the options available in the themoviedb.org image API -->
+    <!-- Height should be calculated with an appropriate aspect ratio -->
+    <dimen name="poster_width">185px</dimen>
+    <dimen name="poster_height">283px</dimen>
+    <!-- margin and font size must be appropriate for the poster pixel dimensions -->
+    <dimen name="poster_margin_offline">8px</dimen>
+    <dimen name="poster_title_size" >24px</dimen>
+
     <!-- Dimensions for the movie detail view -->
     <dimen name="detail_backdrop_height">200dp</dimen>
     <dimen name="detail_poster_left">30dp</dimen>

@@ -123,8 +123,6 @@ public abstract class JSONAdapter {
 	 * @param attrName The name of the attribute to update
 	 * @param list The attribute value, <code>null</code> allowed.
 	 *
-	 * @return a (possibly empty) list of integers.
-	 *
 	 * @throws JSONException if unable to parse the array.
 	 */
 	protected void putOptArray(JSONObject obj, String attrName, List<Integer> list) throws JSONException {

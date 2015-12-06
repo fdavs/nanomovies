@@ -1,5 +1,6 @@
 package no.skavdahl.udacity.popularmovies;
 
+import android.content.Context;
 import android.widget.ImageView;
 
 import no.skavdahl.udacity.popularmovies.model.Movie;
@@ -28,6 +29,7 @@ public abstract class OfflinePosterCallback implements com.squareup.picasso.Call
 	}
 
 	protected void displayOfflinePoster() {
-		OfflinePoster.forMovie(movie);
+		Context context = targetView.getContext();
+		OfflinePoster.forMovie(context, movie);
 	}
 }

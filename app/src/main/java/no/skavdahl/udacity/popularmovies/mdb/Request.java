@@ -1,8 +1,6 @@
 package no.skavdahl.udacity.popularmovies.mdb;
 
-import android.content.Context;
 import android.net.Uri;
-import android.util.DisplayMetrics;
 
 /**
  * Facade for requests to themoviedb.org.
@@ -10,6 +8,11 @@ import android.util.DisplayMetrics;
  * @author fdavs
  */
 public class Request {
+
+	public enum ImageType {
+		POSTER,
+		BACKDROP
+	}
 
 	/**
 	 * Returns the query URL for standard movie lists. See related lists at
@@ -40,32 +43,82 @@ public class Request {
 	}
 
 	/**
-	 * Returns a download URL for a high-resolution poster image. The meaning of "high
-	 * resolution" is determined by the device capabilities (screen resolution and connection
-	 * state).
+	 * Returns a download URL for a high-resolution image. The meaning of "high resolution" is
+	 * determined by the device capabilities (screen resolution).
 	 *
 	 * @return a download URL for a higher-resolution poster image.
 	 */
-	public static String getPosterHiresDownloadURL(Context context, String posterPath) {
-		DisplayMetrics dm = context.getResources().getDisplayMetrics();
+	public static String getImageDownloadURL(ImageType imageType, String imagePath, int availableWidthPixels) {
+		// TODO Consider device connectivity quality
+		//      if the device is connected over a low bandwidth connection, a lower resolution
+		//      picture should be requested
 
-		// TODO Consider device connectivity
-
-		// TODO Refactor: Clean up this code (resolution selection)
-		int widths[] = new int[] { 92, 154, 185, 342, 500, 780, 1024 };
-		String options[]= new String[] { "w92", "w154", "w185", "w342", "w500", "w780", "original"};
-
-		String size = null;
-		for (int i = options.length - 1; i >= 0; --i) {
-			if (dm.widthPixels > widths[i]) {
-				size = options[i];
+		String optimalWidth;
+		switch (imageType) {
+			case POSTER:
+				optimalWidth = calculateOptimalPosterWidth(availableWidthPixels);
 				break;
-			}
+			case BACKDROP:
+				optimalWidth = calculateOptimalBackdropWidth(availableWidthPixels);
+				break;
+			default:
+				throw new AssertionError(imageType);
 		}
-		if (size == null)
-			size = options[0];
 
-		return "http://image.tmdb.org/t/p/" + size + posterPath;
+		return "http://image.tmdb.org/t/p/" + optimalWidth + imagePath;
+	}
+
+	/**
+	 * Calculates the optimal poster width to request from the server given some available
+	 * space (in pixels).
+	 *
+	 * @param availableWidthPixels Available space in pixels
+	 *
+	 * @return A width code suitable for inclusion in the request URL
+	 *
+	 * @see <a href="http://docs.themoviedb.apiary.io/#reference/configuration/configuration/get">themoviedb.org API docs</a>
+	 */
+	private static String calculateOptimalPosterWidth(int availableWidthPixels) {
+		// TODO the available sizes should be retrieved from the configuration
+		//      http://api.themoviedb.org/3/configuration
+		final int widthOptions[] = { 92, 154, 185, 342, 500, 780, 1024 };
+		final String optionCodes[]= { "w92", "w154", "w185", "w342", "w500", "w780", "original"};
+
+		return bestMatch(widthOptions, optionCodes, availableWidthPixels);
+	}
+
+	/**
+	 * Calculates the optimal backdrop width to request from the server given some available
+	 * space (in pixels).
+	 *
+	 * @param availableWidthPixels Available space in pixels
+	 *
+	 * @return A width code suitable for inclusion in the request URL
+	 *
+	 * @see <a href="http://docs.themoviedb.apiary.io/#reference/configuration/configuration/get">themoviedb.org API docs</a>
+	 */
+	private static String calculateOptimalBackdropWidth(int availableWidthPixels) {
+		// TODO the available sizes should be retrieved from the configuration
+		//      http://api.themoviedb.org/3/configuration
+		final int widthOptions[] = { 300, 780, 1280, (int) (1280 * 1.5) };
+		final String optionCodes[]= { "w300", "w780", "w1280", "original" };
+
+		return bestMatch(widthOptions, optionCodes, availableWidthPixels);
+	}
+
+	private static String bestMatch(int[] widthOption, String[] optionCode, int availableWidth) {
+		int best = Integer.MAX_VALUE;
+		String bestCode = null;
+		for (int i = widthOption.length - 1; i >= 0; --i) {
+			int distance = Math.abs(availableWidth - widthOption[i]);
+			if (distance <= best) {
+				best = distance;
+				bestCode = optionCode[i];
+			}
+			else break;
+		}
+
+		return bestCode;
 	}
 
 }

@@ -10,6 +10,8 @@ import android.support.v7.app.AppCompatActivity;
  */
 public class MovieDetailActivity extends AppCompatActivity {
 
+	public final static String INTENT_EXTRA_DATA = "movie";
+
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);

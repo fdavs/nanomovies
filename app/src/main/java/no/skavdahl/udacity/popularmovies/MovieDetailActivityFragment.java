@@ -3,6 +3,7 @@ package no.skavdahl.udacity.popularmovies;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -41,7 +42,7 @@ public class MovieDetailActivityFragment extends Fragment {
 		try {
 			Intent startingIntent = getActivity().getIntent();
 			DiscoverMoviesJSONAdapter adapter = new DiscoverMoviesJSONAdapter(getResources());
-			JSONObject obj = new JSONObject(startingIntent.getStringExtra("movie"));
+			JSONObject obj = new JSONObject(startingIntent.getStringExtra(MovieDetailActivity.INTENT_EXTRA_DATA));
 			movie = adapter.toMovie(obj);
 		}
 		catch (Exception e) { // NPE if no intent, JSONException if parse error
@@ -67,7 +68,10 @@ public class MovieDetailActivityFragment extends Fragment {
 
 		TextView userRatingTextView = (TextView) view.findViewById(R.id.user_rating_textview);
 		userRatingTextView.setText(
-			context.getString(R.string.movie_user_rating, movie.getVoteAverage(), movie.getVoteCount()));
+			context.getResources().getQuantityString(
+				R.plurals.movie_user_rating, // id
+				movie.getVoteCount(), // quantity
+				movie.getVoteAverage(), movie.getVoteCount())); // format args
 
 		// Show the thumbnail poster image first while loading a higher-resolution image
 		final ImageView posterView = (ImageView) view.findViewById(R.id.poster_imageview);
@@ -75,11 +79,13 @@ public class MovieDetailActivityFragment extends Fragment {
 			new DownloadHiresPosterCallback(context, movie, posterView));
 
 		final ImageView backdropView = (ImageView) view.findViewById(R.id.backdrop_imageview);
+		DisplayMetrics dm = context.getResources().getDisplayMetrics();
+
 		String path = movie.getBackdropPath();
 		if (path == null)
 			path = movie.getPosterPath();
 		Picasso.with(context)
-			.load(Request.getPosterHiresDownloadURL(context, path))
+			.load(Request.getImageDownloadURL(Request.ImageType.BACKDROP, path, dm.widthPixels))
 			.into(backdropView);
 
 		return view;
@@ -116,7 +122,12 @@ public class MovieDetailActivityFragment extends Fragment {
 
 		@Override
 		public void onSuccess() {
-			final String downloadURL = Request.getPosterHiresDownloadURL(context, getMovie().getPosterPath());
+			final DisplayMetrics dm = context.getResources().getDisplayMetrics();
+
+			final String downloadURL = Request.getImageDownloadURL(
+				Request.ImageType.POSTER,
+				getMovie().getPosterPath(),
+				dm.widthPixels);
 
 			// preload the hi-res poster image with "fetch" rather than "load", putting it
 			// in Picasso's cache.

@@ -9,7 +9,6 @@ import android.widget.ImageView;
 import java.util.Collections;
 import java.util.List;
 
-import no.skavdahl.udacity.popularmovies.mdb.DiscoverMovies;
 import no.skavdahl.udacity.popularmovies.model.Movie;
 
 /**
@@ -25,8 +24,10 @@ public class MoviePosterAdapter extends BaseAdapter {
 
 	public MoviePosterAdapter(final Context context, final int posterViewWidth) {
 		this.context = context;
+		float posterWidth = context.getResources().getDimension(R.dimen.poster_width);
+		float posterHeight = context.getResources().getDimension(R.dimen.poster_height);
 		this.posterViewWidth = posterViewWidth;
-		this.posterViewHeight = posterViewWidth * DiscoverMovies.POSTER_SIZE_PIXELS.y / DiscoverMovies.POSTER_SIZE_PIXELS.x;
+		this.posterViewHeight = (int) (posterViewWidth * posterHeight /posterWidth);
 	}
 
 	public void setMovies(final List<Movie> movies) {

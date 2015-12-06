@@ -9,9 +9,6 @@ service.
 # rename the file app.properties.example to app.properties
 # paste your API key into this file
 
-* Known Issues / TODO
-
-# Test the movie detail view on lower resolution screens
 
 
 

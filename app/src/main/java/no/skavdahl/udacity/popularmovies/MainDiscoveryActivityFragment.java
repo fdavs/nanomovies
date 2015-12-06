@@ -109,8 +109,6 @@ public class MainDiscoveryActivityFragment extends Fragment {
 				offset = first.getTop();
 		}
 
-		Log.d(LOG_TAG, "GRID POSITION index=" + index + " offset=" + offset);
-
 		outState.putInt(PREF_SCROLL_INDEX, index);
 		outState.putInt(PREF_SCROLL_OFFSET, offset);
 	}
@@ -170,7 +168,7 @@ public class MainDiscoveryActivityFragment extends Fragment {
 		}
 
 		Intent openMovieDetailsIntent = new Intent(getContext(), MovieDetailActivity.class);
-		openMovieDetailsIntent.putExtra("movie", movieData);
+		openMovieDetailsIntent.putExtra(MovieDetailActivity.INTENT_EXTRA_DATA, movieData);
 
 		Activity contextActivity = MainDiscoveryActivityFragment.this.getActivity();
 		if (openMovieDetailsIntent.resolveActivity(contextActivity.getPackageManager()) != null)

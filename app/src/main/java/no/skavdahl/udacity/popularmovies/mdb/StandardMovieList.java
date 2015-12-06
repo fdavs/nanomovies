@@ -24,7 +24,7 @@ public enum StandardMovieList {
 	UPCOMING("upcoming");
 
 	/** The default movie list. */
-	public static StandardMovieList DEFAULT = POPULAR;
+	public static final StandardMovieList DEFAULT = POPULAR;
 
 	/** List name, such as it appears in themoviedb.org API. */
 	private final String listName;

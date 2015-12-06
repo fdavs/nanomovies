@@ -83,7 +83,8 @@ public class DiscoverMovies {
 			if (jsonResult.length() == 0)
 				throw new IOException("empty response");
 
-			Log.v(LOG_TAG, "GET request completed successfully");
+			if (Log.isLoggable(LOG_TAG, Log.VERBOSE))
+				Log.v(LOG_TAG, "GET request completed successfully");
 
 			return jsonResult;
 		}

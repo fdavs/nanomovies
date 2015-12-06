@@ -13,7 +13,10 @@
     <string name="activity_detail_name">Movie Details</string>
     <string name="movie_title"><xliff:g id="title" example="Inside Out">%1$s</xliff:g></string>
     <string name="movie_synopsis"><xliff:g id="synopsis" example="Growing up can be a bumpy road, and it's no exception for Riley...">%1$s</xliff:g></string>
-    <string name="movie_user_rating"><xliff:g id="rating" example="8.1">%1$2.1f</xliff:g> / 10  (<xliff:g id="count" example="25">%2$d</xliff:g> votes)</string>
+    <plurals name="movie_user_rating">
+        <item quantity="one"><xliff:g id="rating" example="8.1">%1$2.1f</xliff:g> / 10  (<xliff:g id="count" example="25">%2$d</xliff:g> vote)</item>
+        <item quantity="other"><xliff:g id="rating" example="8.1">%1$2.1f</xliff:g> / 10  (<xliff:g id="count" example="25">%2$d</xliff:g> votes)</item>
+    </plurals>
     <string name="movie_release_date"><xliff:g id="date" example="2015">%1$s</xliff:g></string>
     <string name="movie_poster">Movie poster</string>
     <string name="movie_backdrop">Backdrop image</string>
@@ -24,7 +27,6 @@
     <string name="no_network_try_again">Could not connect to the movie database. Verify your connection settings or try again later.</string>
 
     <!-- common buttons -->
-    <string name="ok">Ok</string>
     <string name="exit">Exit</string>
     <string name="try_again">Try again</string>
 </resources>
