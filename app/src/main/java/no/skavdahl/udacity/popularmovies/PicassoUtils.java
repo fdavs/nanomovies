@@ -18,8 +18,9 @@ import no.skavdahl.udacity.popularmovies.model.Movie;
 public class PicassoUtils {
 	public static void displayWithFallback(Context context, Movie movie, ImageView targetView, com.squareup.picasso.Callback callback) {
 		if (movie.getPosterPath() != null) {
+			int posterWidth = (int) context.getResources().getDimension(R.dimen.poster_width);
 			Picasso.with(context)
-				.load(Request.getPosterThumbnailDownloadURL(movie.getPosterPath(), DiscoverMovies.POSTER_SIZE_PIXELS.x))
+				.load(Request.getPosterThumbnailDownloadURL(movie.getPosterPath(), posterWidth))
 				.error(OfflinePoster.forMovie(context, movie))
 				.into(targetView, callback);
 		}

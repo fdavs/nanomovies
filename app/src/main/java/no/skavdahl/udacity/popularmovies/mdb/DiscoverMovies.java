@@ -19,12 +19,6 @@ public class DiscoverMovies {
 
 	private static final String LOG_TAG = DiscoverMovies.class.getSimpleName();
 
-	/** Standard "small" poster width in pixels */
-	// Note: Could have used android.util.Size but this requires API level 21
-	// Note: This size was found by measuring a poster from themoviedb.org
-	// TODO Refactor: move to another class not tied specifically to themoviedb.org
-	public static final Point POSTER_SIZE_PIXELS = new Point(185, 283);
-
 	/**
 	 * Submits a movie discovery request to themoviedb.org. The query is performed
 	 * synchronously. The response is returned as a raw JSON string.

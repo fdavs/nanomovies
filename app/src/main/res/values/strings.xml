@@ -14,7 +14,7 @@
     <string name="movie_title"><xliff:g id="title" example="Inside Out">%1$s</xliff:g></string>
     <string name="movie_synopsis"><xliff:g id="synopsis" example="Growing up can be a bumpy road, and it's no exception for Riley...">%1$s</xliff:g></string>
     <plurals name="movie_user_rating">
-        <item quantity="one"><xliff:g id="rating" example="8.1">%1$2.1f</xliff:g> / 10  (<xliff:g id="count" example="25">%2$d</xliff:g> vote)</item>
+        <item quantity="one"><xliff:g id="rating" example="8.1">%1$2.1f</xliff:g> / 10  (<xliff:g id="count" example="1">%2$d</xliff:g> vote)</item>
         <item quantity="other"><xliff:g id="rating" example="8.1">%1$2.1f</xliff:g> / 10  (<xliff:g id="count" example="25">%2$d</xliff:g> votes)</item>
     </plurals>
     <string name="movie_release_date"><xliff:g id="date" example="2015">%1$s</xliff:g></string>
