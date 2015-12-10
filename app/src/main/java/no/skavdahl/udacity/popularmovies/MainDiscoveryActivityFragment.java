@@ -47,20 +47,22 @@ public class MainDiscoveryActivityFragment extends Fragment {
 	// (SharedPreferences#registerOnSharedPreferenceChangeListener)
 	private SharedPreferences.OnSharedPreferenceChangeListener prefChangeListener;
 
+	// --- saved instance state ---
 	private final static String PREF_SCROLL_INDEX = "scroll.index";
-	private final static String PREF_SCROLL_OFFSET = "scroll.offset";
-
-	/**
-	 * Local copy of saved instance state between onCreateView and the successful
-	 * async loading of movie posters.
-	 */
-	private Bundle savedInstanceState;
+	private Integer savedScrollIndex;
 
 	public MainDiscoveryActivityFragment() {
-		Log.i(LOG_TAG, "MainDiscoveryActivityFragment created");
     }
 
-    @Override
+	@Override
+	public void onCreate(Bundle savedInstanceState) {
+		super.onCreate(savedInstanceState);
+
+		if (savedInstanceState != null)
+			savedScrollIndex = savedInstanceState.getInt(PREF_SCROLL_INDEX);
+	}
+
+	@Override
     public View onCreateView(LayoutInflater inflater,
                              ViewGroup container,
                              Bundle savedInstanceState) {
@@ -76,7 +78,7 @@ public class MainDiscoveryActivityFragment extends Fragment {
 	    posterGrid.setColumnWidth(posterViewWidth);
 
 	    // -- how to display movie posters
-	    posterGrid.setAdapter(viewAdapter = new MoviePosterAdapter(getContext(), posterViewWidth));
+		posterGrid.setAdapter(viewAdapter = new MoviePosterAdapter(getContext(), posterViewWidth));
 
 	    // -- what should happen when a movie poster is clicked
 		posterGrid.setOnItemClickListener(new AdapterView.OnItemClickListener() {
@@ -87,9 +89,6 @@ public class MainDiscoveryActivityFragment extends Fragment {
 			}
 		});
 
-	    // -- scroll to the previously saved position in the list
-	    this.savedInstanceState = savedInstanceState;
-
 	    return view;
     }
 
@@ -97,31 +96,23 @@ public class MainDiscoveryActivityFragment extends Fragment {
 	public void onSaveInstanceState(Bundle outState) {
 		saveGridScrollPosition(outState);
 		super.onSaveInstanceState(outState);
+
+		// TODO store list of movies
 	}
 
 	private void saveGridScrollPosition(Bundle outState) {
-		int index = posterGrid.getFirstVisiblePosition();
-
-		int offset = 0;
-		if (index < posterGrid.getChildCount()) { // it's possible that the list is empty
-			final View first = posterGrid.getChildAt(index);
-			if (null != first)
-				offset = first.getTop();
-		}
-
-		outState.putInt(PREF_SCROLL_INDEX, index);
-		outState.putInt(PREF_SCROLL_OFFSET, offset);
+		outState.putInt(PREF_SCROLL_INDEX, posterGrid.getFirstVisiblePosition());
+		//Log.v(LOG_TAG, "Saved grid position=" + posterGrid.getFirstVisiblePosition());
 	}
 
-	private void restoreGridScrollPosition(Bundle savedInstanceState) {
-		if (savedInstanceState == null)
+	private void restoreGridScrollPosition() {
+		if (savedScrollIndex == null)
 			return;
 
-		int index = savedInstanceState.getInt(PREF_SCROLL_INDEX);
-		posterGrid.setSelection(index + 1);
+		posterGrid.setSelection(savedScrollIndex);
+		//Log.v(LOG_TAG, "Restored grid position =" + savedScrollIndex);
 
-		int offset = savedInstanceState.getInt(PREF_SCROLL_OFFSET);
-		posterGrid.scrollBy(0, -offset);
+		savedScrollIndex = null;
 	}
 
 	@Override
@@ -300,13 +291,14 @@ public class MainDiscoveryActivityFragment extends Fragment {
 	        new DiscoverMoviesTask.Listener() {
 			    @Override
 			    public void onDownloadSuccess(List<Movie> movies) {
+				    if (Log.isLoggable(LOG_TAG, Log.DEBUG))
+				        Log.d(LOG_TAG, "Movie data successfully downloaded from server (" + movies.size() + " movies downloaded)");
+
 				    viewAdapter.setMovies(movies);
 
 				    // restore previously scroll position (if any)
-				    if (savedInstanceState != null) {
-					    restoreGridScrollPosition(savedInstanceState);
-					    savedInstanceState = null;
-				    }
+				    // TODO remove this restore. Reloading the list *should* put the user at the beginning
+				    restoreGridScrollPosition();
 			    }
 
 			    @Override

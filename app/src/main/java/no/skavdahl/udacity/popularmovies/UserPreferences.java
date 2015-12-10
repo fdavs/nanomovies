@@ -23,6 +23,9 @@ public class UserPreferences {
 	/** Returns the current user preference for the movie list (discovery) setting. */
 	public static StandardMovieList getDiscoveryPreference(final Activity activity) {
 		SharedPreferences prefs = activity.getPreferences(Context.MODE_PRIVATE);
+		if (prefs == null)
+			return StandardMovieList.DEFAULT;
+
 		String listName = prefs.getString(MOVIE_LIST, StandardMovieList.DEFAULT.getListName());
 		return StandardMovieList.fromListName(listName);
 	}
