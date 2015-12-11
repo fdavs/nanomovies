@@ -29,18 +29,18 @@ public class DiscoverMoviesJSONAdapter extends JSONAdapter {
 	// --- attribute names in JSON responses from the server ---
 
 	@SuppressWarnings("FieldCanBeLocal")
-	private final String JSON_DISCOVER_MOVIE_RESULTS = "results";
+	private static final String JSON_DISCOVER_MOVIE_RESULTS = "results";
 
-	private final String JSON_MOVIE_ID = "id";
-	private final String JSON_MOVIE_TITLE = "title";
-	private final String JSON_MOVIE_POSTER_PATH = "poster_path";
-	private final String JSON_MOVIE_BACKDROP_PATH = "backdrop_path";
-	private final String JSON_MOVIE_SYNOPSIS = "overview";
-	private final String JSON_MOVIE_POPULARITY = "popularity";
-	private final String JSON_MOVIE_VOTE_AVERAGE = "vote_average";
-	private final String JSON_MOVIE_VOTE_COUNT = "vote_count";
-	private final String JSON_MOVIE_RELEASE_DATE = "release_date";
-	private final String JSON_MOVIE_GENRES = "genre_ids";
+	private static final String JSON_MOVIE_ID = "id";
+	private static final String JSON_MOVIE_TITLE = "title";
+	private static final String JSON_MOVIE_POSTER_PATH = "poster_path";
+	private static final String JSON_MOVIE_BACKDROP_PATH = "backdrop_path";
+	private static final String JSON_MOVIE_SYNOPSIS = "overview";
+	private static final String JSON_MOVIE_POPULARITY = "popularity";
+	private static final String JSON_MOVIE_VOTE_AVERAGE = "vote_average";
+	private static final String JSON_MOVIE_VOTE_COUNT = "vote_count";
+	private static final String JSON_MOVIE_RELEASE_DATE = "release_date";
+	private static final String JSON_MOVIE_GENRES = "genre_ids";
 
 	// --- class properties ---
 

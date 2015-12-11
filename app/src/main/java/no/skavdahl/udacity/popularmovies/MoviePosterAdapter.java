@@ -6,7 +6,10 @@ import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.ImageView;
 
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
+import java.util.Date;
 import java.util.List;
 
 import no.skavdahl.udacity.popularmovies.model.Movie;
@@ -19,6 +22,7 @@ import no.skavdahl.udacity.popularmovies.model.Movie;
 public class MoviePosterAdapter extends BaseAdapter {
 	private final Context context;
 	private List<Movie> movies = Collections.emptyList();
+	private Date movieLoadTime;
 	private final int posterViewWidth;
 	private final int posterViewHeight;
 
@@ -30,8 +34,15 @@ public class MoviePosterAdapter extends BaseAdapter {
 		this.posterViewHeight = (int) (posterViewWidth * posterHeight /posterWidth);
 	}
 
-	public void setMovies(final List<Movie> movies) {
-		this.movies = movies;
+	public Date getMovieLoadTime() {
+		return movieLoadTime;
+	}
+	public List<Movie> getMovies() {
+		return Collections.unmodifiableList(movies);
+	}
+	public void setMovies(final Collection<Movie> movies, final Date loadTime) {
+		this.movies = new ArrayList<>(movies);
+		this.movieLoadTime = loadTime;
 		notifyDataSetChanged();
 	}
 

@@ -23,7 +23,10 @@ import android.widget.AdapterView;
 import android.widget.GridView;
 
 import org.json.JSONException;
+import org.json.JSONObject;
 
+import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 import no.skavdahl.udacity.popularmovies.mdb.DiscoverMoviesJSONAdapter;
@@ -37,7 +40,9 @@ import no.skavdahl.udacity.popularmovies.model.Movie;
  */
 public class MainDiscoveryActivityFragment extends Fragment {
 
-    private final String LOG_TAG = getClass().getSimpleName();
+	// Log tags must be <= 23 characters
+	// see Log.isLoggable() throws description
+    private final String LOG_TAG = getClass().getSimpleName().substring(0, 23);
 
 	private GridView posterGrid;
 	private MoviePosterAdapter viewAdapter;
@@ -48,8 +53,12 @@ public class MainDiscoveryActivityFragment extends Fragment {
 	private SharedPreferences.OnSharedPreferenceChangeListener prefChangeListener;
 
 	// --- saved instance state ---
-	private final static String PREF_SCROLL_INDEX = "scroll.index";
-	private Integer savedScrollIndex;
+	private final static String BUNDLE_MOVIES = "movies";
+	private final static String BUNDLE_MOVIES_LOADTIME = "movies.time";
+	private final static String BUNDLE_SCROLL_INDEX = "scroll.index";
+
+	/** How long to keep movie data before they should be refreshed. */
+	private final static long MAX_MOVIES_AGE = 1000 * 60*60; // 1 hour in millis
 
 	public MainDiscoveryActivityFragment() {
     }
@@ -57,9 +66,6 @@ public class MainDiscoveryActivityFragment extends Fragment {
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-
-		if (savedInstanceState != null)
-			savedScrollIndex = savedInstanceState.getInt(PREF_SCROLL_INDEX);
 	}
 
 	@Override
@@ -92,27 +98,109 @@ public class MainDiscoveryActivityFragment extends Fragment {
 	    return view;
     }
 
+	/**
+	 * Returns true if there are movie data available and they are not expired
+	 * (older than the limit set by {@link #MAX_MOVIES_AGE}
+	 */
+	private boolean areMovieDataCurrent() {
+		List<Movie> movies = viewAdapter.getMovies();
+		if (movies.isEmpty())
+			return false;
+
+		// there are movie data available so there will also be a non-null load time
+		return areMovieDataCurrent(viewAdapter.getMovieLoadTime().getTime());
+	}
+
+	private boolean areMovieDataCurrent(long movieLoadTime) {
+		return System.currentTimeMillis() - movieLoadTime < MAX_MOVIES_AGE;
+	}
+
 	@Override
 	public void onSaveInstanceState(Bundle outState) {
-		saveGridScrollPosition(outState);
-		super.onSaveInstanceState(outState);
+		if (areMovieDataCurrent()) {
+			saveGridScrollPosition(outState);
+			saveMovieData(outState);
+		}
 
-		// TODO store list of movies
+		super.onSaveInstanceState(outState);
 	}
 
 	private void saveGridScrollPosition(Bundle outState) {
-		outState.putInt(PREF_SCROLL_INDEX, posterGrid.getFirstVisiblePosition());
-		//Log.v(LOG_TAG, "Saved grid position=" + posterGrid.getFirstVisiblePosition());
+		outState.putInt(BUNDLE_SCROLL_INDEX, posterGrid.getFirstVisiblePosition());
 	}
 
-	private void restoreGridScrollPosition() {
-		if (savedScrollIndex == null)
+	private void saveMovieData(Bundle outState) {
+		// The basic idea is to "bundle" the movie data into a parcel and save that
+		// parcel in the outState bundle. This requires that Movie implements Parcelable.
+		// Since it's just a little data, we already have a mechanism to serialize and
+		// deserialize movies (json), and because in the long term I wish to save movie
+		// data in a small, local database, I choose to use the existing json serialization
+		// for now.
+
+		List<Movie> movies = viewAdapter.getMovies();
+		Date movieLoadTime = viewAdapter.getMovieLoadTime();
+		//assert !movies.isEmpty() && movieLoadTime != null;
+
+		DiscoverMoviesJSONAdapter jsonAdapter = new DiscoverMoviesJSONAdapter(getResources());
+
+		ArrayList<String> bundle = new ArrayList<>(movies.size());
+		for (Movie m : movies) {
+			try {
+				bundle.add(jsonAdapter.toJSONString(m));
+			}
+			catch (JSONException e) {
+				// this error should never occur so this is mostly verifying an assertion
+				Log.e(LOG_TAG, "Unable to convert to JSON: " + m, e);
+			}
+		}
+
+		outState.putStringArrayList(BUNDLE_MOVIES, bundle);
+		outState.putLong(BUNDLE_MOVIES_LOADTIME, movieLoadTime.getTime());
+	}
+
+	@Override
+	public void onActivityCreated(Bundle inState) {
+		super.onActivityCreated(inState);
+
+		if (inState != null) {
+			long movieLoadTime = inState.getLong(BUNDLE_MOVIES_LOADTIME);
+			if (areMovieDataCurrent(movieLoadTime)) {
+				restoreMovieData(inState);
+				restoreGridScrollPosition(inState);
+				return;
+			}
+		}
+
+		refreshMovies();
+	}
+
+	private void restoreGridScrollPosition(Bundle inState) {
+		int position = inState.getInt(BUNDLE_SCROLL_INDEX);
+		posterGrid.setSelection(position);
+	}
+
+	private void restoreMovieData(Bundle inState) {
+		ArrayList<String> bundle = inState.getStringArrayList(BUNDLE_MOVIES);
+		long moviesLoadTime = inState.getLong(BUNDLE_MOVIES_LOADTIME);
+
+		if (bundle == null || moviesLoadTime == 0)
 			return;
 
-		posterGrid.setSelection(savedScrollIndex);
-		//Log.v(LOG_TAG, "Restored grid position =" + savedScrollIndex);
+		List<Movie> movies = new ArrayList<>(bundle.size());
+		DiscoverMoviesJSONAdapter jsonAdapter = new DiscoverMoviesJSONAdapter(getResources());
 
-		savedScrollIndex = null;
+		for (String json : bundle) {
+			try {
+				JSONObject obj = new JSONObject(json);
+				movies.add(jsonAdapter.toMovie(obj));
+			}
+			catch (JSONException e) {
+				// this error should never occur so this is mostly verifying an assertion
+				Log.e(LOG_TAG, "Unable to convert from JSON: " + json, e);
+			}
+		}
+
+		viewAdapter.setMovies(movies, new Date(moviesLoadTime));
 	}
 
 	@Override
@@ -258,12 +346,6 @@ public class MainDiscoveryActivityFragment extends Fragment {
 		}
 	}
 
-	@Override
-	public void onStart() {
-		super.onStart();
-		refreshMovies();
-	}
-
 	/**
      * Issues or re-issues the current query to themoviedb.org and updates the display with the
      * new results from the query.
@@ -294,11 +376,7 @@ public class MainDiscoveryActivityFragment extends Fragment {
 				    if (Log.isLoggable(LOG_TAG, Log.DEBUG))
 				        Log.d(LOG_TAG, "Movie data successfully downloaded from server (" + movies.size() + " movies downloaded)");
 
-				    viewAdapter.setMovies(movies);
-
-				    // restore previously scroll position (if any)
-				    // TODO remove this restore. Reloading the list *should* put the user at the beginning
-				    restoreGridScrollPosition();
+				    viewAdapter.setMovies(movies, new Date());
 			    }
 
 			    @Override
