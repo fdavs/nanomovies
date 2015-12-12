@@ -3,7 +3,6 @@ package no.skavdahl.udacity.popularmovies;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
-import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -11,8 +10,6 @@ import android.view.ViewGroup;
 import android.support.v4.app.Fragment;
 import android.widget.ImageView;
 import android.widget.TextView;
-
-import com.squareup.picasso.Picasso;
 
 import org.json.JSONObject;
 
@@ -22,7 +19,6 @@ import java.util.GregorianCalendar;
 import java.util.Locale;
 
 import no.skavdahl.udacity.popularmovies.mdb.DiscoverMoviesJSONAdapter;
-import no.skavdahl.udacity.popularmovies.mdb.Request;
 import no.skavdahl.udacity.popularmovies.model.Movie;
 
 /**

@@ -1,6 +1,5 @@
 package no.skavdahl.udacity.popularmovies.mdb;
 
-import android.graphics.Point;
 import android.util.Log;
 
 import java.io.BufferedReader;
