@@ -10,13 +10,55 @@ service.
   * rename the file `app.properties.example` to `app.properties`
   * paste your API key into this file
 
+TODO
+====
+  - [ ] Feature: Allow user to view players (in the YouTube app or web browser)
+  - [ ] Feature: Allow user to read reviews
+  - [ ] Feature: Allow user to bookmark a movie as a personal favorite (offline storage)
+  - [ ] Feature: Allow user to view his/her personal favorites
+  - [ ] Optimize for tablet
+  - [ ] Exceeds feature: App persists favorite movie details using a database
+    - [ ] Store detailed info for movies that have been explored offline
+    - [ ] Purge old data from the database periodically
+  - [ ] Exceeds feature: App displays favorite movie details even when offline
+  - [ ] Exceeds feature: App uses a contentProvider to populate favorite movie details. (It is allowerd to use a library to generate the content provider rather than to build one by hand)
+  - [ ] Exceeds feature: Movie Details View includes an action bar item that allows the user to share the first trailer video URL from the list of trailers
+  - [ ] Exceeds feature: App uses a share Intent to expose the external youtube URL for the trailer
+  - [ ] Bonus: Enable endless scrolling
+    - [ ] Refactor: Replace GridView with RecycleView
+  - [ ] Bonus: App icon
+  - [ ] Bonus: Default poster image when none can be downloaded from themoviedb.org (replace the somewhat ugly generated color-based poster image)
+  - [ ] Bonus: Store enumerations (genre lists, actor names etc) in a database, refresh on app start
+  - [ ] Refactor: Try project [Butterknife] [butterknife] for view binding (ref. stage 1 feedback)
+  - [ ] Refactor: Try project [Retrofit] [retrofit] for REST services (ref. stage 1 feedback)
+  - [ ] Bonus: Support the local language with english as fallback
+    - [ ] Include original title in the movie detail activity
+  - [ ] Possible: consider alternative JSON serialization frameworks (like [gson] [gson])
+  - [ ] Possible: review other popular android libraries at [appbrain.com] [appbrain], like [guava] [guava]
+  - [ ] Refactor: Move themoviedb API key from app.properties to gradle global properties
+
+  [appbrain]: http://www.appbrain.com/stats/libraries/dev
+  [butterknife]: http://jakewharton.github.io/butterknife/
+  [gson]: https://github.com/google/gson
+  [guava]: https://github.com/google/guava
+  [retrofit]: http://square.github.io/retrofit/
+
+References for stage 2
+======================
+  * Sunshine part 4 and 5
+  * [Stage 2 Implementation Guide] [implguide]
+  * [Stage 2 Evaluation Rubbric] [evalguide]
+
+  [implguide]: https://docs.google.com/document/d/1ZlN1fUsCSKuInLECcJkslIqvpKlP7jWL2TP9m6UiA6I/pub?embedded=true
+  [evalguide]: https://docs.google.com/document/d/11JDnp_WTNGcIm_gs1raroUuDyxo9H_WsQxnpeozMov4/pub?embedded=true
+
 Notes
 =====
 
 API calls
 ---------
 
-This program does not use the `/discover/movie` API call at themoviedb as described in the "Network API implementaion" project evaluation document. I prefer instead `/movie/latest` and related API calls, for two reasons. 
+This program does not use the `/discover/movie` API call at themoviedb as described in the "Network API implementaion" project evaluation document. I prefer instead `/movie/latest` and related API calls, for two reasons.
 
 First, this is the simplest way to get an intelligent (also taking into account the number of votes) response for the top rated movies.
 
