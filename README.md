@@ -7,8 +7,12 @@ themoviedb.org API Key
 Prior to compilation, you must provide a valid API key for themoviedb
 service.
 
-  * rename the file `app.properties.example` to `app.properties`
-  * paste your API key into this file
+  * Add the following line to the file `$HOME/.gradle/gradle.properties` (create the file if necessary)
+
+        themoviedb_api_key = "<API KEY>"
+          
+  
+  * Replace the string `<API KEY>` with your API key.
 
 TODO
 ====
@@ -35,7 +39,7 @@ TODO
     - [ ] Include original title in the movie detail activity
   - [ ] Possible: consider alternative JSON serialization frameworks (like [gson] [gson])
   - [ ] Possible: review other popular android libraries at [appbrain.com] [appbrain], like [guava] [guava]
-  - [ ] Refactor: Move themoviedb API key from app.properties to gradle global properties
+  - [x] Refactor: Move themoviedb API key from app.properties to gradle global properties
 
   [appbrain]: http://www.appbrain.com/stats/libraries/dev
   [butterknife]: http://jakewharton.github.io/butterknife/

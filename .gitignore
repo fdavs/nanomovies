@@ -33,6 +33,3 @@ Thumbs.db
 # NDK
 obj/
 
-# API key file
-app/app.properties
-

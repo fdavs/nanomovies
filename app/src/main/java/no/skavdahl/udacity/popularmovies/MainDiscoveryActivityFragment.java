@@ -368,7 +368,7 @@ public class MainDiscoveryActivityFragment extends Fragment {
 
         // permission granted, go ahead with the operation
 	    StandardMovieList movieList = UserPreferences.getDiscoveryPreference(getActivity());
-	    String apiKey = getString(R.string.movie_api_key);
+	    String apiKey = BuildConfig.THEMOVIEDB_API_KEY;
         DiscoverMoviesTask task = new DiscoverMoviesTask(movieList, apiKey, getActivity(),
 	        new DiscoverMoviesTask.Listener() {
 			    @Override
