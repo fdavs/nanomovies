@@ -30,7 +30,7 @@
 
         <provider
             android:authorities="no.skavdahl.udacity.popularmovies"
-            android:name="no.skavdahl.udacity.popularmovies.data.MovieProvider" />
+            android:name=".data.MovieProvider" />
     </application>
 
 </manifest>
