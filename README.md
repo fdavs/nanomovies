@@ -14,32 +14,46 @@ service.
   
   * Replace the string `<API KEY>` with your API key.
 
+Implementation notes
+====================
+
+I have purposefully implemented all features (data binding, content providers) by hand rather than to use external libraries, in an effort to better learn how Android works under the hood.
+
 TODO
 ====
+
+Basic requirements:
   - [ ] Feature: Allow user to view players (in the YouTube app or web browser)
   - [ ] Feature: Allow user to read reviews
   - [ ] Feature: Allow user to bookmark a movie as a personal favorite (offline storage)
   - [ ] Feature: Allow user to view his/her personal favorites
   - [ ] Optimize for tablet
+
+Requirements for the "Exceeds specifications" distinction:
   - [ ] Exceeds feature: App persists favorite movie details using a database
     - [ ] Store detailed info for movies that have been explored offline
     - [ ] Purge old data from the database periodically
   - [ ] Exceeds feature: App displays favorite movie details even when offline
-  - [ ] Exceeds feature: App uses a contentProvider to populate favorite movie details. (It is allowerd to use a library to generate the content provider rather than to build one by hand)
+  - [ ] Exceeds feature: App uses a contentProvider to populate favorite movie details. (It is allowed to use a library to generate the content provider rather than to build one by hand)
   - [ ] Exceeds feature: Movie Details View includes an action bar item that allows the user to share the first trailer video URL from the list of trailers
   - [ ] Exceeds feature: App uses a share Intent to expose the external youtube URL for the trailer
+
+Refactorings and other improvements:
+  - [x] ~~Refactor: Move themoviedb API key from app.properties to the global Gradle properties~~
   - [ ] Bonus: Enable endless scrolling
     - [ ] Refactor: Replace GridView with RecycleView
   - [ ] Bonus: App icon
   - [ ] Bonus: Default poster image when none can be downloaded from themoviedb.org (replace the somewhat ugly generated color-based poster image)
   - [ ] Bonus: Store enumerations (genre lists, actor names etc) in a database, refresh on app start
-  - [ ] Refactor: Try project [Butterknife] [butterknife] for view binding (ref. stage 1 feedback)
-  - [ ] Refactor: Try project [Retrofit] [retrofit] for REST services (ref. stage 1 feedback)
   - [ ] Bonus: Support the local language with english as fallback
     - [ ] Include original title in the movie detail activity
   - [ ] Possible: consider alternative JSON serialization frameworks (like [gson] [gson])
   - [ ] Possible: review other popular android libraries at [appbrain.com] [appbrain], like [guava] [guava]
-  - [x] Refactor: Move themoviedb API key from app.properties to gradle global properties
+
+Simplifications:
+
+  - [ ] Refactor: Utilize [Butterknife] [butterknife] for view binding (ref. stage 1 feedback)
+  - [ ] Refactor: Utilize [Retrofit] [retrofit] for REST services (ref. stage 1 feedback)
 
   [appbrain]: http://www.appbrain.com/stats/libraries/dev
   [butterknife]: http://jakewharton.github.io/butterknife/

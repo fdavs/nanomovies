@@ -27,6 +27,10 @@
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="no.skavdahl.udacity.popularmovies.MainDiscoveryActivity" />
         </activity>
+
+        <provider
+            android:authorities="no.skavdahl.udacity.popularmovies"
+            android:name="no.skavdahl.udacity.popularmovies.data.MovieProvider" />
     </application>
 
 </manifest>

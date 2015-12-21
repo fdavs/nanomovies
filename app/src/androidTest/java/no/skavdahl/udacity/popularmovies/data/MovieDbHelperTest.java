@@ -1,8 +1,5 @@
 package no.skavdahl.udacity.popularmovies.data;
 
-import android.database.Cursor;
-import android.database.sqlite.SQLiteDatabase;
-import android.test.AndroidTestCase;
 import android.text.TextUtils;
 
 import java.util.HashSet;
@@ -13,16 +10,7 @@ import java.util.Set;
  *
  * @author fdavs
  */
-public class MovieDbHelperTest extends AndroidTestCase {
-
-	public final String LOG_TAG = getClass().getSimpleName();
-
-	public void setUp() {
-		mContext.deleteDatabase(MovieDbHelper.DATABASE_NAME);
-	}
-
-	public void tearDown() {
-	}
+public class MovieDbHelperTest extends SQLiteTestCase {
 
 	/**
 	 * Tests that the database can be successfully created with all the expected
@@ -31,35 +19,45 @@ public class MovieDbHelperTest extends AndroidTestCase {
 	 * This test is based on code from the Sunshine project from the course
 	 * "Developing Android Apps" at udacity.com
 	 */
-	public void testThatDatabaseAndTablesCanBeCreated() throws Throwable {
+	public void testThatDatabaseAndTablesCanBeCreated() {
 		// the following tables need to be present in a successfully created database
 		final Set<String> remainingTables = new HashSet<>();
-		remainingTables.add(MovieContract.MovieTable.TABLE_NAME);
-		remainingTables.add(MovieContract.ImageTable.TABLE_NAME);
+		remainingTables.add(MovieContracts.MovieContract.TABLE_NAME);
+		remainingTables.add(MovieContracts.ImageContract.TABLE_NAME);
 
-		SQLiteDatabase db = null;
-		Cursor c = null;
+		db = new MovieDbHelper(this.mContext).getWritableDatabase();
+		assertEquals(true, db.isOpen());
 
-		try {
-			db = new MovieDbHelper(this.mContext).getWritableDatabase();
-			assertEquals(true, db.isOpen());
-
-			c = db.rawQuery("SELECT name FROM sqlite_master WHERE type='table'", null);
-			while (c.moveToNext()) {
-				String createdTable = c.getString(0);
-				remainingTables.remove(createdTable);
-			}
-
-			assertTrue(
-				"Not all required tables were created: " + TextUtils.join(", ", remainingTables),
-				remainingTables.isEmpty());
+		cursor = db.rawQuery("SELECT name FROM sqlite_master WHERE type='table'", null);
+		while (cursor.moveToNext()) {
+			String createdTable = cursor.getString(0);
+			remainingTables.remove(createdTable);
 		}
-		finally {
-			if (c != null && !c.isClosed())
-				c.close();
 
-			if (db != null && db.isOpen())
-				db.close();
-		}
+		assertTrue(
+			"Not all required tables were created: " + TextUtils.join(", ", remainingTables),
+			remainingTables.isEmpty());
+	}
+
+
+	/**
+	 *
+	 */
+	public void testSelectImageById() {
+		fail("Feature not implemented");
+	}
+
+	/**
+	 *
+	 */
+	public void testInsertImage() {
+		fail("Feature not implemented");
+	}
+
+	/**
+	 *
+	 */
+	public void testDeleteImage() {
+		fail("Feature not implemented");
 	}
 }
