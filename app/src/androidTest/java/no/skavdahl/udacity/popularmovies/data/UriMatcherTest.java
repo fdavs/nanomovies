@@ -4,7 +4,7 @@ import android.content.UriMatcher;
 import android.net.Uri;
 import android.test.AndroidTestCase;
 
-import static no.skavdahl.udacity.popularmovies.data.MovieContracts.*;
+import static no.skavdahl.udacity.popularmovies.data.PopularMoviesContract.*;
 
 /**
  * Verifies the implementation of the UriMatcher.
@@ -15,22 +15,55 @@ public class UriMatcherTest extends AndroidTestCase {
 
 	private UriMatcher matcher;
 
+	// --- Test data ---
+
+	private final String LIST_NAME = "favorites";
+	private final int MOVIE_ID = 5;
+
+	@SuppressWarnings("FieldCanBeLocal")
+	private final int IMAGE_ID = 7;
+
 	public void setUp() {
 		matcher = MovieProvider.buildUriMatcher();
 	}
 
-	public void testThatMovieListUriIsMatched() {
-		Uri movieListUri = MovieContract.buildMovieListUri("popular", 5);
-		assertEquals(MovieProvider.MOVIE_LIST, matcher.match(movieListUri));
+	public void testThatListDirectoryUriIsMatched() {
+		Uri movieListUri = ListContract.buildListDirectoryUri();
+		assertEquals(MovieProvider.LIST_DIRECTORY, matcher.match(movieListUri));
 	}
 
-	public void testThatMovieDetailUriIsMatched() {
-		Uri movieListUri = MovieContract.buildMovieDetailUri(TestData.Movie1.ID);
-		assertEquals(MovieProvider.MOVIE_DETAIL, matcher.match(movieListUri));
+	public void testThatListItemUriIsMatched() {
+		Uri movieListUri = ListContract.buildListItemUri(LIST_NAME);
+		assertEquals(MovieProvider.LIST_ITEM, matcher.match(movieListUri));
 	}
 
-	public void testThatImageDetailUriIsMatched() {
-		Uri movieListUri = ImageContract.buildImageUri(TestData.Movie1.POSTER_PATH, TestData.Movie1.POSTER_WIDTH);
-		assertEquals(MovieProvider.IMAGE_DETAIL, matcher.match(movieListUri));
+	public void testThatListMemberDirectoryUriIsMatched() {
+		Uri movieListUri = ListContract.buildListMemberDirectoryUri(LIST_NAME);
+		assertEquals(MovieProvider.LIST_MEMBER_DIRECTORY, matcher.match(movieListUri));
+	}
+
+	public void testThatListMemberItemUriIsMatched() {
+		Uri movieListUri = ListContract.buildListMemberItemUri(LIST_NAME, MOVIE_ID);
+		assertEquals(MovieProvider.LIST_MEMBER_ITEM, matcher.match(movieListUri));
+	}
+
+	public void testThatMovieDirectoryUriIsMatched() {
+		Uri movieListUri = MovieContract.buildMovieDirectoryUri();
+		assertEquals(MovieProvider.MOVIE_DIRECTORY, matcher.match(movieListUri));
+	}
+
+	public void testThatMovieItemUriIsMatched() {
+		Uri movieListUri = MovieContract.buildMovieItemUri(MOVIE_ID);
+		assertEquals(MovieProvider.MOVIE_ITEM, matcher.match(movieListUri));
+	}
+
+	public void testThatImageDirectoryUriIsMatched() {
+		Uri movieListUri = ImageContract.buildImageDirectoryUri();
+		assertEquals(MovieProvider.IMAGE_DIRECTORY, matcher.match(movieListUri));
+	}
+
+	public void testThatImageItemUriIsMatched() {
+		Uri movieListUri = ImageContract.buildImageItemUri(IMAGE_ID);
+		assertEquals(MovieProvider.IMAGE_ITEM, matcher.match(movieListUri));
 	}
 }

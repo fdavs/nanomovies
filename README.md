@@ -47,6 +47,7 @@ Refactorings and other improvements:
   - [ ] Bonus: Store enumerations (genre lists, actor names etc) in a database, refresh on app start
   - [ ] Bonus: Support the local language with english as fallback
     - [ ] Include original title in the movie detail activity
+  - [ ] Possible: Expose the favorite movies as searchable through the content provider
   - [ ] Possible: consider alternative JSON serialization frameworks (like [gson] [gson])
   - [ ] Possible: review other popular android libraries at [appbrain.com] [appbrain], like [guava] [guava]
 

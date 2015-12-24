@@ -8,6 +8,8 @@
     <string name="action_popular_movies">Popular movies</string>
     <string name="action_top_rated_movies">Top rated movies</string>
     <string name="action_upcoming_movies">Upcoming movies</string>
+    <string name="action_favorite_movies">Favorite movies</string>
+
 
     <!-- strings in the Movie Detail fragment -->
     <string name="activity_detail_name">Movie Details</string>

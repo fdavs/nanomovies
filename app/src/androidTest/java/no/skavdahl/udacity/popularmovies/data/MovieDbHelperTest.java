@@ -22,8 +22,10 @@ public class MovieDbHelperTest extends SQLiteTestCase {
 	public void testThatDatabaseAndTablesCanBeCreated() {
 		// the following tables need to be present in a successfully created database
 		final Set<String> remainingTables = new HashSet<>();
-		remainingTables.add(MovieContracts.MovieContract.TABLE_NAME);
-		remainingTables.add(MovieContracts.ImageContract.TABLE_NAME);
+		remainingTables.add(PopularMoviesContract.ListContract.TABLE_NAME);
+		remainingTables.add(PopularMoviesContract.ListMembershipContract.TABLE_NAME);
+		remainingTables.add(PopularMoviesContract.MovieContract.TABLE_NAME);
+		remainingTables.add(PopularMoviesContract.ImageContract.TABLE_NAME);
 
 		db = new MovieDbHelper(this.mContext).getWritableDatabase();
 		assertEquals(true, db.isOpen());
