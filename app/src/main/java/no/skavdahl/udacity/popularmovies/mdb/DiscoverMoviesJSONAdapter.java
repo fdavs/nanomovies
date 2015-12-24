@@ -16,6 +16,7 @@ import java.util.Random;
 
 import no.skavdahl.udacity.popularmovies.R;
 import no.skavdahl.udacity.popularmovies.model.Movie;
+import no.skavdahl.udacity.utils.JSONAdapter;
 
 /**
  * Parser for JSON data that is returned from a discover movies request to themoviedb.org.

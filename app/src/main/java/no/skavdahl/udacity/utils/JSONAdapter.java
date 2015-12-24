@@ -1,4 +1,4 @@
-package no.skavdahl.udacity.popularmovies.mdb;
+package no.skavdahl.udacity.utils;
 
 import org.json.JSONArray;
 import org.json.JSONException;
