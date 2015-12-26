@@ -49,7 +49,7 @@ public class MovieDbHelper extends SQLiteOpenHelper {
 			"CREATE TABLE " + ListContract.TABLE_NAME + " (" +
 				ListContract.Column._ID + " INTEGER PRIMARY KEY," +
 				ListContract.Column.NAME + " TEXT NOT NULL," +
-				ListContract.Column.TYPE + " SMALLINT NOT NULL" +
+				ListContract.Column.TYPE + " INTEGER NOT NULL" +
 			")");
 
 		// insert standard lists
@@ -107,9 +107,9 @@ public class MovieDbHelper extends SQLiteOpenHelper {
 	private void createImageTable_v1(SQLiteDatabase db) {
 		db.execSQL(
 			"CREATE TABLE " + ImageContract.TABLE_NAME + " (" +
-				ImageContract.Column._ID + " ID PRIMARY KEY," +
+				ImageContract.Column._ID + " INTEGER PRIMARY KEY," +
 				ImageContract.Column.PATH + " TEXT NOT NULL," +
-				ImageContract.Column.WIDTH + " TEXT NOT NULL," +
+				ImageContract.Column.WIDTH + " INTEGER NOT NULL," +
 				ImageContract.Column.MOVIE_ID + " INTEGER NOT NULL, " +
 				ImageContract.Column.IMAGEDATA + " BLOB NOT NULL, " +
 				"FOREIGN KEY (" + ImageContract.Column.MOVIE_ID + ") " +

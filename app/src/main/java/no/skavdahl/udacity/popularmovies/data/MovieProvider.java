@@ -1,5 +1,6 @@
 package no.skavdahl.udacity.popularmovies.data;
 
+import android.annotation.TargetApi;
 import android.content.ContentProvider;
 import android.content.ContentValues;
 import android.content.UriMatcher;
@@ -7,7 +8,16 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.net.Uri;
 import android.support.annotation.Nullable;
+import android.text.TextUtils;
 import android.util.Log;
+
+import java.util.List;
+
+import no.skavdahl.udacity.popularmovies.BuildConfig;
+import no.skavdahl.udacity.popularmovies.mdb.DiscoverMovies;
+import no.skavdahl.udacity.popularmovies.mdb.DiscoverMoviesJSONAdapter;
+import no.skavdahl.udacity.popularmovies.mdb.StandardMovieList;
+import no.skavdahl.udacity.popularmovies.model.Movie;
 
 import static no.skavdahl.udacity.popularmovies.data.PopularMoviesContract.*;
 
@@ -111,6 +121,10 @@ public class MovieProvider extends ContentProvider {
 					sortOrder);
 				break;
 
+			case LIST_MEMBER_DIRECTORY:
+				cursor = queryListMemberDirectory(uri, projection, selection, selectionArgs, sortOrder);
+				break;
+
 			case MOVIE_ITEM:
 				cursor = dbHelper.getReadableDatabase().query(
 					MovieContract.TABLE_NAME,
@@ -142,6 +156,83 @@ public class MovieProvider extends ContentProvider {
 		return cursor;
 	}
 
+	protected Cursor queryListMemberDirectory(Uri uri, String[] projection, String selection, String[] selectionArgs, String sortOrder) {
+		final boolean loggable = true; // Log.isLoggable(LOG_TAG, Log.VERBOSE);
+
+		final ListDbQueries listQuery = new ListDbQueries(dbHelper);
+		final String listName =  uri.getPathSegments().get(1);
+
+		// Query the local database first
+		if (loggable) Log.v(LOG_TAG, "Querying list member directory from database: " + uri);
+
+		Cursor memberCursor = listQuery.queryListMemberDirectory(listName, projection, selection, selectionArgs, sortOrder);
+		if (memberCursor.moveToFirst()) {
+			if (loggable) Log.v(LOG_TAG, "Database query returned results: " + memberCursor.getCount());
+			return memberCursor;
+		}
+
+		// database did not contain the data we need or it is obsolete
+		// we may need to do an online query
+
+		if (loggable) Log.v(LOG_TAG, "Database query returned 0 results");
+
+		int page = 1; // TODO read 'page' value from selection/selectionArgs
+
+		Cursor listCursor = dbHelper.getReadableDatabase().query(
+			ListContract.TABLE_NAME,
+			new String[] { ListContract.Column._ID, ListContract.Column.TYPE },
+			ListContract.Column.NAME + " = ?",
+			new String[] { listName },
+			null,
+			null,
+			null);
+
+		if (!listCursor.moveToFirst()) {
+			Log.w(LOG_TAG, "List not found in database: " + listName);
+			return memberCursor; // nothing more we can do
+		}
+
+		int listId = listCursor.getInt(listCursor.getColumnIndex(ListContract.Column._ID));
+		int listType = listCursor.getInt(listCursor.getColumnIndex(ListContract.Column.TYPE));
+
+		listCursor.close();
+
+		if (loggable) Log.v(LOG_TAG, "List name=" + listName + ", id=" + listId + ", listType=" + listType);
+
+		switch (listType) {
+			case ListContract.LISTTYPE_STANDARD:
+				try {
+					if (loggable) Log.v(LOG_TAG, "Issuing web query for list " + listName);
+
+					DiscoverMovies webQuery = new DiscoverMovies();
+					String jsonResponse = webQuery.discoverStandardMovies(BuildConfig.THEMOVIEDB_API_KEY, listName);
+
+					if (loggable) Log.v(LOG_TAG, "Web query returned a response:" + jsonResponse.substring(0, Math.min(30, jsonResponse.length())));
+
+					DiscoverMoviesJSONAdapter jsonAdapter = new DiscoverMoviesJSONAdapter(getContext().getResources());
+					List<Movie> movieList = jsonAdapter.getMoviesList(jsonResponse);
+
+					listQuery.bulkInsert(listId, page, movieList);
+
+					if (loggable) Log.v(LOG_TAG, "Movie data successfully inserted into database");
+				}
+				catch (Exception e) {
+					Log.e(LOG_TAG, "Web query failed for list name=" + listName, e);
+				}
+
+			default:
+				// no action
+				// TODO implement support for public lists on themoviedb.org
+		}
+
+		// reissue the database query to get an updated cursor
+		if (loggable) Log.v(LOG_TAG, "Re-issuing list member directory query for list " + listName);
+		memberCursor.close();
+		memberCursor = listQuery.queryListMemberDirectory(listName, projection, selection, selectionArgs, sortOrder);
+
+		return memberCursor;
+	}
+
 	@Nullable
 	@Override
 	public Uri insert(Uri uri, ContentValues values) {
@@ -156,5 +247,14 @@ public class MovieProvider extends ContentProvider {
 	@Override
 	public int update(Uri uri, ContentValues values, String selection, String[] selectionArgs) {
 		return 0;
+	}
+
+	// For unit testing support. See:
+	// http://developer.android.com/reference/android/content/ContentProvider.html#shutdown()
+	@Override
+	@TargetApi(11)
+	public void shutdown() {
+		dbHelper.close();
+		super.shutdown();
 	}
 }

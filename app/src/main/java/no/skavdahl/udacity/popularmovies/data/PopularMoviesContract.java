@@ -77,6 +77,9 @@ public class PopularMoviesContract {
 
 		public static final String TABLE_NAME = "list";
 
+		/** An invalid list type, similar in semantics to <code>null</code>. */
+		public static final int LISTTYPE_NONE = 0;
+
 		/** Identifies a standard list (popular, upcoming, toprated, nowplaying) */
 		public static final int LISTTYPE_STANDARD = 1;
 

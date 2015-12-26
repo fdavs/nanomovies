@@ -7,9 +7,14 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
+import android.database.Cursor;
+import android.net.Uri;
 import android.support.v4.app.Fragment;
 import android.os.Bundle;
+import android.support.v4.app.LoaderManager;
 import android.support.v4.content.ContextCompat;
+import android.support.v4.content.CursorLoader;
+import android.support.v4.content.Loader;
 import android.support.v7.app.AlertDialog;
 import android.util.DisplayMetrics;
 import android.util.Log;
@@ -29,6 +34,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+import no.skavdahl.udacity.popularmovies.data.PopularMoviesContract;
 import no.skavdahl.udacity.popularmovies.mdb.DiscoverMoviesJSONAdapter;
 import no.skavdahl.udacity.popularmovies.mdb.StandardMovieList;
 import no.skavdahl.udacity.popularmovies.model.Movie;
@@ -38,7 +44,7 @@ import no.skavdahl.udacity.popularmovies.model.Movie;
  *
  * @author fdavs
  */
-public class MainDiscoveryActivityFragment extends Fragment {
+public class MainDiscoveryActivityFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor> {
 
 	// Log tags must be <= 23 characters
 	// see Log.isLoggable() throws description
@@ -46,6 +52,8 @@ public class MainDiscoveryActivityFragment extends Fragment {
 
 	private GridView posterGrid;
 	private MoviePosterAdapter viewAdapter;
+
+	private final int LOADER_ID = 0;
 
 	// It is recommended to keep a local reference to this ChangeListener to avoid
 	// garbage collection -- see the Android API docs at http://goo.gl/0yFyTy
@@ -59,6 +67,16 @@ public class MainDiscoveryActivityFragment extends Fragment {
 
 	/** How long to keep movie data before they should be refreshed. */
 	private final static long MAX_MOVIES_AGE = 1000 * 60*60; // 1 hour in millis
+
+	// --- cursor configuration ---
+
+	private final static String[] CURSOR_PROJECTION = new String[] {
+		PopularMoviesContract.MovieContract.Column._ID,
+		PopularMoviesContract.MovieContract.Column.JSONDATA
+	};
+
+	private final static int CURSOR_INDEX_MOVIE_ID = 0;
+	private final static int CURSOR_INDEX_MOVIE_JSON = 1;
 
 	public MainDiscoveryActivityFragment() {
     }
@@ -84,42 +102,50 @@ public class MainDiscoveryActivityFragment extends Fragment {
 	    posterGrid.setColumnWidth(posterViewWidth);
 
 	    // -- how to display movie posters
-		posterGrid.setAdapter(viewAdapter = new MoviePosterAdapter(getContext(), posterViewWidth));
+		posterGrid.setAdapter(viewAdapter = new MoviePosterAdapter(getContext(), null, 0, posterViewWidth));
 
 	    // -- what should happen when a movie poster is clicked
 		posterGrid.setOnItemClickListener(new AdapterView.OnItemClickListener() {
 			@Override
 			public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-				Movie selectedMovie = (Movie) viewAdapter.getItem(position);
-				openMovieDetailsActivity(selectedMovie);
+				Cursor cursor = (Cursor) viewAdapter.getItem(position);
+				if (cursor != null) {
+					int movieId = cursor.getInt(CURSOR_INDEX_MOVIE_ID);
+					openMovieDetailsActivity(movieId);
+				}
 			}
 		});
 
 	    return view;
     }
 
+
 	/**
 	 * Returns true if there are movie data available and they are not expired
 	 * (older than the limit set by {@link #MAX_MOVIES_AGE}
 	 */
 	private boolean areMovieDataCurrent() {
+		return true; // TODO reimplement
+		/*
 		List<Movie> movies = viewAdapter.getMovies();
 		if (movies.isEmpty())
 			return false;
 
 		// there are movie data available so there will also be a non-null load time
 		return areMovieDataCurrent(viewAdapter.getMovieLoadTime().getTime());
+		*/
 	}
 
 	private boolean areMovieDataCurrent(long movieLoadTime) {
-		return System.currentTimeMillis() - movieLoadTime < MAX_MOVIES_AGE;
+		return true; // TODO reimplement
+		//return System.currentTimeMillis() - movieLoadTime < MAX_MOVIES_AGE;
 	}
 
 	@Override
 	public void onSaveInstanceState(Bundle outState) {
 		if (areMovieDataCurrent()) {
 			saveGridScrollPosition(outState);
-			saveMovieData(outState);
+			// TODO saveMovieData(outState);
 		}
 
 		super.onSaveInstanceState(outState);
@@ -129,6 +155,7 @@ public class MainDiscoveryActivityFragment extends Fragment {
 		outState.putInt(BUNDLE_SCROLL_INDEX, posterGrid.getFirstVisiblePosition());
 	}
 
+	/*
 	private void saveMovieData(Bundle outState) {
 		// The basic idea is to "bundle" the movie data into a parcel and save that
 		// parcel in the outState bundle. This requires that Movie implements Parcelable.
@@ -156,12 +183,16 @@ public class MainDiscoveryActivityFragment extends Fragment {
 
 		outState.putStringArrayList(BUNDLE_MOVIES, bundle);
 		outState.putLong(BUNDLE_MOVIES_LOADTIME, movieLoadTime.getTime());
-	}
+	}*/
 
 	@Override
 	public void onActivityCreated(Bundle inState) {
 		super.onActivityCreated(inState);
 
+		// initialize the loader
+		getLoaderManager().initLoader(LOADER_ID, null, this);
+
+		/*
 		if (inState != null) {
 			long movieLoadTime = inState.getLong(BUNDLE_MOVIES_LOADTIME);
 			if (areMovieDataCurrent(movieLoadTime)) {
@@ -172,6 +203,7 @@ public class MainDiscoveryActivityFragment extends Fragment {
 		}
 
 		refreshMovies();
+		*/
 	}
 
 	private void restoreGridScrollPosition(Bundle inState) {
@@ -179,6 +211,7 @@ public class MainDiscoveryActivityFragment extends Fragment {
 		posterGrid.setSelection(position);
 	}
 
+	/*
 	private void restoreMovieData(Bundle inState) {
 		ArrayList<String> bundle = inState.getStringArrayList(BUNDLE_MOVIES);
 		long moviesLoadTime = inState.getLong(BUNDLE_MOVIES_LOADTIME);
@@ -201,7 +234,7 @@ public class MainDiscoveryActivityFragment extends Fragment {
 		}
 
 		viewAdapter.setMovies(movies, new Date(moviesLoadTime));
-	}
+	} */
 
 	@Override
 	public void onDestroyView() {
@@ -232,9 +265,11 @@ public class MainDiscoveryActivityFragment extends Fragment {
 	/**
 	 * Starts the Movie Details activity for the given movie.
 	 *
-	 * @param movie The movie for which to show details.
+	 * @param movieId The movie for which to show details.
 	 */
-	private void openMovieDetailsActivity(final Movie movie) {
+	private void openMovieDetailsActivity(final int movieId) {
+		// TODO Re-implement this method
+		/*
 		String movieData;
 		try {
 			DiscoverMoviesJSONAdapter adapter = new DiscoverMoviesJSONAdapter(null);
@@ -252,6 +287,7 @@ public class MainDiscoveryActivityFragment extends Fragment {
 		Activity contextActivity = MainDiscoveryActivityFragment.this.getActivity();
 		if (openMovieDetailsIntent.resolveActivity(contextActivity.getPackageManager()) != null)
 			startActivity(openMovieDetailsIntent);
+		*/
 	}
 
     @Override
@@ -346,6 +382,53 @@ public class MainDiscoveryActivityFragment extends Fragment {
 		}
 	}
 
+	// --- LoaderManager.LoaderCallback<Loader> interface ---
+
+	@Override
+	public Loader<Cursor> onCreateLoader(int id, Bundle args) {
+		// Sort order:  Ascending, by date.
+		String listName = "popular"; // TODO read from preferences
+		String sortOrder =
+			PopularMoviesContract.ListMembershipContract.Column.PAGE + " ASC, " +
+				PopularMoviesContract.ListMembershipContract.Column.POSITION + " ASC";
+
+		Uri listMemberUri = PopularMoviesContract.ListContract.buildListMemberDirectoryUri(listName);
+
+		return new CursorLoader(
+			getContext(),
+			listMemberUri,
+			CURSOR_PROJECTION,
+			null, // selection
+			null, // selectionArgs
+			sortOrder);
+
+		/*Cursor cursor = getActivity().getContentResolver().query(listMemberUri,
+			new String[]{
+				PopularMoviesContract.MovieContract.Column._ID, // required by the CursorAdapter
+				PopularMoviesContract.MovieContract.Column.JSONDATA}, // projection
+			null, // selection
+			null, // selectionArgs
+			sortOrder);
+
+		int adapterFlags = 0;
+
+		return
+		//posterGrid.setAdapter(viewAdapter = new MoviePosterAdapter(getContext(), cursor, adapterFlags, posterViewWidth));
+		*/
+	}
+
+	@Override
+	public void onLoadFinished(Loader<Cursor> loader, Cursor cursor) {
+		viewAdapter.swapCursor(cursor);
+	}
+
+	@Override
+	public void onLoaderReset(Loader<Cursor> loader) {
+		viewAdapter.swapCursor(null);
+	}
+
+	// --- End LoaderManager.LoaderCallback<Loader> interface ---
+
 	/**
      * Issues or re-issues the current query to themoviedb.org and updates the display with the
      * new results from the query.
@@ -369,6 +452,10 @@ public class MainDiscoveryActivityFragment extends Fragment {
         // permission granted, go ahead with the operation
 	    StandardMovieList movieList = UserPreferences.getDiscoveryPreference(getActivity());
 	    String apiKey = BuildConfig.THEMOVIEDB_API_KEY;
+
+	    // TODO reimplement using the loader
+	    getLoaderManager().restartLoader(LOADER_ID, null, this);
+	    /*
         DiscoverMoviesTask task = new DiscoverMoviesTask(movieList, apiKey, getActivity(),
 	        new DiscoverMoviesTask.Listener() {
 			    @Override
@@ -386,6 +473,7 @@ public class MainDiscoveryActivityFragment extends Fragment {
 		    }
         );
         task.execute();
+        */
     }
 
 	/**
