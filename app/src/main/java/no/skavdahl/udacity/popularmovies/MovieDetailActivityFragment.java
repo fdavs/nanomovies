@@ -1,16 +1,23 @@
 package no.skavdahl.udacity.popularmovies;
 
+import android.app.Fragment;
+import android.app.LoaderManager;
+import android.content.AsyncTaskLoader;
 import android.content.Context;
+import android.content.CursorLoader;
 import android.content.Intent;
+import android.content.Loader;
+import android.database.Cursor;
+import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.support.v4.app.Fragment;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.Calendar;
@@ -18,15 +25,47 @@ import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.Locale;
 
+import no.skavdahl.udacity.popularmovies.data.PopularMoviesContract;
 import no.skavdahl.udacity.popularmovies.mdb.DiscoverMoviesJSONAdapter;
 import no.skavdahl.udacity.popularmovies.model.Movie;
 
 /**
  * @author fdavs
  */
-public class MovieDetailActivityFragment extends Fragment {
+public class MovieDetailActivityFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor> {
 
 	private final String LOG_TAG = getClass().getSimpleName();
+
+	private final int LOADER_ID = 0;
+
+	private final String LOADER_ARGS_MOVIE_ID = "movieid";
+
+	// --- cursor configuration ---
+
+	private final static String[] CURSOR_PROJECTION = new String[] {
+		PopularMoviesContract.MovieContract.Column.JSONDATA
+	};
+
+	private final static int CURSOR_INDEX_MOVIE_JSON = 0;
+
+	@Override
+	public void onActivityCreated(Bundle savedInstanceState) {
+		super.onActivityCreated(savedInstanceState);
+
+		// register the loader
+		Intent startingIntent = getActivity().getIntent();
+		int movieId = startingIntent.getIntExtra(MovieDetailActivity.INTENT_EXTRA_DATA, 0);
+		if (movieId == 0) {
+			Log.e(LOG_TAG, "Intent extra does not specify movie id");
+			getActivity().finish(); // abort the execution of this activity
+			return;
+		}
+
+		Bundle loaderArgs = new Bundle();
+		loaderArgs.putInt(LOADER_ARGS_MOVIE_ID, movieId);
+
+		getLoaderManager().initLoader(LOADER_ID, loaderArgs, this);
+	}
 
 	@Override
 	public View onCreateView(LayoutInflater inflater,
@@ -34,20 +73,24 @@ public class MovieDetailActivityFragment extends Fragment {
 	                         Bundle savedInstanceState) {
 		super.onCreateView(inflater, container, savedInstanceState);
 
-		final Movie movie;
+		final View view = inflater.inflate(R.layout.fragment_movie_detail, container, false);
+		return view;
+	}
+
+	private void bindCursorToView(Cursor cursor) {
+		// TODO ideally this deserialization should happen on a background thread
+		Movie movie;
 		try {
-			Intent startingIntent = getActivity().getIntent();
-			DiscoverMoviesJSONAdapter adapter = new DiscoverMoviesJSONAdapter(getResources());
-			JSONObject obj = new JSONObject(startingIntent.getStringExtra(MovieDetailActivity.INTENT_EXTRA_DATA));
-			movie = adapter.toMovie(obj);
+			String movieJson = cursor.getString(CURSOR_INDEX_MOVIE_JSON);
+			DiscoverMoviesJSONAdapter jsonAdapter = new DiscoverMoviesJSONAdapter(getResources());
+			movie = jsonAdapter.toMovie(new JSONObject(movieJson));
 		}
-		catch (Exception e) { // NPE if no intent, JSONException if parse error
-			Log.e(LOG_TAG, "Unable to access Intent extra data", e);
-			getActivity().finish(); // abort the execution of this activity
-			return null;
+		catch (JSONException e) {
+			Log.e(LOG_TAG, "Unable to deserialize movie from json", e); // TODO include more details
+			return;
 		}
 
-		final View view = inflater.inflate(R.layout.fragment_movie_detail, container, false);
+		final View view = getView();
 		final Context context = getContext();
 
 		TextView movieTitleView = (TextView) view.findViewById(R.id.movie_title_textview);
@@ -74,8 +117,6 @@ public class MovieDetailActivityFragment extends Fragment {
 
 		final ImageView backdropView = (ImageView) view.findViewById(R.id.backdrop_imageview);
 		PicassoUtils.displayBackdrop(context, movie, backdropView);
-
-		return view;
 	}
 
 
@@ -92,4 +133,34 @@ public class MovieDetailActivityFragment extends Fragment {
 
 		return Integer.toString(cal.get(Calendar.YEAR));
 	}
+
+	// --- LoaderManager.LoaderCallback<Loader> interface ---
+
+	@Override
+	public Loader<Cursor> onCreateLoader(int loaderId, Bundle loaderArgs) {
+		// Sort order:  Ascending, by date.
+		int movieId = loaderArgs.getInt(LOADER_ARGS_MOVIE_ID);
+
+		Uri listMemberUri = PopularMoviesContract.MovieContract.buildMovieItemUri(movieId);
+
+		return new android.content.CursorLoader(
+			getActivity().getBaseContext(),
+			listMemberUri,
+			CURSOR_PROJECTION,
+			null, // selection
+			null, // selection args
+			null); // sort order
+	}
+
+	@Override
+	public void onLoadFinished(Loader<Cursor> loader, Cursor cursor) {
+		bindCursorToView(cursor);
+	}
+
+	@Override
+	public void onLoaderReset(Loader<Cursor> loader) {
+		// no action
+	}
+
+	// --- End LoaderManager.LoaderCallback<Loader> interface ---
 }

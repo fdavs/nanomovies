@@ -16,7 +16,7 @@ public class DiscoverMovies extends WebApiClient {
 	 * synchronously. The response is returned as a raw JSON string.
 	 *
 	 * @param apiKey The API key necessary to perform a query at themoviedb.org
-	 * @param listName Which movie list to query. THis must be one of the standard movie
+	 * @param listName Which movie list to query. This must be one of the standard movie
 	 *                 list names.
 	 *
 	 * @return the JSON string response
@@ -25,6 +25,22 @@ public class DiscoverMovies extends WebApiClient {
 	 */
 	public String discoverStandardMovies(String apiKey, String listName) throws IOException {
 		String endpoint = Request.getStandardMovieListURL(apiKey, listName, 1);
+		return executeQuery(endpoint);
+	}
+
+	/**
+	 * Submits a movie details request to themoviedb.org. The query is performed
+	 * synchronously. The response is returned as a raw JSON string.
+	 *
+	 * @param apiKey The API key necessary to perform a query at themoviedb.org
+	 * @param movieId Which movie to query.
+	 *
+	 * @return the JSON string response
+	 *
+	 * @throws IOException if the query failed or returned a non-sensible result
+	 */
+	public String getMovieDetails(String apiKey, int movieId) throws IOException {
+		String endpoint = Request.getMovieURL(apiKey, movieId);
 		return executeQuery(endpoint);
 	}
 }

@@ -23,7 +23,7 @@ TODO
 ====
 
 Basic requirements:
-  - [ ] Feature: Allow user to view players (in the YouTube app or web browser)
+  - [ ] Feature: Allow user to view movie trailer (in the YouTube app or web browser)
   - [ ] Feature: Allow user to read reviews
   - [ ] Feature: Allow user to bookmark a movie as a personal favorite (offline storage)
   - [ ] Feature: Allow user to view his/her personal favorites

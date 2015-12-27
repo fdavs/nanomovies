@@ -34,6 +34,23 @@ public class Request {
 	}
 
 	/**
+	 * Returns the query URL for movie details. See related lists at
+	 * http://docs.themoviedb.apiary.io/#reference/movies/movieid/get
+	 *
+	 * @param apiKey The API key necessary to execute a query at themoviedb.org
+	 * @param movieId Which movie to query.
+	 *
+	 * @return a String with the URL that will perform the appropriate query at themoviedb.org.
+	 */
+	public static String getMovieURL(String apiKey, int movieId) {
+		return Uri.parse("http://api.themoviedb.org/3/movie").buildUpon()
+			.appendPath(Integer.toString(movieId))
+			.appendQueryParameter("api_key", apiKey)
+			.appendQueryParameter("append_to_response", "videos,reviews")
+			.toString();
+	}
+
+	/**
 	 * Returns the query URL for poster thumbnail images.
 	 *
  	 * @param posterPath The path to the poster as reported by movie discovery responses.

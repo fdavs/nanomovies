@@ -38,8 +38,10 @@ public class MovieDbHelper extends SQLiteOpenHelper {
 			db.execSQL("PRAGMA foreign_keys=ON");
 		}
 
-		//if (BuildConfig.DEBUG)
-		//	dropExistingTables(db);
+		if (BuildConfig.DEBUG) {
+			dropExistingTables(db);
+			onCreate(db);
+		}
 	}
 
 	@Override
@@ -56,16 +58,17 @@ public class MovieDbHelper extends SQLiteOpenHelper {
 	@Override
 	public void onCreate(SQLiteDatabase db) {
 		createListTable_v1(db);
-		createMovieTable_v1(db);
 		createListMembershipTable_v1(db);
+		createMovieTable_v1(db);
 		createImageTable_v1(db);
 	}
 
 	private void dropExistingTables(SQLiteDatabase db) {
 		db.execSQL("DROP TABLE IF EXISTS " + ImageContract.TABLE_NAME);
+		db.execSQL("DROP VIEW IF EXISTS " + MovieContract.TABLE_EX_NAME);
+		db.execSQL("DROP TABLE IF EXISTS " + MovieContract.TABLE_NAME);
 		db.execSQL("DROP TABLE IF EXISTS " + ListMembershipContract.TABLE_NAME);
 		db.execSQL("DROP TABLE IF EXISTS " + ListContract.TABLE_NAME);
-		db.execSQL("DROP TABLE IF EXISTS " + MovieContract.TABLE_NAME);
 	}
 
 	private void createListTable_v1(SQLiteDatabase db) {
@@ -106,6 +109,29 @@ public class MovieDbHelper extends SQLiteOpenHelper {
 				MovieContract.Column.MODIFIED + " INTEGER NOT NULL, " +
 				MovieContract.Column.JSONDATA + " TEXT NOT NULL" +
 			")");
+
+		// CREATE VIEW MovieEx /* (_id, modified, jsondata, favorite) */ AS
+		// SELECT M._id,
+		//        M.modified,
+		//        M.jsondata,
+		//        (SELECT COUNT(*) FROM listmember LM, list L
+		//         WHERE LM.movieid = M._id AND L._id = LM.listid AND L.listtype = 2) AS favorite
+		// FROM movie M;
+		db.execSQL(
+			"CREATE VIEW " + MovieContract.TABLE_EX_NAME + " " +
+			"AS SELECT " +
+				"M." + MovieContract.Column._ID + "," +
+				"M." + MovieContract.Column.MODIFIED + "," +
+				"M." + MovieContract.Column.JSONDATA + "," +
+				"(SELECT COUNT(*) " +
+				 "FROM " +
+					ListMembershipContract.TABLE_NAME + " LM," +
+					ListContract.TABLE_NAME + " L " +
+				 "WHERE LM." + ListMembershipContract.Column.MOVIE_ID + " = M." + MovieContract.Column._ID + " " +
+				   "AND LM." + ListMembershipContract.Column.LIST_ID + " = L." + ListContract.Column._ID + " " +
+				   "AND L." + ListContract.Column.TYPE + " = " + ListContract.LISTTYPE_FAVORITE + ") AS " + MovieContract.Column.FAVORITE + " " +
+			"FROM " + MovieContract.TABLE_NAME + " M");
+
 	}
 
 	private void createListMembershipTable_v1(SQLiteDatabase db) {

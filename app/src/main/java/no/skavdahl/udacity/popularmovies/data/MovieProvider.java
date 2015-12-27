@@ -7,9 +7,11 @@ import android.content.UriMatcher;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.net.Uri;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
-import android.text.TextUtils;
 import android.util.Log;
+
+import org.json.JSONObject;
 
 import java.util.List;
 
@@ -19,6 +21,7 @@ import no.skavdahl.udacity.popularmovies.mdb.DiscoverMoviesJSONAdapter;
 import no.skavdahl.udacity.popularmovies.mdb.StandardMovieList;
 import no.skavdahl.udacity.popularmovies.model.Movie;
 
+import static no.skavdahl.udacity.utils.Arrays.*;
 import static no.skavdahl.udacity.popularmovies.data.PopularMoviesContract.*;
 
 /**
@@ -81,7 +84,7 @@ public class MovieProvider extends ContentProvider {
 
 	@Nullable
 	@Override
-	public String getType(Uri uri) {
+	public String getType(@NonNull Uri uri) {
 		switch (uriMatcher.match(uri)) {
 			case LIST_DIRECTORY:
 				return ListContract.CONTENT_LIST_DIR_TYPE;
@@ -107,7 +110,7 @@ public class MovieProvider extends ContentProvider {
 
 	@Nullable
 	@Override
-	public Cursor query(Uri uri, String[] projection, String selection, String[] selectionArgs, String sortOrder) {
+	public Cursor query(@NonNull Uri uri, String[] projection, String selection, String[] selectionArgs, String sortOrder) {
 		final Cursor cursor;
 		switch (uriMatcher.match(uri)) {
 			case MOVIE_DIRECTORY:
@@ -126,14 +129,7 @@ public class MovieProvider extends ContentProvider {
 				break;
 
 			case MOVIE_ITEM:
-				cursor = dbHelper.getReadableDatabase().query(
-					MovieContract.TABLE_NAME,
-					projection,
-					selection,
-					selectionArgs,
-					null, // groupBy
-					null, // having
-					sortOrder);
+				cursor = queryMovieItem(uri, projection);
 				break;
 
 			case IMAGE_ITEM:
@@ -157,7 +153,7 @@ public class MovieProvider extends ContentProvider {
 	}
 
 	protected Cursor queryListMemberDirectory(Uri uri, String[] projection, String selection, String[] selectionArgs, String sortOrder) {
-		final boolean loggable = true; // Log.isLoggable(LOG_TAG, Log.VERBOSE);
+		final boolean loggable = Log.isLoggable(LOG_TAG, Log.VERBOSE);
 
 		final ListDbQueries listQuery = new ListDbQueries(dbHelper);
 		final String listName =  uri.getPathSegments().get(1);
@@ -173,6 +169,8 @@ public class MovieProvider extends ContentProvider {
 
 		// database did not contain the data we need or it is obsolete
 		// we may need to do an online query
+
+		// TODO issue web request asynchronously
 
 		if (loggable) Log.v(LOG_TAG, "Database query returned 0 results");
 
@@ -233,19 +231,134 @@ public class MovieProvider extends ContentProvider {
 		return memberCursor;
 	}
 
+
+	protected Cursor queryMovieItem(Uri uri, String[] projection) {
+		final boolean loggable = true; // Log.isLoggable(LOG_TAG, Log.VERBOSE);
+
+		if (loggable) Log.v(LOG_TAG, "Querying movie item: " + uri);
+
+		// it is not strictly necessary to parse the path segment into an integer
+		// but doing so is more secure since we'll know it is actually an integer
+		final int movieId;
+		try {
+			movieId = Integer.parseInt(uri.getLastPathSegment());
+		}
+		catch (NumberFormatException e) {
+			Log.e(LOG_TAG, "Unable to parse movie ID from URI " + uri);
+			return null;
+		}
+
+		// ensure that the projection includes the modified field
+		// we need it to verify the age of the data
+		if (!arrayContains(projection, MovieContract.Column.MODIFIED))
+			projection = append(projection, MovieContract.Column.MODIFIED);
+
+		// Query the local database first
+		Cursor cursor = dbHelper.getReadableDatabase().query(
+			MovieContract.TABLE_EX_NAME,
+			projection,
+			MovieContract.Column._ID + "=?",
+			new String[] { Integer.toString(movieId) },
+			null,
+			null,
+			null);
+
+		if (loggable) Log.v(LOG_TAG, "Database query for movie " + movieId + " returned " + cursor.getCount() + " row(s)");
+
+		// if the projection does not include jsondata, we don't need to consider the age
+		if (!arrayContains(projection, MovieContract.Column.JSONDATA))
+			return cursor;
+
+		String jsonData = null;
+		long modified = 0;
+
+		if (cursor.moveToFirst()) {
+			int jsonIdx = cursor.getColumnIndex(MovieContract.Column.JSONDATA);
+			if (jsonIdx >= 0)
+				jsonData = cursor.getString(jsonIdx);
+
+			int modifiedIdx = cursor.getColumnIndex(MovieContract.Column.MODIFIED);
+			if (modifiedIdx >= 0)
+				modified = cursor.getLong(modifiedIdx);
+		}
+
+		long now = System.currentTimeMillis();
+
+		if (jsonData != null
+			&& DiscoverMoviesJSONAdapter.containsExtendedData(jsonData)
+			&& (now - modified) <= BuildConfig.MOVIE_DATA_TIMEOUT) {
+
+			if (loggable) Log.v(LOG_TAG, "Movie data for movie " + movieId + " in database is up to date");
+		}
+		else {
+			if (loggable) Log.v(LOG_TAG, "Movie data for movie " + movieId + " in database is missing or stale. Issuing web query.");
+
+			try {
+				// TODO issue web request asynchronously
+
+				// this movie either does not have extended movie data or it is stale and needs
+				// to be refreshed.
+
+				DiscoverMovies webQuery = new DiscoverMovies();
+				String jsonResponse = webQuery.getMovieDetails(BuildConfig.THEMOVIEDB_API_KEY, movieId);
+
+				if (loggable) Log.v(LOG_TAG, "Web query returned a response:" + jsonResponse.substring(0, Math.min(30, jsonResponse.length())));
+
+				if (loggable) Log.v(LOG_TAG, "Updating database entry for movie " + movieId);
+
+				// strip out the parts of the JSON data we don't need
+				DiscoverMoviesJSONAdapter jsonAdapter = new DiscoverMoviesJSONAdapter(getContext().getResources());
+				Movie movie = jsonAdapter.toMovie(new JSONObject(jsonResponse));
+				jsonData = jsonAdapter.toJSONString(movie);
+
+				ContentValues cv = new ContentValues();
+				cv.put(MovieContract.Column.JSONDATA, jsonData);
+				cv.put(MovieContract.Column.MODIFIED, System.currentTimeMillis());
+
+				int rowCount = dbHelper.getWritableDatabase().update(
+					MovieContract.TABLE_NAME,
+					cv,
+					MovieContract.Column._ID + "=?",
+					new String[] { Integer.toString(movieId) }); // at this point the cursor should be automatically notified of the change
+
+				if (loggable) Log.v(LOG_TAG, "Update statement for movie " + movieId + " updated " + rowCount + " rows");
+
+				if (rowCount == 0) {
+					if (loggable) Log.v(LOG_TAG, "0 rows were updated, trying INSERT");
+					cv.put(MovieContract.Column._ID, movieId);
+
+					long newRowId = dbHelper.getWritableDatabase().insert(
+						MovieContract.TABLE_NAME,
+						null,
+						cv);
+
+					if (newRowId == -1)
+						Log.e(LOG_TAG, "Insert of movie data for movie " + movieId + " failed");
+					else
+						if (loggable) Log.v(LOG_TAG, "Insert statement for movie " + movieId + " completed successfully (id = " + newRowId + ")");
+				}
+			}
+			catch (Exception e) {
+				Log.e(LOG_TAG, "Error updating extended movie data", e);
+			}
+		}
+
+		return cursor;
+	}
+
 	@Nullable
 	@Override
-	public Uri insert(Uri uri, ContentValues values) {
+	public Uri insert(@NonNull Uri uri, ContentValues values) {
 		return null;
 	}
 
 	@Override
-	public int delete(Uri uri, String selection, String[] selectionArgs) {
+	public int delete(@NonNull Uri uri, String selection, String[] selectionArgs) {
 		return 0;
 	}
 
 	@Override
-	public int update(Uri uri, ContentValues values, String selection, String[] selectionArgs) {
+	public int update(@NonNull Uri uri, ContentValues values, String selection, String[] selectionArgs) {
 		return 0;
 	}
 

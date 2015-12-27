@@ -45,6 +45,26 @@ public class ListDbQueries {
 		return dbHelper.getReadableDatabase().rawQuery(sql, effectiveSelArgs);
 	}
 
+	/*
+	This query includes a calculated "favorite" column which holds the value 1 if a movie
+	is marked as a favorite movie:
+
+	 		String sql =
+			"SELECT " + TextUtils.join(",", projection) + " " +
+			"FROM " + MovieContract.TABLE_NAME + " " +
+			"LEFT OUTER JOIN " +
+				"(SELECT " + ListMembershipContract.Column.MOVIE_ID + ", 1 AS favorite " +
+				"FROM " +
+					ListMembershipContract.TABLE_NAME + " LM, " +
+					ListContract.TABLE_NAME + " L " +
+				"WHERE L." + ListContract.Column.TYPE + " = 2 " +
+					"AND LM." + ListMembershipContract.Column.LIST_ID + " = L." + ListContract.Column._ID + ") " +
+				"ON (" + MovieContract.Column._ID + " = " + ListMembershipContract.Column.MOVIE_ID + ")" +
+			(TextUtils.isEmpty(selection) ? "" : "WHERE " + selection + " " +
+			(TextUtils.isEmpty(sortOrder) ? "" : "ORDER BY "+ sortOrder;
+
+	 */
+
 	/* *
 	 * Returns the type of a list
 	 *

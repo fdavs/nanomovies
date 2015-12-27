@@ -27,17 +27,8 @@ import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.GridView;
 
-import org.json.JSONException;
-import org.json.JSONObject;
-
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-
 import no.skavdahl.udacity.popularmovies.data.PopularMoviesContract;
-import no.skavdahl.udacity.popularmovies.mdb.DiscoverMoviesJSONAdapter;
 import no.skavdahl.udacity.popularmovies.mdb.StandardMovieList;
-import no.skavdahl.udacity.popularmovies.model.Movie;
 
 /**
  * The main Movie Discovery fragment.
@@ -268,26 +259,12 @@ public class MainDiscoveryActivityFragment extends Fragment implements LoaderMan
 	 * @param movieId The movie for which to show details.
 	 */
 	private void openMovieDetailsActivity(final int movieId) {
-		// TODO Re-implement this method
-		/*
-		String movieData;
-		try {
-			DiscoverMoviesJSONAdapter adapter = new DiscoverMoviesJSONAdapter(null);
-			movieData = adapter.toJSONString(movie);
-		}
-		catch (JSONException e) {
-			// this error should never occur so this is mostly verifying an assertion
-			Log.e(LOG_TAG, "Unable to convert data to JSON", e);
-			return; // abort
-		}
-
 		Intent openMovieDetailsIntent = new Intent(getContext(), MovieDetailActivity.class);
-		openMovieDetailsIntent.putExtra(MovieDetailActivity.INTENT_EXTRA_DATA, movieData);
+		openMovieDetailsIntent.putExtra(MovieDetailActivity.INTENT_EXTRA_DATA, movieId);
 
 		Activity contextActivity = MainDiscoveryActivityFragment.this.getActivity();
 		if (openMovieDetailsIntent.resolveActivity(contextActivity.getPackageManager()) != null)
 			startActivity(openMovieDetailsIntent);
-		*/
 	}
 
     @Override

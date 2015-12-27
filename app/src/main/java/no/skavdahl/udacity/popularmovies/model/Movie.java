@@ -26,6 +26,9 @@ public class Movie {
 	private final List<Integer> genres;
 	private final int fallbackColor;
 
+	private final List<Review> optReviews;
+	private final List<Video> optVideos;
+
 	/** The popularity score to use if none is provided by the movie database. */
 	public static final double DEFAULT_POPULARITY = 0.0;
 
@@ -46,6 +49,8 @@ public class Movie {
 		final double voteAverage,
 		final int voteCount,
 		final List<Integer> genres,
+		final List<Review> reviews,
+		final List<Video> videos,
 		final int fallbackColor) {
 
 		if (title == null || title.trim().length() == 0)
@@ -61,10 +66,20 @@ public class Movie {
 		this.optVoteCount = voteCount;
 		this.optReleaseDate = releaseDate;
 
-		if (genres != null)
+		if (genres != null && !genres.isEmpty())
 			this.genres = Collections.unmodifiableList(genres);
 		else
 			this.genres = Collections.emptyList();
+
+		if (reviews != null && !reviews.isEmpty())
+			this.optReviews = Collections.unmodifiableList(reviews);
+		else
+			this.optReviews = Collections.emptyList();
+
+		if (videos != null && !videos.isEmpty())
+			this.optVideos = Collections.unmodifiableList(videos);
+		else
+			this.optVideos = Collections.emptyList();
 
 		this.fallbackColor = fallbackColor;
 	}
@@ -115,11 +130,21 @@ public class Movie {
 	}
 
 	/**
-	 * Returns a (potentially empty not non-null) list of genres associated with
+	 * Returns a (potentially empty but non-null) list of genres associated with
 	 * this movie.
 	 */
 	public List<Integer> getGenres() {
 		return genres;
+	}
+
+	/** Returns the set of reviews for this movie. May be an empty list. */
+	public List<Review> getReviews() {
+		return optReviews;
+	}
+
+	/** Returns the set of videos related to this movie. May be an empty list. */
+	public List<Video> getVideos() {
+		return optVideos;
 	}
 
 	/**

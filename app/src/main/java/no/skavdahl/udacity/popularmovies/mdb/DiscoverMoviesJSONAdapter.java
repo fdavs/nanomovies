@@ -3,6 +3,7 @@ package no.skavdahl.udacity.popularmovies.mdb;
 import android.content.res.Resources;
 import android.content.res.TypedArray;
 import android.graphics.Color;
+import android.support.annotation.NonNull;
 import android.util.Log;
 
 import org.json.JSONArray;
@@ -10,12 +11,15 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Random;
 
 import no.skavdahl.udacity.popularmovies.R;
 import no.skavdahl.udacity.popularmovies.model.Movie;
+import no.skavdahl.udacity.popularmovies.model.Review;
+import no.skavdahl.udacity.popularmovies.model.Video;
 import no.skavdahl.udacity.utils.JSONAdapter;
 
 /**
@@ -30,7 +34,7 @@ public class DiscoverMoviesJSONAdapter extends JSONAdapter {
 	// --- attribute names in JSON responses from the server ---
 
 	@SuppressWarnings("FieldCanBeLocal")
-	private static final String JSON_DISCOVER_MOVIE_RESULTS = "results";
+	private static final String JSON_RESULTS = "results";
 
 	private static final String JSON_MOVIE_ID = "id";
 	private static final String JSON_MOVIE_TITLE = "title";
@@ -42,6 +46,18 @@ public class DiscoverMoviesJSONAdapter extends JSONAdapter {
 	private static final String JSON_MOVIE_VOTE_COUNT = "vote_count";
 	private static final String JSON_MOVIE_RELEASE_DATE = "release_date";
 	private static final String JSON_MOVIE_GENRES = "genre_ids";
+
+	private static final String JSON_MOVIE_VIDEOS  = "videos";
+	private static final String JSON_VIDEOS_KEY  = "key";
+	private static final String JSON_VIDEOS_SITE  = "site";
+	private static final String JSON_VIDEOS_NAME  = "name";
+
+	private static final String JSON_MOVIE_REVIEWS  = "reviews";
+	private static final String JSON_REVIEW_ID  = "id";
+	private static final String JSON_REVIEW_AUTHOR  = "author";
+	private static final String JSON_REVIEW_CONTENT  = "content";
+
+	private static final String JSON_EXTENDED_DATA = "extended_data";
 
 	// --- class properties ---
 
@@ -69,7 +85,7 @@ public class DiscoverMoviesJSONAdapter extends JSONAdapter {
 	 */
 	public List<Movie> getMoviesList(String jsonString) throws JSONException {
 		JSONObject obj = new JSONObject(jsonString);
-		JSONArray results = obj.getJSONArray(JSON_DISCOVER_MOVIE_RESULTS);
+		JSONArray results = obj.getJSONArray(JSON_RESULTS);
 		int numMovies = results.length();
 
 		List<Movie> movies = new ArrayList<>(numMovies);
@@ -113,7 +129,110 @@ public class DiscoverMoviesJSONAdapter extends JSONAdapter {
 		List<Integer> genreList = getOptIntArray(obj.optJSONArray(JSON_MOVIE_GENRES));
 		int fallbackColor = generateColorCode(title);
 
-		return new Movie(id, releaseDate, title, posterPath, backdropPath, synopsis, popularity, voteAverage, voteCount, genreList, fallbackColor);
+		List<Video> videos = toVideoList(obj, JSON_MOVIE_VIDEOS);
+		List<Review> reviews = toReviewList(obj, JSON_MOVIE_REVIEWS);
+
+		return new Movie(id, releaseDate, title, posterPath, backdropPath, synopsis, popularity, voteAverage, voteCount, genreList, reviews, videos, fallbackColor);
+	}
+
+	private List<Video> toVideoList(JSONObject obj, String key) throws JSONException {
+		JSONArray videoArray = obj.optJSONArray(key);
+		if (videoArray != null)
+			return toVideoList(videoArray);
+
+		JSONObject videoContainer = obj.optJSONObject(key);
+		if (videoContainer != null)
+			return toVideoList(videoContainer);
+
+		return Collections.emptyList();
+	}
+
+	/**
+	 * Converts a JSON object to a list of video models.
+	 *
+	 * @param videoContainer A JSON object that adheres to the syntax emitted by themoviedb.com
+	 *                       service /movie/id/videos
+	 *
+	 * @link http://docs.themoviedb.apiary.io/#reference/movies/movieidvideos/get
+	 */
+	private List<Video> toVideoList(@NonNull JSONObject videoContainer) throws JSONException {
+		return toVideoList(videoContainer.getJSONArray(JSON_RESULTS));
+	}
+
+	/**
+	 * Converts a JSON object to a list of video models.
+	 *
+	 * @param videoArray An array of JSON objects that adheres to the syntax emitted
+	 *                   by themoviedb.com service /movie/id/videos
+	 *
+	 * @link http://docs.themoviedb.apiary.io/#reference/movies/movieidvideos/get
+	 */
+	private List<Video> toVideoList(@NonNull JSONArray videoArray) throws JSONException {
+		int count = videoArray.length();
+		List<Video> result = new ArrayList<>(count);
+
+		for (int i = 0; i < count; ++i)
+			result.add(toVideo(videoArray.getJSONObject(i)));
+
+		return result;
+	}
+
+	private Video toVideo(@NonNull JSONObject obj) throws JSONException {
+		String key = obj.getString(JSON_VIDEOS_KEY);
+		String site = obj.getString(JSON_VIDEOS_SITE);
+		String name = obj.getString(JSON_VIDEOS_NAME);
+
+		return new Video(key, site, name);
+	}
+
+	private List<Review> toReviewList(JSONObject obj, String key) throws JSONException {
+		JSONArray reviewArray = obj.optJSONArray(key);
+		if (reviewArray != null)
+			return toReviewList(reviewArray);
+
+		JSONObject reviewContainer = obj.optJSONObject(key);
+		if (reviewContainer != null)
+			return toReviewList(reviewContainer);
+
+		return Collections.emptyList();
+	}
+
+	/**
+	 * Converts a JSON object to a list of video reviews.
+	 *
+	 * @param reviewContainer A JSON object that adheres to the syntax emitted by themoviedb.com
+	 *                        service /movie/id/reviews
+	 *
+	 * @link http://docs.themoviedb.apiary.io/#reference/movies/movieidreviews/get
+	 */
+	private List<Review> toReviewList(@NonNull JSONObject reviewContainer) throws JSONException {
+		return toReviewList(reviewContainer.getJSONArray(JSON_RESULTS));
+	}
+
+	/**
+	 * Converts a JSON object to a list of video models.
+	 *
+	 * @param reviewArray An array of JSON objects that adheres to the syntax emitted
+	 *                    by themoviedb.com service /movie/id/reviews
+	 *
+	 * @link http://docs.themoviedb.apiary.io/#reference/movies/movieidreviews/get
+	 */
+	private List<Review> toReviewList(@NonNull JSONArray reviewArray) throws JSONException {
+		int count = reviewArray.length();
+		List<Review> result = new ArrayList<>(count);
+
+		for (int i = 0; i < count; ++i)
+			result.add(toReview(reviewArray.getJSONObject(i)));
+
+		return result;
+	}
+
+	private Review toReview(@NonNull JSONObject obj) throws JSONException {
+		String id = obj.getString(JSON_REVIEW_ID);
+		String author = obj.getString(JSON_REVIEW_AUTHOR);
+		String content = obj.getString(JSON_REVIEW_CONTENT);
+
+		return new Review(id, author, content);
 	}
 
 	/**
@@ -160,6 +279,13 @@ public class DiscoverMoviesJSONAdapter extends JSONAdapter {
 	 */
 	public String toJSONString(Movie movie) throws JSONException {
 		JSONObject obj = new JSONObject();
+
+		// put a marker (here in front) that allows us to quickly decide whether this movie
+		// contains extended movie data, such as reviews and video, which are not included
+		// in a basic discovery or list request
+		if (!movie.getReviews().isEmpty() || !movie.getVideos().isEmpty())
+			obj.put(JSON_EXTENDED_DATA, true);
+
 		obj.put(JSON_MOVIE_ID, movie.getMovieDbId());
 		obj.put(JSON_MOVIE_TITLE, movie.getTitle());
 		obj.put(JSON_MOVIE_POSTER_PATH, movie.getPosterPath());
@@ -170,7 +296,43 @@ public class DiscoverMoviesJSONAdapter extends JSONAdapter {
 		obj.put(JSON_MOVIE_VOTE_COUNT, movie.getVoteCount());
 		putOptDate(obj, JSON_MOVIE_RELEASE_DATE, movie.getReleaseDate());
 		putOptArray(obj, JSON_MOVIE_GENRES, movie.getGenres());
+		obj.put(JSON_MOVIE_REVIEWS, toReviewJSONArray(movie.getReviews()));
+		obj.put(JSON_MOVIE_VIDEOS, toVideoJSONArray(movie.getVideos()));
 
 		return obj.toString();
+	}
+
+	private JSONArray toReviewJSONArray(List<Review> reviews) throws JSONException {
+		JSONArray arr = new JSONArray();
+		for (Review review : reviews) {
+			JSONObject obj = new JSONObject();
+			obj.put(JSON_REVIEW_ID, review.getId());
+			obj.put(JSON_REVIEW_AUTHOR, review.getAuthor());
+			obj.put(JSON_REVIEW_CONTENT, review.getContent());
+			arr.put(obj);
+		}
+		return arr;
+	}
+
+	private JSONArray toVideoJSONArray(List<Video> videos) throws JSONException {
+		JSONArray arr = new JSONArray();
+		for (Video video : videos) {
+			JSONObject obj = new JSONObject();
+			obj.put(JSON_VIDEOS_KEY, video.getKey());
+			obj.put(JSON_VIDEOS_SITE, video.getSite());
+			obj.put(JSON_VIDEOS_NAME, video.getName());
+			arr.put(obj);
+		}
+		return arr;
+	}
+
+	/**
+	 *
+	 */
+	public static boolean containsExtendedData(String jsondata) {
+		// Note that without parsing the jsondata and reading the actual attribute names,
+		// the test as implemented below can theoretically match an attribute *value* and
+		// return an incorrect result. It is unlikely, though, and much faster than parsing.
+		return jsondata.contains(JSON_EXTENDED_DATA);
 	}
 }

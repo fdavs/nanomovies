@@ -12,9 +12,12 @@ android {
         versionName "1.0"
     }
     buildTypes {
+        // MOVIE_DATA_TIMEOUT: how soon movie data in the database should be refreshed by going online
         debug {
+            buildConfigField 'long', 'MOVIE_DATA_TIMEOUT', '1*60*1000' // 1 minute
         }
         release {
+            buildConfigField 'long', 'MOVIE_DATA_TIMEOUT', '12*50*60*1000' // 12 hours
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }

@@ -175,6 +175,7 @@ public class PopularMoviesContract {
 		// --- database ---
 
 		public static final String TABLE_NAME = "movie";
+		public static final String TABLE_EX_NAME = "movieex";
 
 		public static final class Column implements BaseColumns {
 
@@ -189,6 +190,13 @@ public class PopularMoviesContract {
 
 			/** String -- the movie information encoded as a JSON string. */
 			public static final String JSONDATA = "jsondata";
+
+			/**
+			 * Integer -- if true (1), the movie is a favorite movie. If false (0 or null),
+			 * this movie is not a favorite movie. This column is only available in the
+			 * extended movie table.
+			 */
+			public static final String FAVORITE = "favorite";
 		}
 	}
 
