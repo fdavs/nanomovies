@@ -4,6 +4,7 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+import android.os.Build;
 
 import no.skavdahl.udacity.popularmovies.BuildConfig;
 import no.skavdahl.udacity.popularmovies.mdb.StandardMovieList;
@@ -26,11 +27,34 @@ public class MovieDbHelper extends SQLiteOpenHelper {
 	}
 
 	@Override
-	public void onCreate(SQLiteDatabase db) {
-		if (BuildConfig.DEBUG) {
-			dropExistingTables(db);
+	public void onConfigure(SQLiteDatabase db) {
+		// onConfigure is available since API level 16 (4.1.x Jelly Bean). However, Android
+		// Studio doesn't know this and complains unless we include the follow if test
+		if (Build.VERSION.SDK_INT >= 16) {
+			super.onConfigure(db);
+			db.setForeignKeyConstraintsEnabled(true);
+		}
+		else {
+			db.execSQL("PRAGMA foreign_keys=ON");
 		}
 
+		//if (BuildConfig.DEBUG)
+		//	dropExistingTables(db);
+	}
+
+	@Override
+	public void onOpen(SQLiteDatabase db) {
+		super.onOpen(db);
+
+		if (db.isReadOnly())
+			return;
+
+		if (Build.VERSION.SDK_INT < 16)
+			onConfigure(db);
+	}
+
+	@Override
+	public void onCreate(SQLiteDatabase db) {
 		createListTable_v1(db);
 		createMovieTable_v1(db);
 		createListMembershipTable_v1(db);

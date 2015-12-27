@@ -54,13 +54,14 @@ Refactorings and other improvements:
 Simplifications:
 
   - [ ] Refactor: Utilize [Butterknife] [butterknife] for view binding (ref. stage 1 feedback)
-  - [ ] Refactor: Utilize [Retrofit] [retrofit] for REST services (ref. stage 1 feedback)
+  - [ ] Refactor: Utilize [Retrofit] [retrofit] or [OkHttp] [okhttp] for REST services (ref. stage 1 feedback)
 
   [appbrain]: http://www.appbrain.com/stats/libraries/dev
   [butterknife]: http://jakewharton.github.io/butterknife/
   [gson]: https://github.com/google/gson
   [guava]: https://github.com/google/guava
   [retrofit]: http://square.github.io/retrofit/
+  [okhttp]: https://github.com/square/okhttp
 
 References for stage 2
 ======================
