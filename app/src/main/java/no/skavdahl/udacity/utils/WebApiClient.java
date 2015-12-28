@@ -9,6 +9,8 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 
+import no.skavdahl.udacity.popularmovies.BuildConfig;
+
 /**
  * @author fdavs
  */
@@ -31,7 +33,8 @@ public class WebApiClient {
 
 		// TODO cache query result
 
-		if (Log.isLoggable(LOG_TAG, Log.VERBOSE)) {
+		final boolean verbose = BuildConfig.DEBUG && Log.isLoggable(LOG_TAG, Log.VERBOSE);
+		if (verbose) {
 			// don't log the api key
 			int keyStart = endpoint.indexOf("key=") + "key=".length();
 			int keyEnd = endpoint.indexOf("&", keyStart);
@@ -58,8 +61,7 @@ public class WebApiClient {
 			if (jsonResult.length() == 0)
 				throw new IOException("empty response");
 
-			if (Log.isLoggable(LOG_TAG, Log.VERBOSE))
-				Log.v(LOG_TAG, "GET request completed successfully");
+			if (verbose) Log.v(LOG_TAG, "GET request completed successfully");
 
 			return jsonResult;
 		}

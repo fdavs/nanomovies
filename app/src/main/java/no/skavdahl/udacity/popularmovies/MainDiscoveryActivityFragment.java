@@ -397,6 +397,11 @@ public class MainDiscoveryActivityFragment extends Fragment implements LoaderMan
 	@Override
 	public void onLoadFinished(Loader<Cursor> loader, Cursor cursor) {
 		viewAdapter.swapCursor(cursor);
+
+		//final boolean verbose = BuildConfig.DEBUG && Log.isLoggable(LOG_TAG, Log.VERBOSE);
+		//if (cursor.getCount() == 0) {
+		//	if (verbose) Log.v(LOG_TAG, "Database query returned results: " + memberCursor.getCount());
+		//}
 	}
 
 	@Override
@@ -437,7 +442,7 @@ public class MainDiscoveryActivityFragment extends Fragment implements LoaderMan
 	        new DiscoverMoviesTask.Listener() {
 			    @Override
 			    public void onDownloadSuccess(List<Movie> movies) {
-				    if (Log.isLoggable(LOG_TAG, Log.DEBUG))
+				    if (BuildConfig.DEBUG && Log.isLoggable(LOG_TAG, Log.DEBUG))
 				        Log.d(LOG_TAG, "Movie data successfully downloaded from server (" + movies.size() + " movies downloaded)");
 
 				    viewAdapter.setMovies(movies, new Date());

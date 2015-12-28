@@ -170,13 +170,15 @@ public class MovieDetailActivityFragment extends Fragment implements LoaderManag
 		// "too old" is determined by the quality of the network connection. A better and faster
 		// connection makes "too old" a shorter amount of time
 		// TODO include network quality in the calculation of "too old"
+		final boolean verbose = BuildConfig.DEBUG && Log.isLoggable(LOG_TAG, Log.VERBOSE);
+
 		long dataAge = System.currentTimeMillis() - dataModifiedTime;
 		long maxAge = BuildConfig.MOVIE_DATA_TIMEOUT;
 
 		if (MdbJSONAdapter.containsExtendedData(jsonData) && dataAge <= maxAge)
-			Log.v(LOG_TAG, "Movie data is up to date - no further action");
+			if (verbose) Log.v(LOG_TAG, "Movie data is up to date - no further action");
 		else {
-			Log.v(LOG_TAG, "Movie data is missing or stale - updating");
+			if (verbose) Log.v(LOG_TAG, "Movie data is missing or stale - updating");
 
 			UpdateMovieTask asyncTask = new UpdateMovieTask(this.getActivity());
 			asyncTask.execute(movie.getMovieDbId());

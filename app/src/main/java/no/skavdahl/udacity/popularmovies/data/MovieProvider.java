@@ -224,17 +224,17 @@ public class MovieProvider extends ContentProvider {
 	// --- List member directory operations ---
 
 	protected Cursor queryListMemberDirectory(Uri uri, String[] projection, String selection, String[] selectionArgs, String sortOrder) {
-		final boolean loggable = Log.isLoggable(LOG_TAG, Log.VERBOSE);
+		final boolean verbose = BuildConfig.DEBUG && Log.isLoggable(LOG_TAG, Log.VERBOSE);
 
 		final ListDbQueries listQuery = new ListDbQueries(dbHelper);
 		final String listName =  uri.getPathSegments().get(LIST_INDEX_LISTNAME);
 
 		// Query the local database first
-		if (loggable) Log.v(LOG_TAG, "Querying list member directory from database: " + uri);
+		if (verbose) Log.v(LOG_TAG, "Querying list member directory from database: " + uri);
 
 		Cursor memberCursor = listQuery.queryListMemberDirectory(listName, projection, selection, selectionArgs, sortOrder);
 		if (memberCursor.moveToFirst()) {
-			if (loggable) Log.v(LOG_TAG, "Database query returned results: " + memberCursor.getCount());
+			if (verbose) Log.v(LOG_TAG, "Database query returned results: " + memberCursor.getCount());
 			return memberCursor;
 		}
 
@@ -243,7 +243,7 @@ public class MovieProvider extends ContentProvider {
 
 		// TODO issue web request asynchronously
 
-		if (loggable) Log.v(LOG_TAG, "Database query returned 0 results");
+		if (verbose) Log.v(LOG_TAG, "Database query returned 0 results");
 
 		int page = 1; // TODO read 'page' value from selection/selectionArgs
 
@@ -266,24 +266,24 @@ public class MovieProvider extends ContentProvider {
 
 		listCursor.close();
 
-		if (loggable) Log.v(LOG_TAG, "List name=" + listName + ", id=" + listId + ", listType=" + listType);
+		if (verbose) Log.v(LOG_TAG, "List name=" + listName + ", id=" + listId + ", listType=" + listType);
 
 		switch (listType) {
 			case ListContract.LISTTYPE_STANDARD:
 				try {
-					if (loggable) Log.v(LOG_TAG, "Issuing web query for list " + listName);
+					if (verbose) Log.v(LOG_TAG, "Issuing web query for list " + listName);
 
 					DiscoverMovies webQuery = new DiscoverMovies();
 					String jsonResponse = webQuery.discoverStandardMovies(BuildConfig.THEMOVIEDB_API_KEY, listName);
 
-					if (loggable) Log.v(LOG_TAG, "Web query returned a response:" + jsonResponse.substring(0, Math.min(30, jsonResponse.length())));
+					if (verbose) Log.v(LOG_TAG, "Web query returned a response:" + jsonResponse.substring(0, Math.min(30, jsonResponse.length())));
 
 					MdbJSONAdapter jsonAdapter = new MdbJSONAdapter(getContext().getResources());
 					List<Movie> movieList = jsonAdapter.getMoviesList(jsonResponse);
 
 					listQuery.bulkInsert(listId, page, movieList);
 
-					if (loggable) Log.v(LOG_TAG, "Movie data successfully inserted into database");
+					if (verbose) Log.v(LOG_TAG, "Movie data successfully inserted into database");
 				}
 				catch (Exception e) {
 					Log.e(LOG_TAG, "Web query failed for list name=" + listName, e);
@@ -295,7 +295,7 @@ public class MovieProvider extends ContentProvider {
 		}
 
 		// reissue the database query to get an updated cursor
-		if (loggable) Log.v(LOG_TAG, "Re-issuing list member directory query for list " + listName);
+		if (verbose) Log.v(LOG_TAG, "Re-issuing list member directory query for list " + listName);
 		memberCursor.close();
 		memberCursor = listQuery.queryListMemberDirectory(listName, projection, selection, selectionArgs, sortOrder);
 
@@ -305,7 +305,7 @@ public class MovieProvider extends ContentProvider {
 	// --- Movie item operations ---
 
 	protected Cursor queryMovieItem(Uri uri, String[] projection) {
-		final boolean verbose = Log.isLoggable(LOG_TAG, Log.VERBOSE);
+		final boolean verbose = BuildConfig.DEBUG && Log.isLoggable(LOG_TAG, Log.VERBOSE);
 
 		if (verbose) Log.v(LOG_TAG, "Querying movie item: " + uri);
 
@@ -336,7 +336,7 @@ public class MovieProvider extends ContentProvider {
 	}
 
 	protected Uri insertMovieItem(final Uri uri, final ContentValues values) {
-		final boolean verbose = Log.isLoggable(LOG_TAG, Log.VERBOSE);
+		final boolean verbose = BuildConfig.DEBUG && Log.isLoggable(LOG_TAG, Log.VERBOSE);
 
 		if (verbose) Log.v(LOG_TAG, "Inserting movie item: " + uri);
 
@@ -360,7 +360,7 @@ public class MovieProvider extends ContentProvider {
 	}
 
 	protected int updateMovieItem(final Uri uri, final ContentValues values) {
-		final boolean verbose = Log.isLoggable(LOG_TAG, Log.VERBOSE);
+		final boolean verbose = BuildConfig.DEBUG && Log.isLoggable(LOG_TAG, Log.VERBOSE);
 
 		if (verbose) Log.v(LOG_TAG, "Updating movie item: " + uri);
 

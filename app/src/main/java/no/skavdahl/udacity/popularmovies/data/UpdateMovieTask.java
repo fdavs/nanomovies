@@ -32,7 +32,7 @@ public class UpdateMovieTask extends AsyncTask<Integer, Void, Void> {
 
 	@Override
 	protected Void doInBackground(Integer... params) {
-		final boolean verbose = Log.isLoggable(LOG_TAG, Log.VERBOSE);
+		final boolean verbose = BuildConfig.DEBUG && Log.isLoggable(LOG_TAG, Log.VERBOSE);
 
 		final int movieId = params[0];
 
