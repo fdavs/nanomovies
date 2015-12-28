@@ -11,7 +11,7 @@ import android.util.Log;
 import no.skavdahl.udacity.popularmovies.mdb.StandardMovieList;
 import no.skavdahl.udacity.popularmovies.model.Movie;
 import no.skavdahl.udacity.popularmovies.mdb.DiscoverMovies;
-import no.skavdahl.udacity.popularmovies.mdb.DiscoverMoviesJSONAdapter;
+import no.skavdahl.udacity.popularmovies.mdb.MdbJSONAdapter;
 
 /**
  * Task for performing async movie discovery requests to themoviedb.org
@@ -61,7 +61,7 @@ public class DiscoverMoviesTask extends AsyncTask<Void, Void, List<Movie>> {
 		try {
 			String jsonResponse = executeQuery();
 
-			DiscoverMoviesJSONAdapter jsonAdapter = new DiscoverMoviesJSONAdapter(context.getResources());
+			MdbJSONAdapter jsonAdapter = new MdbJSONAdapter(context.getResources());
 			return jsonAdapter.getMoviesList(jsonResponse);
 		}
 		catch (Exception e) {

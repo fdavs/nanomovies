@@ -27,7 +27,7 @@ import no.skavdahl.udacity.utils.JSONAdapter;
  *
  * @author fdavs
  */
-public class DiscoverMoviesJSONAdapter extends JSONAdapter {
+public class MdbJSONAdapter extends JSONAdapter {
 
 	private final String LOG_TAG = getClass().getSimpleName();
 
@@ -70,7 +70,7 @@ public class DiscoverMoviesJSONAdapter extends JSONAdapter {
 	 * @param resources Access to the color resources for default movie posters. May be
 	 *                  <code>null</code> in which case random colors will be used instead.
 	 */
-	public DiscoverMoviesJSONAdapter(final Resources resources) {
+	public MdbJSONAdapter(final Resources resources) {
 		this.resources = resources;
 		rnd = new Random();
 	}

@@ -17,8 +17,7 @@ import java.util.List;
 
 import no.skavdahl.udacity.popularmovies.BuildConfig;
 import no.skavdahl.udacity.popularmovies.mdb.DiscoverMovies;
-import no.skavdahl.udacity.popularmovies.mdb.DiscoverMoviesJSONAdapter;
-import no.skavdahl.udacity.popularmovies.mdb.StandardMovieList;
+import no.skavdahl.udacity.popularmovies.mdb.MdbJSONAdapter;
 import no.skavdahl.udacity.popularmovies.model.Movie;
 
 import static no.skavdahl.udacity.utils.Arrays.*;
@@ -207,7 +206,7 @@ public class MovieProvider extends ContentProvider {
 
 					if (loggable) Log.v(LOG_TAG, "Web query returned a response:" + jsonResponse.substring(0, Math.min(30, jsonResponse.length())));
 
-					DiscoverMoviesJSONAdapter jsonAdapter = new DiscoverMoviesJSONAdapter(getContext().getResources());
+					MdbJSONAdapter jsonAdapter = new MdbJSONAdapter(getContext().getResources());
 					List<Movie> movieList = jsonAdapter.getMoviesList(jsonResponse);
 
 					listQuery.bulkInsert(listId, page, movieList);
@@ -285,7 +284,7 @@ public class MovieProvider extends ContentProvider {
 		long now = System.currentTimeMillis();
 
 		if (jsonData != null
-			&& DiscoverMoviesJSONAdapter.containsExtendedData(jsonData)
+			&& MdbJSONAdapter.containsExtendedData(jsonData)
 			&& (now - modified) <= BuildConfig.MOVIE_DATA_TIMEOUT) {
 
 			if (loggable) Log.v(LOG_TAG, "Movie data for movie " + movieId + " in database is up to date");
@@ -307,7 +306,7 @@ public class MovieProvider extends ContentProvider {
 				if (loggable) Log.v(LOG_TAG, "Updating database entry for movie " + movieId);
 
 				// strip out the parts of the JSON data we don't need
-				DiscoverMoviesJSONAdapter jsonAdapter = new DiscoverMoviesJSONAdapter(getContext().getResources());
+				MdbJSONAdapter jsonAdapter = new MdbJSONAdapter(getContext().getResources());
 				Movie movie = jsonAdapter.toMovie(new JSONObject(jsonResponse));
 				jsonData = jsonAdapter.toJSONString(movie);
 

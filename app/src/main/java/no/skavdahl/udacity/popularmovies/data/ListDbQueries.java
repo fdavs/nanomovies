@@ -9,7 +9,7 @@ import android.util.Log;
 
 import java.util.List;
 
-import no.skavdahl.udacity.popularmovies.mdb.DiscoverMoviesJSONAdapter;
+import no.skavdahl.udacity.popularmovies.mdb.MdbJSONAdapter;
 import no.skavdahl.udacity.popularmovies.model.Movie;
 import no.skavdahl.udacity.utils.Arrays;
 
@@ -123,7 +123,7 @@ public class ListDbQueries {
 		SQLiteStatement listStmt  = db.compileStatement(listSql);
 
 		final long now = System.currentTimeMillis();
-		DiscoverMoviesJSONAdapter jsonAdapter = new DiscoverMoviesJSONAdapter(null);
+		MdbJSONAdapter jsonAdapter = new MdbJSONAdapter(null);
 
 		int position = 0;
 

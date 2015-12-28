@@ -2,9 +2,7 @@ package no.skavdahl.udacity.popularmovies;
 
 import android.app.Fragment;
 import android.app.LoaderManager;
-import android.content.AsyncTaskLoader;
 import android.content.Context;
-import android.content.CursorLoader;
 import android.content.Intent;
 import android.content.Loader;
 import android.database.Cursor;
@@ -26,7 +24,7 @@ import java.util.GregorianCalendar;
 import java.util.Locale;
 
 import no.skavdahl.udacity.popularmovies.data.PopularMoviesContract;
-import no.skavdahl.udacity.popularmovies.mdb.DiscoverMoviesJSONAdapter;
+import no.skavdahl.udacity.popularmovies.mdb.MdbJSONAdapter;
 import no.skavdahl.udacity.popularmovies.model.Movie;
 
 /**
@@ -82,7 +80,7 @@ public class MovieDetailActivityFragment extends Fragment implements LoaderManag
 		Movie movie;
 		try {
 			String movieJson = cursor.getString(CURSOR_INDEX_MOVIE_JSON);
-			DiscoverMoviesJSONAdapter jsonAdapter = new DiscoverMoviesJSONAdapter(getResources());
+			MdbJSONAdapter jsonAdapter = new MdbJSONAdapter(getResources());
 			movie = jsonAdapter.toMovie(new JSONObject(movieJson));
 		}
 		catch (JSONException e) {

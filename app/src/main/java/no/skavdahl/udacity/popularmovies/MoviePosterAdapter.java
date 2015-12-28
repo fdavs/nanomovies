@@ -10,13 +10,11 @@ import android.widget.ImageView;
 
 import org.json.JSONObject;
 
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
-import no.skavdahl.udacity.popularmovies.mdb.DiscoverMoviesJSONAdapter;
+import no.skavdahl.udacity.popularmovies.mdb.MdbJSONAdapter;
 import no.skavdahl.udacity.popularmovies.model.Movie;
 
 /**
@@ -34,7 +32,7 @@ public class MoviePosterAdapter extends CursorAdapter {
 	private final int posterViewWidth;
 	private final int posterViewHeight;
 
-	private final DiscoverMoviesJSONAdapter movieJsonAdapter;
+	private final MdbJSONAdapter movieJsonAdapter;
 
 	public MoviePosterAdapter(final Context context, final Cursor cursor, final int flags, final int posterViewWidth) {
 		super(context, cursor, flags);
@@ -45,7 +43,7 @@ public class MoviePosterAdapter extends CursorAdapter {
 		this.posterViewWidth = posterViewWidth;
 		this.posterViewHeight = (int) (posterViewWidth * posterHeight /posterWidth);
 
-		movieJsonAdapter = new DiscoverMoviesJSONAdapter(context.getResources());
+		movieJsonAdapter = new MdbJSONAdapter(context.getResources());
 	}
 
 	@Override

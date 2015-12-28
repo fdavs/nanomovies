@@ -16,11 +16,11 @@ import static org.assertj.core.api.Assertions.*;
 import no.skavdahl.udacity.popularmovies.model.Movie;
 
 /**
- * Unit tests for the DiscoverMoviesJSONAdapter class.
+ * Unit tests for the MdbJSONAdapter class.
  *
  * @author fdavs
  */
-public class DiscoverMoviesJSONAdapterTest {
+public class MdbJSONAdapterTest {
 
 	private String discoveryResultJSON;
 
@@ -59,7 +59,7 @@ public class DiscoverMoviesJSONAdapterTest {
 
 
 	private List<Movie> fromJSON(String json) throws JSONException {
-		DiscoverMoviesJSONAdapter adapter = new DiscoverMoviesJSONAdapter(null);
+		MdbJSONAdapter adapter = new MdbJSONAdapter(null);
 		return adapter.getMoviesList(json);
 	}
 
@@ -81,7 +81,7 @@ public class DiscoverMoviesJSONAdapterTest {
 	/** Verifies that a collection of movies are correctly parsed from the JSON string. */
 	@Test
 	public void testCorrectNumberOfMoviesInResult() throws JSONException {
-		DiscoverMoviesJSONAdapter adapter = new DiscoverMoviesJSONAdapter(null);
+		MdbJSONAdapter adapter = new MdbJSONAdapter(null);
 		List<Movie> movies = adapter.getMoviesList(discoveryResultJSON);
 
 		assertThat(movies).hasSize(20);

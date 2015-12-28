@@ -159,7 +159,7 @@ public class MainDiscoveryActivityFragment extends Fragment implements LoaderMan
 		Date movieLoadTime = viewAdapter.getMovieLoadTime();
 		//assert !movies.isEmpty() && movieLoadTime != null;
 
-		DiscoverMoviesJSONAdapter jsonAdapter = new DiscoverMoviesJSONAdapter(getResources());
+		MdbJSONAdapter jsonAdapter = new MdbJSONAdapter(getResources());
 
 		ArrayList<String> bundle = new ArrayList<>(movies.size());
 		for (Movie m : movies) {
@@ -211,7 +211,7 @@ public class MainDiscoveryActivityFragment extends Fragment implements LoaderMan
 			return;
 
 		List<Movie> movies = new ArrayList<>(bundle.size());
-		DiscoverMoviesJSONAdapter jsonAdapter = new DiscoverMoviesJSONAdapter(getResources());
+		MdbJSONAdapter jsonAdapter = new MdbJSONAdapter(getResources());
 
 		for (String json : bundle) {
 			try {
