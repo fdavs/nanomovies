@@ -23,11 +23,15 @@ import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.Locale;
 
-import no.skavdahl.udacity.popularmovies.data.PopularMoviesContract;
+import no.skavdahl.udacity.popularmovies.data.UpdateMovieTask;
 import no.skavdahl.udacity.popularmovies.mdb.MdbJSONAdapter;
 import no.skavdahl.udacity.popularmovies.model.Movie;
 
+import static no.skavdahl.udacity.popularmovies.data.PopularMoviesContract.*;
+
 /**
+ * Fragment displaying movie details.
+ *
  * @author fdavs
  */
 public class MovieDetailActivityFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor> {
@@ -41,10 +45,12 @@ public class MovieDetailActivityFragment extends Fragment implements LoaderManag
 	// --- cursor configuration ---
 
 	private final static String[] CURSOR_PROJECTION = new String[] {
-		PopularMoviesContract.MovieContract.Column.JSONDATA
+		MovieContract.Column.MODIFIED,
+		MovieContract.Column.JSONDATA
 	};
 
-	private final static int CURSOR_INDEX_MOVIE_JSON = 0;
+	private final static int CURSOR_INDEX_MODIFIED = 0;
+	private final static int CURSOR_INDEX_MOVIE_JSON = 1;
 
 	@Override
 	public void onActivityCreated(Bundle savedInstanceState) {
@@ -75,21 +81,9 @@ public class MovieDetailActivityFragment extends Fragment implements LoaderManag
 		return view;
 	}
 
-	private void bindCursorToView(Cursor cursor) {
-		// TODO ideally this deserialization should happen on a background thread
-		Movie movie;
-		try {
-			String movieJson = cursor.getString(CURSOR_INDEX_MOVIE_JSON);
-			MdbJSONAdapter jsonAdapter = new MdbJSONAdapter(getResources());
-			movie = jsonAdapter.toMovie(new JSONObject(movieJson));
-		}
-		catch (JSONException e) {
-			Log.e(LOG_TAG, "Unable to deserialize movie from json", e); // TODO include more details
-			return;
-		}
-
+	private void bindModelToView(Movie movie) {
 		final View view = getView();
-		final Context context = getContext();
+		final Context context = getActivity();
 
 		TextView movieTitleView = (TextView) view.findViewById(R.id.movie_title_textview);
 		movieTitleView.setText(context.getString(R.string.movie_title, movie.getTitle()));
@@ -117,7 +111,6 @@ public class MovieDetailActivityFragment extends Fragment implements LoaderManag
 		PicassoUtils.displayBackdrop(context, movie, backdropView);
 	}
 
-
 	private String formatOptString(final String str, final String fallback) {
 		return (str != null) ? str : fallback;
 	}
@@ -139,10 +132,10 @@ public class MovieDetailActivityFragment extends Fragment implements LoaderManag
 		// Sort order:  Ascending, by date.
 		int movieId = loaderArgs.getInt(LOADER_ARGS_MOVIE_ID);
 
-		Uri listMemberUri = PopularMoviesContract.MovieContract.buildMovieItemUri(movieId);
+		Uri listMemberUri = MovieContract.buildMovieItemUri(movieId);
 
 		return new android.content.CursorLoader(
-			getActivity().getBaseContext(),
+			getActivity(),
 			listMemberUri,
 			CURSOR_PROJECTION,
 			null, // selection
@@ -152,7 +145,46 @@ public class MovieDetailActivityFragment extends Fragment implements LoaderManag
 
 	@Override
 	public void onLoadFinished(Loader<Cursor> loader, Cursor cursor) {
-		bindCursorToView(cursor);
+		if (cursor == null || !cursor.moveToFirst())
+			return; // no data to handle so just stop
+
+		// convert the cursor data into a movie model
+		// TODO ideally this deserialization should happen on a background thread
+		String jsonData = cursor.getString(CURSOR_INDEX_MOVIE_JSON);
+		long dataModifiedTime = cursor.getLong(CURSOR_INDEX_MODIFIED);
+
+		Movie movie;
+		try {
+			MdbJSONAdapter jsonAdapter = new MdbJSONAdapter(getResources());
+			movie = jsonAdapter.toMovie(new JSONObject(jsonData));
+		}
+		catch (JSONException e) {
+			Log.e(LOG_TAG, "Unable to deserialize movie from json", e); // TODO include more details
+			return;
+		}
+
+		// update the view
+		bindModelToView(movie);
+
+		// evaluate the data: do we need to issue an web update?
+		// we need to decide if the data is current and up-to-date or need to be refreshed
+		// It is up-to-date if
+		//   a) we have extended movie data (reviews, videos)
+		//   b) the data are not "too old"
+		// "too old" is determined by the quality of the network connection. A better and faster
+		// connection makes "too old" a shorter amount of time
+		// TODO include network quality in the calculation of "too old"
+		long dataAge = System.currentTimeMillis() - dataModifiedTime;
+		long maxAge = BuildConfig.MOVIE_DATA_TIMEOUT;
+
+		if (MdbJSONAdapter.containsExtendedData(jsonData) && dataAge <= maxAge)
+			Log.v(LOG_TAG, "Movie data is up to date - no further action");
+		else {
+			Log.v(LOG_TAG, "Movie data is missing or stale - updating");
+
+			UpdateMovieTask asyncTask = new UpdateMovieTask(this.getActivity());
+			asyncTask.execute(movie.getMovieDbId());
+		}
 	}
 
 	@Override

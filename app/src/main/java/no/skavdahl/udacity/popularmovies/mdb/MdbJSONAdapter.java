@@ -4,6 +4,7 @@ import android.content.res.Resources;
 import android.content.res.TypedArray;
 import android.graphics.Color;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.util.Log;
 
 import org.json.JSONArray;
@@ -70,7 +71,7 @@ public class MdbJSONAdapter extends JSONAdapter {
 	 * @param resources Access to the color resources for default movie posters. May be
 	 *                  <code>null</code> in which case random colors will be used instead.
 	 */
-	public MdbJSONAdapter(final Resources resources) {
+	public MdbJSONAdapter(final @Nullable Resources resources) {
 		this.resources = resources;
 		rnd = new Random();
 	}
