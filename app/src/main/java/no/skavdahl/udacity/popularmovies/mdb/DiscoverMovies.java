@@ -23,8 +23,8 @@ public class DiscoverMovies extends WebApiClient {
 	 *
 	 * @throws IOException if the query failed or returned a non-sensible result
 	 */
-	public String discoverStandardMovies(String apiKey, String listName) throws IOException {
-		String endpoint = Request.getStandardMovieListURL(apiKey, listName, 1);
+	public String discoverStandardMovies(String apiKey, String listName, int page) throws IOException {
+		String endpoint = Request.getStandardMovieListURL(apiKey, listName, page);
 		return executeQuery(endpoint);
 	}
 

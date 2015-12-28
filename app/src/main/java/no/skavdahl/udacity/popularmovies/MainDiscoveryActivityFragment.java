@@ -28,6 +28,7 @@ import android.widget.AdapterView;
 import android.widget.GridView;
 
 import no.skavdahl.udacity.popularmovies.data.PopularMoviesContract;
+import no.skavdahl.udacity.popularmovies.data.UpdateMovieListTask;
 import no.skavdahl.udacity.popularmovies.mdb.StandardMovieList;
 
 /**
@@ -398,10 +399,21 @@ public class MainDiscoveryActivityFragment extends Fragment implements LoaderMan
 	public void onLoadFinished(Loader<Cursor> loader, Cursor cursor) {
 		viewAdapter.swapCursor(cursor);
 
-		//final boolean verbose = BuildConfig.DEBUG && Log.isLoggable(LOG_TAG, Log.VERBOSE);
-		//if (cursor.getCount() == 0) {
-		//	if (verbose) Log.v(LOG_TAG, "Database query returned results: " + memberCursor.getCount());
-		//}
+		// determine whether we should update the list
+		// TODO determine whether to update the list from the server
+
+		if (cursor.getCount() > 0)
+			return; // database query returned results so we're done
+
+		final boolean verbose = BuildConfig.DEBUG && Log.isLoggable(LOG_TAG, Log.VERBOSE);
+
+		if (verbose) Log.v(LOG_TAG, "Database query returned empty result: scheduling update");
+
+		String listName = "popular"; // TODO read from settings
+		int page = 1; // TODO read from... somewhere
+
+		UpdateMovieListTask updateTask = new UpdateMovieListTask(getActivity());
+		updateTask.execute(new UpdateMovieListTask.Input(listName, page));
 	}
 
 	@Override

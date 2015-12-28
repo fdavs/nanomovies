@@ -77,7 +77,7 @@ public class DiscoverMoviesTask extends AsyncTask<Void, Void, List<Movie>> {
 
 	private String executeQuery() throws IOException {
 		DiscoverMovies query = new DiscoverMovies();
-		return query.discoverStandardMovies(apiKey, movieList.getListName());
+		return query.discoverStandardMovies(apiKey, movieList.getListName(), 1);
 	}
 
 	@Override
