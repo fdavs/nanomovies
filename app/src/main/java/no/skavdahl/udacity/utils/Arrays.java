@@ -5,6 +5,8 @@ import java.lang.reflect.Array;
 /**
  * A collection of array utilities.
  *
+ * TODO replace with Apache commons lang
+ *
  * @author fdavs
  */
 public class Arrays {

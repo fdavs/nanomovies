@@ -76,12 +76,10 @@ public class MovieDetailActivityFragment extends Fragment implements LoaderManag
 	                         ViewGroup container,
 	                         Bundle savedInstanceState) {
 		super.onCreateView(inflater, container, savedInstanceState);
-
-		final View view = inflater.inflate(R.layout.fragment_movie_detail, container, false);
-		return view;
+		return inflater.inflate(R.layout.fragment_movie_detail, container, false);
 	}
 
-	private void bindModelToView(Movie movie) {
+	private void bindModelToView(final Movie movie) {
 		final View view = getView();
 		final Context context = getActivity();
 
@@ -129,11 +127,9 @@ public class MovieDetailActivityFragment extends Fragment implements LoaderManag
 
 	@Override
 	public Loader<Cursor> onCreateLoader(int loaderId, Bundle loaderArgs) {
-		// Sort order:  Ascending, by date.
 		int movieId = loaderArgs.getInt(LOADER_ARGS_MOVIE_ID);
 
 		Uri listMemberUri = MovieContract.buildMovieItemUri(movieId);
-
 		return new android.content.CursorLoader(
 			getActivity(),
 			listMemberUri,
