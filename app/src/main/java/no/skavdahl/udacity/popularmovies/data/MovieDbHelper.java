@@ -5,9 +5,11 @@ import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.os.Build;
+import android.util.Log;
 
 import no.skavdahl.udacity.popularmovies.BuildConfig;
 import no.skavdahl.udacity.popularmovies.mdb.StandardMovieList;
+import no.skavdahl.udacity.popularmovies.model.Movie;
 
 import static no.skavdahl.udacity.popularmovies.data.PopularMoviesContract.*;
 
@@ -18,9 +20,13 @@ import static no.skavdahl.udacity.popularmovies.data.PopularMoviesContract.*;
  */
 public class MovieDbHelper extends SQLiteOpenHelper {
 
-	private static final int DATABASE_VERSION = 1;
+	private static final String LOG_TAG = MovieDbHelper.class.getSimpleName();
 
-	static final String DATABASE_NAME = "movie.db";
+	private static final int DATABASE_VERSION = 1;
+	private static final String DATABASE_NAME = "movie.db";
+
+	private static final String ON_DELETE_LIST_TRIGGER = "on_delete_list_trigger";
+	private static final String ON_DELETE_MOVIE_TRIGGER = "on_delete_movie_trigger";
 
 	public MovieDbHelper(Context context) {
 		super(context, DATABASE_NAME, /* CursorFactory*/ null, DATABASE_VERSION);
@@ -35,7 +41,7 @@ public class MovieDbHelper extends SQLiteOpenHelper {
 			db.setForeignKeyConstraintsEnabled(true);
 		}
 		else {
-			db.execSQL("PRAGMA foreign_keys=ON");
+			db.execSQL("PRAGMA foreign_keys = ON");
 		}
 
 		if (BuildConfig.DEBUG) {
@@ -61,14 +67,21 @@ public class MovieDbHelper extends SQLiteOpenHelper {
 		createListMembershipTable_v1(db);
 		createMovieTable_v1(db);
 		createImageTable_v1(db);
+		createTriggers_v1(db);
+
+		Log.i(LOG_TAG, "Movie database successfully initialized");
 	}
 
 	private void dropExistingTables(SQLiteDatabase db) {
+		db.execSQL("DROP TRIGGER IF EXISTS " + ON_DELETE_LIST_TRIGGER);
+		db.execSQL("DROP TRIGGER IF EXISTS " + ON_DELETE_MOVIE_TRIGGER);
 		db.execSQL("DROP TABLE IF EXISTS " + ImageContract.TABLE_NAME);
 		db.execSQL("DROP VIEW IF EXISTS " + MovieContract.TABLE_EX_NAME);
-		db.execSQL("DROP TABLE IF EXISTS " + MovieContract.TABLE_NAME);
 		db.execSQL("DROP TABLE IF EXISTS " + ListMembershipContract.TABLE_NAME);
+		db.execSQL("DROP TABLE IF EXISTS " + MovieContract.TABLE_NAME);
 		db.execSQL("DROP TABLE IF EXISTS " + ListContract.TABLE_NAME);
+
+		Log.d(LOG_TAG, "Movie database tables dropped");
 	}
 
 	private void createListTable_v1(SQLiteDatabase db) {
@@ -103,7 +116,7 @@ public class MovieDbHelper extends SQLiteOpenHelper {
 				MovieContract.Column.JSONDATA + " TEXT NOT NULL" +
 			")");
 
-		// CREATE VIEW MovieEx /* (_id, modified, jsondata, favorite) */ AS
+		// CREATE VIEW MovieEx (_id, modified, jsondata, favorite) AS
 		// SELECT M._id,
 		//        M.modified,
 		//        M.jsondata,
@@ -112,18 +125,18 @@ public class MovieDbHelper extends SQLiteOpenHelper {
 		// FROM movie M;
 		db.execSQL(
 			"CREATE VIEW " + MovieContract.TABLE_EX_NAME + " " +
-			"AS SELECT " +
-				"M." + MovieContract.Column._ID + "," +
-				"M." + MovieContract.Column.MODIFIED + "," +
-				"M." + MovieContract.Column.JSONDATA + "," +
-				"(SELECT COUNT(*) " +
-				 "FROM " +
-					ListMembershipContract.TABLE_NAME + " LM," +
-					ListContract.TABLE_NAME + " L " +
-				 "WHERE LM." + ListMembershipContract.Column.MOVIE_ID + " = M." + MovieContract.Column._ID + " " +
-				   "AND LM." + ListMembershipContract.Column.LIST_ID + " = L." + ListContract.Column._ID + " " +
-				   "AND L." + ListContract.Column.TYPE + " = " + ListContract.LISTTYPE_FAVORITE + ") AS " + MovieContract.Column.FAVORITE + " " +
-			"FROM " + MovieContract.TABLE_NAME + " M");
+				"AS SELECT " +
+					"M." + MovieContract.Column._ID + "," +
+					"M." + MovieContract.Column.MODIFIED + "," +
+					"M." + MovieContract.Column.JSONDATA + "," +
+					"(SELECT COUNT(*) " +
+ 					 "FROM " +
+						ListMembershipContract.TABLE_NAME + " LM," +
+						ListContract.TABLE_NAME + " L " +
+					 "WHERE LM." + ListMembershipContract.Column.MOVIE_ID + " = M." + MovieContract.Column._ID + " " +
+					   "AND LM." + ListMembershipContract.Column.LIST_ID + " = L." + ListContract.Column._ID + " " +
+					   "AND L." + ListContract.Column.TYPE + " = " + ListContract.LISTTYPE_FAVORITE + ") AS " + MovieContract.Column.FAVORITE + " " +
+				"FROM " + MovieContract.TABLE_NAME + " M");
 
 	}
 
@@ -138,12 +151,14 @@ public class MovieDbHelper extends SQLiteOpenHelper {
 				ListMembershipContract.Column.POSITION + " INTEGER NOT NULL," +
 				"FOREIGN KEY (" + ListMembershipContract.Column.LIST_ID + ") " +
 					"REFERENCES " + ListContract.TABLE_NAME + "(" + ListContract.Column._ID + ") " +
-					"ON DELETE CASCADE " +
-					"ON UPDATE RESTRICT," +
+					"ON DELETE NO ACTION  " +
+					"ON UPDATE RESTRICT " +
+				    "DEFERRABLE INITIALLY DEFERRED, " +
 				"FOREIGN KEY (" + ListMembershipContract.Column.MOVIE_ID + ") " +
 					"REFERENCES " + MovieContract.TABLE_NAME + "(" + MovieContract.Column._ID + ") " +
-					"ON DELETE CASCADE " +
-					"ON UPDATE RESTRICT" +
+					"ON DELETE NO ACTION " +
+					"ON UPDATE RESTRICT " +
+				    "DEFERRABLE INITIALLY DEFERRED" +
 			")");
 	}
 
@@ -157,9 +172,33 @@ public class MovieDbHelper extends SQLiteOpenHelper {
 				ImageContract.Column.IMAGEDATA + " BLOB NOT NULL, " +
 				"FOREIGN KEY (" + ImageContract.Column.MOVIE_ID + ") " +
 					"REFERENCES " + MovieContract.TABLE_NAME + "(" + MovieContract.Column._ID + ") " +
-					"ON DELETE CASCADE " +
-					"ON UPDATE RESTRICT" +
+					"ON DELETE NO ACTION " +
+					"ON UPDATE RESTRICT " +
+					"DEFERRABLE INITIALLY DEFERRED" +
 			")");
+	}
+
+	private void createTriggers_v1(SQLiteDatabase db) {
+		db.execSQL(
+			"CREATE TRIGGER " + ON_DELETE_MOVIE_TRIGGER + " " +
+			"AFTER DELETE ON " + MovieContract.TABLE_NAME + " " +
+			"BEGIN " +
+				"DELETE FROM " + ListMembershipContract.TABLE_NAME + " " +
+				"WHERE " + ListMembershipContract.TABLE_NAME + "." + ListMembershipContract.Column.MOVIE_ID + " = " +
+					MovieContract.TABLE_NAME + "." + MovieContract.Column._ID + ";" +
+				"DELETE FROM " + ImageContract.TABLE_NAME + " " +
+				"WHERE " + ImageContract.TABLE_NAME + "." + ImageContract.Column.MOVIE_ID + " = " +
+					MovieContract.TABLE_NAME + "." + MovieContract.Column._ID + ";" +
+			"END");
+
+		db.execSQL(
+			"CREATE TRIGGER " + ON_DELETE_LIST_TRIGGER + " " +
+				"AFTER DELETE ON " + ListContract.TABLE_NAME + " " +
+				"BEGIN " +
+					"DELETE FROM " + ListMembershipContract.TABLE_NAME + " " +
+					"WHERE " + ListMembershipContract.TABLE_NAME + "." + ListMembershipContract.Column.LIST_ID + " = " +
+						ListContract.TABLE_NAME + "." + ListContract.Column._ID + ";" +
+				"END");
 	}
 
 	@Override
