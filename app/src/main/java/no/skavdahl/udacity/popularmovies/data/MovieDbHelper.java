@@ -79,27 +79,20 @@ public class MovieDbHelper extends SQLiteOpenHelper {
 				ListContract.Column.TYPE + " INTEGER NOT NULL" +
 			")");
 
-		// insert standard lists
-		for (StandardMovieList standardList : StandardMovieList.values()) {
-			db.insert(ListContract.TABLE_NAME, null,
-				makeContentValuesForList(
-					standardList.getListName(),
-					ListContract.LISTTYPE_STANDARD));
-		}
-
-		// insert the favorite list
-		db.insert(ListContract.TABLE_NAME, null,
-			makeContentValuesForList(
-				"favorites", // TODO Replace the magic value with a reference to PredefinedMovieList.Favorite constant in the mdb package
-				ListContract.LISTTYPE_FAVORITE));
-		// TODO Let R.string define labels for the predefined movie list internal constants
+		// insert predefined lists
+		insertMovie(db, StandardMovieList.POPULAR, ListContract.LISTTYPE_STANDARD);
+		insertMovie(db, StandardMovieList.NOW_PLAYING, ListContract.LISTTYPE_STANDARD);
+		insertMovie(db, StandardMovieList.TOP_RATED, ListContract.LISTTYPE_STANDARD);
+		insertMovie(db, StandardMovieList.UPCOMING, ListContract.LISTTYPE_STANDARD);
+		insertMovie(db, StandardMovieList.FAVORITE, ListContract.LISTTYPE_FAVORITE);
 	}
 
-	private ContentValues makeContentValuesForList(String listName, int listType) {
-		ContentValues cv = new ContentValues();
-		cv.put(ListContract.Column.NAME, listName);
-		cv.put(ListContract.Column.TYPE, listType);
-		return cv;
+	private void insertMovie(SQLiteDatabase db, String listName, int listType) {
+		ContentValues values = new ContentValues();
+		values.put(ListContract.Column.NAME, listName);
+		values.put(ListContract.Column.TYPE, listType);
+
+		db.insert(ListContract.TABLE_NAME, null, values);
 	}
 
 	private void createMovieTable_v1(SQLiteDatabase db) {

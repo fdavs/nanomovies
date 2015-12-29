@@ -92,7 +92,9 @@ public class MainDiscoveryActivityFragment extends Fragment implements LoaderMan
 	    posterGrid.setColumnWidth(posterViewWidth);
 
 	    // -- how to display movie posters
-		posterGrid.setAdapter(viewAdapter = new MoviePosterAdapter(getContext(), null, 0, posterViewWidth));
+		posterGrid.setAdapter(
+			viewAdapter =
+				new MoviePosterAdapter(getContext(), null, 0, CURSOR_INDEX_MOVIE_JSON, posterViewWidth));
 
 	    // -- what should happen when a movie poster is clicked
 		posterGrid.setOnItemClickListener(new AdapterView.OnItemClickListener() {
@@ -203,7 +205,7 @@ public class MainDiscoveryActivityFragment extends Fragment implements LoaderMan
 		// I'm not sure how stable a menu item id is. Will it survive an upgrade to a
 		// newer version of the app? Saving the movie list name seems more stable and safer
 		// (not to mention readable).
-		StandardMovieList selectedMovieList = UserPreferences.getDiscoveryPreference(getActivity());
+		String selectedMovieList = UserPreferences.getMovieList(getActivity());
 		int menuItem = mapMovieListToMenuItem(selectedMovieList);
 		if (menuItem > 0)
 			menu.findItem(menuItem).setChecked(true);
@@ -215,46 +217,50 @@ public class MainDiscoveryActivityFragment extends Fragment implements LoaderMan
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-	    StandardMovieList movieList = mapMenuItemToMovieList(item.getItemId());
-		if (movieList != null) {
-			UserPreferences.setDiscoveryPreference(getActivity(), movieList);
+	    String listName = mapMenuItemToMovieList(item.getItemId());
+		if (listName != null) {
+			UserPreferences.setMovieList(getActivity(), listName);
+			refreshMovies();
 			return true;
 		}
 		else return super.onOptionsItemSelected(item);
     }
 
-	private int mapMovieListToMenuItem(StandardMovieList movieList) {
-		switch (movieList) {
-			case POPULAR:
+	private int mapMovieListToMenuItem(String listName) {
+		switch (listName) {
+			case StandardMovieList.POPULAR:
 				return R.id.action_popular_movies;
-			case TOP_RATED:
+			case StandardMovieList.TOP_RATED:
 				return R.id.action_top_rated_movies;
-			case NOW_PLAYING:
+			case StandardMovieList.NOW_PLAYING:
 				return R.id.action_new_movies;
-			case UPCOMING:
+			case StandardMovieList.UPCOMING:
 				return R.id.action_upcoming_movies;
+			case StandardMovieList.FAVORITE:
+				return R.id.action_favorite_movies;
 			default:
 				return 0;
 		}
 	}
 
-	private int mapMovieListToTitle(StandardMovieList movieList) {
-		switch (movieList) {
-			case POPULAR:
+	private int mapMovieListToTitle(String listName) {
+		switch (listName) {
+			case StandardMovieList.POPULAR:
 				return R.string.action_popular_movies;
-			case TOP_RATED:
+			case StandardMovieList.TOP_RATED:
 				return R.string.action_top_rated_movies;
-			case NOW_PLAYING:
+			case StandardMovieList.NOW_PLAYING:
 				return R.string.action_new_movies;
-			case UPCOMING:
+			case StandardMovieList.UPCOMING:
 				return R.string.action_upcoming_movies;
+			case StandardMovieList.FAVORITE:
+				return R.string.action_favorite_movies;
 			default:
 				return R.string.app_name;
 		}
-
 	}
 
-	private StandardMovieList mapMenuItemToMovieList(int menuItemId) {
+	private String mapMenuItemToMovieList(int menuItemId) {
 		switch (menuItemId) {
 			case R.id.action_popular_movies:
 				return StandardMovieList.POPULAR;
@@ -264,6 +270,8 @@ public class MainDiscoveryActivityFragment extends Fragment implements LoaderMan
 				return StandardMovieList.NOW_PLAYING;
 			case R.id.action_upcoming_movies:
 				return StandardMovieList.UPCOMING;
+			case R.id.action_favorite_movies:
+				return StandardMovieList.FAVORITE;
 			default:
 				return null;
 		}
@@ -273,7 +281,7 @@ public class MainDiscoveryActivityFragment extends Fragment implements LoaderMan
 
 	@Override
 	public Loader<Cursor> onCreateLoader(int id, Bundle args) {
-		String listName = "popular"; // TODO read from preferences
+		String listName = UserPreferences.getMovieList(getActivity());
 		String sortOrder =
 			PopularMoviesContract.ListMembershipContract.Column.PAGE + " ASC, " +
 				PopularMoviesContract.ListMembershipContract.Column.POSITION + " ASC";
@@ -308,7 +316,7 @@ public class MainDiscoveryActivityFragment extends Fragment implements LoaderMan
 
 		if (verbose) Log.v(LOG_TAG, "Database query returned empty result: scheduling update");
 
-		String listName = "popular"; // TODO read from settings
+		String listName = UserPreferences.getMovieList(getActivity());
 		int page = 1; // TODO read from... somewhere
 
 		UpdateMovieListTask updateTask = new UpdateMovieListTask(getActivity());

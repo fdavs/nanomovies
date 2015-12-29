@@ -20,6 +20,10 @@
             android:id="@+id/action_upcoming_movies"
             android:title="@string/action_upcoming_movies"
             app:showAsAction="never"/>
+        <item
+            android:id="@+id/action_favorite_movies"
+            android:title="@string/action_favorite_movies"
+            app:showAsAction="never"/>
     </group>
     <!--<item
         android:id="@+id/action_refresh"

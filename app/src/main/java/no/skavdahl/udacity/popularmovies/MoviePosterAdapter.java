@@ -10,10 +10,6 @@ import android.widget.ImageView;
 
 import org.json.JSONObject;
 
-import java.util.Collections;
-import java.util.Date;
-import java.util.List;
-
 import no.skavdahl.udacity.popularmovies.mdb.MdbJSONAdapter;
 import no.skavdahl.udacity.popularmovies.model.Movie;
 
@@ -26,18 +22,25 @@ public class MoviePosterAdapter extends CursorAdapter {
 
 	private final String LOG_TAG = getClass().getSimpleName();
 
-	private final Context context;
-	private List<Movie> movies = Collections.emptyList();
-	private Date movieLoadTime;
+	private final int cursorPosterIndex;
 	private final int posterViewWidth;
 	private final int posterViewHeight;
 
 	private final MdbJSONAdapter movieJsonAdapter;
 
-	public MoviePosterAdapter(final Context context, final Cursor cursor, final int flags, final int posterViewWidth) {
+	/**
+	 * Initializes a MoviePosterAdapter.
+	 *
+	 * @param context The context
+	 * @param cursor The cursor from which to get data
+	 * @param flags Flags used to determine the behavior of the adapter (see base class)
+	 * @param cursorPosterIndex The index of the cursor where we can read the poster path
+	 * @param posterViewWidth The poster view width in pixels
+	 */
+	public MoviePosterAdapter(final Context context, final Cursor cursor, final int flags, final int cursorPosterIndex, final int posterViewWidth) {
 		super(context, cursor, flags);
 
-		this.context = context;
+		this.cursorPosterIndex = cursorPosterIndex;
 		float posterWidth = context.getResources().getDimension(R.dimen.poster_width);
 		float posterHeight = context.getResources().getDimension(R.dimen.poster_height);
 		this.posterViewWidth = posterViewWidth;
@@ -58,7 +61,7 @@ public class MoviePosterAdapter extends CursorAdapter {
 	@Override
 	public void bindView(View posterView, Context context, Cursor cursor) {
 		// TODO read poster path directly from cursor
-		String movieJson = cursor.getString(1); // TODO remove magic number, use a constant instead
+		String movieJson = cursor.getString(cursorPosterIndex);
 
 		try {
 			Movie m = movieJsonAdapter.toMovie(new JSONObject(movieJson));
@@ -68,54 +71,4 @@ public class MoviePosterAdapter extends CursorAdapter {
 			Log.e(LOG_TAG, "Unable to bind movie to view: " + movieJson, e);
 		}
 	}
-
-	/*
-	public Date getMovieLoadTime() {
-		return movieLoadTime;
-	}
-	public List<Movie> getMovies() {
-		return Collections.unmodifiableList(movies);
-	}
-	public void setMovies(final Collection<Movie> movies, final Date loadTime) {
-		this.movies = new ArrayList<>(movies);
-		this.movieLoadTime = loadTime;
-		notifyDataSetChanged();
-	}*/
-
-	/*@Override
-	public int getCount() {
-		return movies.size();
-	}
-
-	@Override
-	public Object getItem(int position) {
-		return movies.get(position);
-	}
-
-	@Override
-	public long getItemId(int position) {
-		// we don't use this value so we can return anything
-		return 0;
-	}*/
-
-	/*
-	@Override
-	public View getView(int position, View convertView, ViewGroup parent) {
-		ImageView posterView;
-
-		if (convertView != null) {
-			posterView = (ImageView) convertView;
-		}
-		else {
-			posterView = new ImageView(context);
-			posterView.setPadding(0, 0, 0, 0);
-			posterView.setScaleType(ImageView.ScaleType.CENTER_CROP);
-			posterView.setLayoutParams(new ViewGroup.LayoutParams(posterViewWidth, posterViewHeight));
-		}
-
-		PicassoUtils.displayPosterWithOfflineFallback(context, movies.get(position), posterView);
-
-		return posterView;
-	}
-	*/
 }
