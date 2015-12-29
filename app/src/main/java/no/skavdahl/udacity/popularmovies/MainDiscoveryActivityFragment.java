@@ -147,86 +147,20 @@ public class MainDiscoveryActivityFragment extends Fragment implements LoaderMan
 		outState.putInt(BUNDLE_SCROLL_INDEX, posterGrid.getFirstVisiblePosition());
 	}
 
-	/*
-	private void saveMovieData(Bundle outState) {
-		// The basic idea is to "bundle" the movie data into a parcel and save that
-		// parcel in the outState bundle. This requires that Movie implements Parcelable.
-		// Since it's just a little data, we already have a mechanism to serialize and
-		// deserialize movies (json), and because in the long term I wish to save movie
-		// data in a small, local database, I choose to use the existing json serialization
-		// for now.
-
-		List<Movie> movies = viewAdapter.getMovies();
-		Date movieLoadTime = viewAdapter.getMovieLoadTime();
-		//assert !movies.isEmpty() && movieLoadTime != null;
-
-		MdbJSONAdapter jsonAdapter = new MdbJSONAdapter(getResources());
-
-		ArrayList<String> bundle = new ArrayList<>(movies.size());
-		for (Movie m : movies) {
-			try {
-				bundle.add(jsonAdapter.toJSONString(m));
-			}
-			catch (JSONException e) {
-				// this error should never occur so this is mostly verifying an assertion
-				Log.e(LOG_TAG, "Unable to convert to JSON: " + m, e);
-			}
-		}
-
-		outState.putStringArrayList(BUNDLE_MOVIES, bundle);
-		outState.putLong(BUNDLE_MOVIES_LOADTIME, movieLoadTime.getTime());
-	}*/
-
 	@Override
 	public void onActivityCreated(Bundle inState) {
 		super.onActivityCreated(inState);
 
+		// TODO purge old data (outdated list contents and unreferenced movies)
+
 		// initialize the loader
 		getLoaderManager().initLoader(LOADER_ID, null, this);
-
-		/*
-		if (inState != null) {
-			long movieLoadTime = inState.getLong(BUNDLE_MOVIES_LOADTIME);
-			if (areMovieDataCurrent(movieLoadTime)) {
-				restoreMovieData(inState);
-				restoreGridScrollPosition(inState);
-				return;
-			}
-		}
-
-		refreshMovies();
-		*/
 	}
 
 	private void restoreGridScrollPosition(Bundle inState) {
 		int position = inState.getInt(BUNDLE_SCROLL_INDEX);
 		posterGrid.setSelection(position);
 	}
-
-	/*
-	private void restoreMovieData(Bundle inState) {
-		ArrayList<String> bundle = inState.getStringArrayList(BUNDLE_MOVIES);
-		long moviesLoadTime = inState.getLong(BUNDLE_MOVIES_LOADTIME);
-
-		if (bundle == null || moviesLoadTime == 0)
-			return;
-
-		List<Movie> movies = new ArrayList<>(bundle.size());
-		MdbJSONAdapter jsonAdapter = new MdbJSONAdapter(getResources());
-
-		for (String json : bundle) {
-			try {
-				JSONObject obj = new JSONObject(json);
-				movies.add(jsonAdapter.toMovie(obj));
-			}
-			catch (JSONException e) {
-				// this error should never occur so this is mostly verifying an assertion
-				Log.e(LOG_TAG, "Unable to convert from JSON: " + json, e);
-			}
-		}
-
-		viewAdapter.setMovies(movies, new Date(moviesLoadTime));
-	} */
 
 	@Override
 	public void onDestroyView() {
@@ -364,7 +298,6 @@ public class MainDiscoveryActivityFragment extends Fragment implements LoaderMan
 
 	@Override
 	public Loader<Cursor> onCreateLoader(int id, Bundle args) {
-		// Sort order:  Ascending, by date.
 		String listName = "popular"; // TODO read from preferences
 		String sortOrder =
 			PopularMoviesContract.ListMembershipContract.Column.PAGE + " ASC, " +
@@ -379,20 +312,6 @@ public class MainDiscoveryActivityFragment extends Fragment implements LoaderMan
 			null, // selection
 			null, // selectionArgs
 			sortOrder);
-
-		/*Cursor cursor = getActivity().getContentResolver().query(listMemberUri,
-			new String[]{
-				PopularMoviesContract.MovieContract.Column._ID, // required by the CursorAdapter
-				PopularMoviesContract.MovieContract.Column.JSONDATA}, // projection
-			null, // selection
-			null, // selectionArgs
-			sortOrder);
-
-		int adapterFlags = 0;
-
-		return
-		//posterGrid.setAdapter(viewAdapter = new MoviePosterAdapter(getContext(), cursor, adapterFlags, posterViewWidth));
-		*/
 	}
 
 	@Override
@@ -444,30 +363,7 @@ public class MainDiscoveryActivityFragment extends Fragment implements LoaderMan
         }
 
         // permission granted, go ahead with the operation
-	    StandardMovieList movieList = UserPreferences.getDiscoveryPreference(getActivity());
-	    String apiKey = BuildConfig.THEMOVIEDB_API_KEY;
-
-	    // TODO reimplement using the loader
 	    getLoaderManager().restartLoader(LOADER_ID, null, this);
-	    /*
-        DiscoverMoviesTask task = new DiscoverMoviesTask(movieList, apiKey, getActivity(),
-	        new DiscoverMoviesTask.Listener() {
-			    @Override
-			    public void onDownloadSuccess(List<Movie> movies) {
-				    if (BuildConfig.DEBUG && Log.isLoggable(LOG_TAG, Log.DEBUG))
-				        Log.d(LOG_TAG, "Movie data successfully downloaded from server (" + movies.size() + " movies downloaded)");
-
-				    viewAdapter.setMovies(movies, new Date());
-			    }
-
-			    @Override
-			    public void onNetworkFailure() {
-				    showFailureDialog(R.string.no_network_try_again);
-			    }
-		    }
-        );
-        task.execute();
-        */
     }
 
 	/**
