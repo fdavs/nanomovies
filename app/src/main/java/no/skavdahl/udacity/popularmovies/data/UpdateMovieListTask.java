@@ -34,6 +34,7 @@ public class UpdateMovieListTask extends AsyncTask<UpdateMovieListTask.Input, Vo
 
 	private final String LOG_TAG = getClass().getSimpleName();
 	private final boolean verbose = BuildConfig.DEBUG && Log.isLoggable(LOG_TAG, Log.VERBOSE);
+	private final boolean debug = BuildConfig.DEBUG && Log.isLoggable(LOG_TAG, Log.DEBUG);
 
 	private final Context context;
 
@@ -153,7 +154,7 @@ public class UpdateMovieListTask extends AsyncTask<UpdateMovieListTask.Input, Vo
 			Uri listMemberUri = ListContract.buildListMemberDirectoryUri(listName);
 			context.getContentResolver().bulkInsert(listMemberUri, values);
 
-			if (verbose) Log.v(LOG_TAG, "Standard movie list successfully updated");
+			if (debug) Log.d(LOG_TAG, "Movie list " + listName + " (page " + page + ") updated");
 		}
 		catch (Exception e) {
 			Log.e(LOG_TAG, "Web query failed for list name=" + listName, e);

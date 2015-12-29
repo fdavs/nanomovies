@@ -28,6 +28,7 @@ import android.widget.AdapterView;
 import android.widget.GridView;
 
 import no.skavdahl.udacity.popularmovies.data.PopularMoviesContract;
+import no.skavdahl.udacity.popularmovies.data.SweepDatabaseTask;
 import no.skavdahl.udacity.popularmovies.data.UpdateMovieListTask;
 import no.skavdahl.udacity.popularmovies.mdb.StandardMovieList;
 
@@ -67,6 +68,11 @@ public class MainDiscoveryActivityFragment extends Fragment implements LoaderMan
 
 	private final static int CURSOR_INDEX_MOVIE_ID = 0;
 	private final static int CURSOR_INDEX_MOVIE_JSON = 1;
+
+	// --- other configuration ---
+
+	/** Do not issue database cleanup commands more frequently that this */
+	private final static long DATABASE_SWEEP_INTERVAL = 12 * 60 * 60 * 1000; // 12 hours
 
 	public MainDiscoveryActivityFragment() {
     }
@@ -128,10 +134,16 @@ public class MainDiscoveryActivityFragment extends Fragment implements LoaderMan
 		// save so we can restore scroll position once the movie list has been loaded
 		savedInstanceState = inState;
 
-		// TODO purge old data (outdated list contents and unreferenced movies)
-
 		// initialize the loader
 		getLoaderManager().initLoader(LOADER_ID, null, this);
+
+		// schedule database cleanup if enough time has passed since the last cleanup
+		long lastSweepTime = UserPreferences.getSweepTime(getActivity());
+		long now = System.currentTimeMillis();
+		if (now - lastSweepTime > DATABASE_SWEEP_INTERVAL) {
+			UserPreferences.setSweepTime(getActivity(), now);
+			new SweepDatabaseTask(getContext()).execute();
+		}
 	}
 
 	private void restoreGridScrollPosition(Bundle inState) {
@@ -193,7 +205,6 @@ public class MainDiscoveryActivityFragment extends Fragment implements LoaderMan
 					    return;
 
 				    configureOptionsMenu(menu);
-				    refreshMovies();
 			    }
 		    });
     }
@@ -219,11 +230,14 @@ public class MainDiscoveryActivityFragment extends Fragment implements LoaderMan
     public boolean onOptionsItemSelected(MenuItem item) {
 	    String listName = mapMenuItemToMovieList(item.getItemId());
 		if (listName != null) {
-			UserPreferences.setMovieList(getActivity(), listName);
-			refreshMovies();
-			return true;
+			String currentList = UserPreferences.getMovieList(getActivity());
+			if (!listName.equals(currentList)) {
+				UserPreferences.setMovieList(getActivity(), listName);
+				refreshMovies();
+				return true;
+			}
 		}
-		else return super.onOptionsItemSelected(item);
+		return super.onOptionsItemSelected(item);
     }
 
 	private int mapMovieListToMenuItem(String listName) {

@@ -5,6 +5,7 @@ import android.content.ContentProvider;
 import android.content.ContentValues;
 import android.content.UriMatcher;
 import android.database.Cursor;
+import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.database.sqlite.SQLiteStatement;
@@ -114,7 +115,7 @@ public class MovieProvider extends ContentProvider {
 			case IMAGE_ITEM:
 				return ImageContract.CONTENT_ITEM_TYPE;
 			default:
-				Log.w(LOG_TAG, "Unsupported operation: " + uri);
+				Log.w(LOG_TAG, "Unsupported operation: getType " + uri.getPath());
 				return null;
 		}
 	}
@@ -159,7 +160,7 @@ public class MovieProvider extends ContentProvider {
 				break;
 
 			default:
-				Log.w(LOG_TAG, "Unsupported operation: " + uri);
+				Log.w(LOG_TAG, "Unsupported operation: query " + uri.getPath());
 				return null;
 		}
 
@@ -180,7 +181,7 @@ public class MovieProvider extends ContentProvider {
 				break;
 
 			default:
-				Log.w(LOG_TAG, "Unsupported operation: " + uri);
+				Log.w(LOG_TAG, "Unsupported operation: insert " + uri.getPath());
 				return null;
 		}
 
@@ -201,7 +202,7 @@ public class MovieProvider extends ContentProvider {
 				break;
 
 			default:
-				Log.w(LOG_TAG, "Unsupported operation: " + uri);
+				Log.w(LOG_TAG, "Unsupported operation: bulkInsert " + uri.getPath());
 				return 0;
 		}
 
@@ -216,7 +217,28 @@ public class MovieProvider extends ContentProvider {
 
 	@Override
 	public int delete(@NonNull Uri uri, String selection, String[] selectionArgs) {
-		return 0;
+		int deleteCount = 0;
+
+		switch (uriMatcher.match(uri)) {
+			case MOVIE_DIRECTORY:
+				if (uri.getBooleanQueryParameter("orphan", false)) {
+					deleteCount = deleteOrphanedMovies(uri);
+					break;
+				}
+				// else fall through
+
+			default:
+				Log.w(LOG_TAG, "Unsupported operation: delete " + uri.getPath());
+				break;
+		}
+
+		if (deleteCount > 0) {
+			// disable warning "getContext() may return null": it is non-null after onCreate()
+			//noinspection ConstantConditions
+			getContext().getContentResolver().notifyChange(uri, null);
+		}
+
+		return deleteCount;
 	}
 
 	@Override
@@ -229,7 +251,7 @@ public class MovieProvider extends ContentProvider {
 				break;
 
 			default:
-				Log.w(LOG_TAG, "Unsupported operation: " + uri);
+				Log.w(LOG_TAG, "Unsupported operation: update " + uri.getPath());
 				rowCount = 0;
 				break;
 		}
@@ -259,8 +281,9 @@ public class MovieProvider extends ContentProvider {
 
 	protected Cursor queryListItem(Uri uri, String[] projection) {
 		final boolean verbose = BuildConfig.DEBUG && Log.isLoggable(LOG_TAG, Log.VERBOSE);
+		final boolean debug = BuildConfig.DEBUG && Log.isLoggable(LOG_TAG, Log.DEBUG);
 
-		if (verbose) Log.v(LOG_TAG, "Database query: " + uri);
+		if (verbose) Log.v(LOG_TAG, "Start query: " + uri.getPath());
 
 		String listName =  uri.getPathSegments().get(LIST_INDEX_LIST_NAME);
 
@@ -273,7 +296,7 @@ public class MovieProvider extends ContentProvider {
 			null,
 			null);
 
-		if (verbose) Log.v(LOG_TAG, "Database query returned " + cursor.getCount() + " rows");
+		if (debug) Log.d(LOG_TAG, "QUERY " + uri.getPath() + " -> " + cursor.getCount() + " rows returned");
 
 		return cursor;
 	}
@@ -282,8 +305,9 @@ public class MovieProvider extends ContentProvider {
 
 	protected Cursor queryListMemberDirectory(Uri uri, String[] projection, String selection, String[] selectionArgs, String sortOrder) {
 		final boolean verbose = BuildConfig.DEBUG && Log.isLoggable(LOG_TAG, Log.VERBOSE);
+		final boolean debug = BuildConfig.DEBUG && Log.isLoggable(LOG_TAG, Log.DEBUG);
 
-		if (verbose) Log.v(LOG_TAG, "Querying list member directory from database: " + uri);
+		if (verbose) Log.v(LOG_TAG, "Start query: " + uri.getPath());
 
 		String listName =  uri.getPathSegments().get(LIST_INDEX_LIST_NAME);
 
@@ -299,15 +323,16 @@ public class MovieProvider extends ContentProvider {
 		String[] effectiveSelArgs = Arrays.prepend(listName, selectionArgs);
 		Cursor cursor = dbHelper.getReadableDatabase().rawQuery(sql, effectiveSelArgs);
 
-		if (verbose) Log.v(LOG_TAG, "Database query returned " + cursor.getCount() + " results");
+		if (debug) Log.d(LOG_TAG, "QUERY " + uri.getPath() + " -> " + cursor.getCount() + " rows returned");
 
 		return cursor;
 	}
 
 	protected int bulkInsertListMembers(Uri uri, ContentValues[] values) {
 		final boolean verbose = BuildConfig.DEBUG && Log.isLoggable(LOG_TAG, Log.VERBOSE);
+		final boolean debug = BuildConfig.DEBUG && Log.isLoggable(LOG_TAG, Log.DEBUG);
 
-		if (verbose) Log.v(LOG_TAG, "Querying list member directory from database: " + uri);
+		if (verbose) Log.v(LOG_TAG, "Start bulk insert: " + uri.getPath() + " with " + values.length + " values");
 
 		// it is possible to use db.insertWithOnConflict(movie) and db.insert(member) here
 		// but it is more clear, more efficient and no more verbose (I tried) to just
@@ -378,7 +403,7 @@ public class MovieProvider extends ContentProvider {
 			db.endTransaction();
 		}
 
-		if (verbose) Log.v(LOG_TAG, "Database rows inserted: " + rowsInserted);
+		if (debug) Log.d(LOG_TAG, "INSERT " + uri.getPath() + " -> " + rowsInserted + " rows inserted");
 
 		return rowsInserted;
 	}
@@ -399,12 +424,48 @@ public class MovieProvider extends ContentProvider {
 		return listId * 1000000 + page * 100 + position;
 	}
 
+	// --- Movie directory operations ---
+
+	protected int deleteOrphanedMovies(Uri uri) {
+		final boolean verbose = BuildConfig.DEBUG && Log.isLoggable(LOG_TAG, Log.VERBOSE);
+		final boolean debug = BuildConfig.DEBUG && Log.isLoggable(LOG_TAG, Log.DEBUG);
+
+		if (verbose) Log.v(LOG_TAG, "Start delete: " + uri.getPath() + "?" + uri.getQuery());
+
+		/*dbHelper.getWritableDatabase().execSQL(
+			"DELETE FROM " + MovieContract.TABLE_NAME + " " +
+			"WHERE " + MovieContract.Column._ID + " NOT IN (" +
+				"SELECT " + ListMembershipContract.Column.MOVIE_ID + " " +
+				"FROM " + ListMembershipContract.TABLE_NAME +
+			")");
+		int deletedCount = 1;*/
+
+		/* The code below causes "SQLiteException: no such column: movie._id (code 1)"
+		   though I can't find anything wrong with the SQL statement itself:
+		   DELETE FROM movie WHERE _id NOT IN (SELECT movieid FROM listmember)*/
+
+		int deletedCount = dbHelper.getWritableDatabase().delete(
+			MovieContract.TABLE_NAME,
+			MovieContract.Column._ID + " NOT IN (" +
+				"SELECT " + ListMembershipContract.Column.MOVIE_ID + " " +
+				"FROM " + ListMembershipContract.TABLE_NAME +
+			")",
+			null);
+
+		if (debug) Log.d(LOG_TAG,
+			"DELETE " + uri.getPath() + "?" + uri.getQuery() + " -> " +
+			deletedCount + " rows deleted");
+
+		return deletedCount;
+	}
+
 	// --- Movie item operations ---
 
 	protected Cursor queryMovieItem(Uri uri, String[] projection) {
 		final boolean verbose = BuildConfig.DEBUG && Log.isLoggable(LOG_TAG, Log.VERBOSE);
+		final boolean debug = BuildConfig.DEBUG && Log.isLoggable(LOG_TAG, Log.DEBUG);
 
-		if (verbose) Log.v(LOG_TAG, "Querying movie item: " + uri);
+		if (verbose) Log.v(LOG_TAG, "Start query: " + uri.getPath());
 
 		// it is not strictly necessary to parse the path segment into an integer
 		// but doing so is more secure since we'll know it is actually an integer
@@ -427,15 +488,16 @@ public class MovieProvider extends ContentProvider {
 			null,
 			null);
 
-		if (verbose) Log.v(LOG_TAG, "Database query for movie " + movieId + " returned " + cursor.getCount() + " row(s)");
+		if (debug) Log.d(LOG_TAG, "QUERY " + uri.getPath() + " -> " + cursor.getCount() + " rows returned");
 
 		return cursor;
 	}
 
 	protected Uri insertMovieItem(final Uri uri, final ContentValues values) {
 		final boolean verbose = BuildConfig.DEBUG && Log.isLoggable(LOG_TAG, Log.VERBOSE);
+		final boolean debug = BuildConfig.DEBUG && Log.isLoggable(LOG_TAG, Log.DEBUG);
 
-		if (verbose) Log.v(LOG_TAG, "Inserting movie item: " + uri);
+		if (verbose) Log.v(LOG_TAG, "Start insert: " + uri.getPath());
 
 		final int movieId = getPathSegmentAsInt(uri, MOVIE_INDEX_MOVIE_ID, 0);
 		if (movieId == 0)
@@ -443,23 +505,27 @@ public class MovieProvider extends ContentProvider {
 
 		values.put(PopularMoviesContract.MovieContract.Column._ID, movieId);
 
-		long newMovieId = dbHelper.getWritableDatabase().insert(
-			PopularMoviesContract.MovieContract.TABLE_NAME,
-			null,
-			values);
+		try {
+			long newMovieId = dbHelper.getWritableDatabase().insertOrThrow(
+				PopularMoviesContract.MovieContract.TABLE_NAME,
+				null,
+				values);
 
-		if (newMovieId == -1)
-			Log.e(LOG_TAG, "Insert of movie data for movie " + movieId + " failed");
-		else if (verbose)
-			Log.v(LOG_TAG, "Insert statement for movie " + movieId + " completed successfully (id = " + newMovieId + ")");
+			if (debug) Log.d(LOG_TAG, "INSERT " + uri.getPath() + " -> 1 row inserted, id = " + newMovieId);
 
-		return MovieContract.buildMovieItemUri(newMovieId);
+			return MovieContract.buildMovieItemUri(newMovieId);
+		}
+		catch (SQLException e) {
+			Log.e(LOG_TAG, "INSERT " + uri.getPath() + " failed: values = " + values, e);
+			return null;
+		}
 	}
 
 	protected int updateMovieItem(final Uri uri, final ContentValues values) {
 		final boolean verbose = BuildConfig.DEBUG && Log.isLoggable(LOG_TAG, Log.VERBOSE);
+		final boolean debug = BuildConfig.DEBUG && Log.isLoggable(LOG_TAG, Log.DEBUG);
 
-		if (verbose) Log.v(LOG_TAG, "Updating movie item: " + uri);
+		if (verbose) Log.v(LOG_TAG, "Start update: " + uri.getPath());
 
 		final int movieId = getPathSegmentAsInt(uri, MOVIE_INDEX_MOVIE_ID, 0);
 		if (movieId == 0)
@@ -471,7 +537,7 @@ public class MovieProvider extends ContentProvider {
 			MovieContract.Column._ID + "=?",
 			new String[]{Integer.toString(movieId)});
 
-		if (verbose) Log.v(LOG_TAG, "Update of movie " + movieId + " affected " + rowCount + " rows");
+		if (debug) Log.d(LOG_TAG, "UPDATE " + uri.getPath() + " -> " + rowCount + " rows updated");
 
 		return rowCount;
 	}

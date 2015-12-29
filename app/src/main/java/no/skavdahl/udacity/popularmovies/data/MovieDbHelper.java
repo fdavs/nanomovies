@@ -184,11 +184,9 @@ public class MovieDbHelper extends SQLiteOpenHelper {
 			"AFTER DELETE ON " + MovieContract.TABLE_NAME + " " +
 			"BEGIN " +
 				"DELETE FROM " + ListMembershipContract.TABLE_NAME + " " +
-				"WHERE " + ListMembershipContract.TABLE_NAME + "." + ListMembershipContract.Column.MOVIE_ID + " = " +
-					MovieContract.TABLE_NAME + "." + MovieContract.Column._ID + ";" +
+				"WHERE " + ListMembershipContract.Column.MOVIE_ID + " = OLD." + MovieContract.Column._ID + ";" +
 				"DELETE FROM " + ImageContract.TABLE_NAME + " " +
-				"WHERE " + ImageContract.TABLE_NAME + "." + ImageContract.Column.MOVIE_ID + " = " +
-					MovieContract.TABLE_NAME + "." + MovieContract.Column._ID + ";" +
+				"WHERE " + ImageContract.Column.MOVIE_ID + " = OLD." + MovieContract.Column._ID + ";" +
 			"END");
 
 		db.execSQL(
@@ -196,8 +194,7 @@ public class MovieDbHelper extends SQLiteOpenHelper {
 				"AFTER DELETE ON " + ListContract.TABLE_NAME + " " +
 				"BEGIN " +
 					"DELETE FROM " + ListMembershipContract.TABLE_NAME + " " +
-					"WHERE " + ListMembershipContract.TABLE_NAME + "." + ListMembershipContract.Column.LIST_ID + " = " +
-						ListContract.TABLE_NAME + "." + ListContract.Column._ID + ";" +
+					"WHERE " + ListMembershipContract.Column.LIST_ID + " = OLD." + ListContract.Column._ID + ";" +
 				"END");
 	}
 
