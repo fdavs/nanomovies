@@ -53,12 +53,10 @@ public class MainDiscoveryActivityFragment extends Fragment implements LoaderMan
 	private SharedPreferences.OnSharedPreferenceChangeListener prefChangeListener;
 
 	// --- saved instance state ---
-	private final static String BUNDLE_MOVIES = "movies";
-	private final static String BUNDLE_MOVIES_LOADTIME = "movies.time";
-	private final static String BUNDLE_SCROLL_INDEX = "scroll.index";
 
-	/** How long to keep movie data before they should be refreshed. */
-	private final static long MAX_MOVIES_AGE = 1000 * 60*60; // 1 hour in millis
+	private Bundle savedInstanceState;
+
+	private final static String BUNDLE_SCROLL_INDEX = "scroll.index";
 
 	// --- cursor configuration ---
 
@@ -111,35 +109,9 @@ public class MainDiscoveryActivityFragment extends Fragment implements LoaderMan
 	    return view;
     }
 
-
-	/**
-	 * Returns true if there are movie data available and they are not expired
-	 * (older than the limit set by {@link #MAX_MOVIES_AGE}
-	 */
-	private boolean areMovieDataCurrent() {
-		return true; // TODO reimplement
-		/*
-		List<Movie> movies = viewAdapter.getMovies();
-		if (movies.isEmpty())
-			return false;
-
-		// there are movie data available so there will also be a non-null load time
-		return areMovieDataCurrent(viewAdapter.getMovieLoadTime().getTime());
-		*/
-	}
-
-	private boolean areMovieDataCurrent(long movieLoadTime) {
-		return true; // TODO reimplement
-		//return System.currentTimeMillis() - movieLoadTime < MAX_MOVIES_AGE;
-	}
-
 	@Override
 	public void onSaveInstanceState(Bundle outState) {
-		if (areMovieDataCurrent()) {
-			saveGridScrollPosition(outState);
-			// TODO saveMovieData(outState);
-		}
-
+		saveGridScrollPosition(outState);
 		super.onSaveInstanceState(outState);
 	}
 
@@ -150,6 +122,9 @@ public class MainDiscoveryActivityFragment extends Fragment implements LoaderMan
 	@Override
 	public void onActivityCreated(Bundle inState) {
 		super.onActivityCreated(inState);
+
+		// save so we can restore scroll position once the movie list has been loaded
+		savedInstanceState = inState;
 
 		// TODO purge old data (outdated list contents and unreferenced movies)
 
@@ -317,6 +292,11 @@ public class MainDiscoveryActivityFragment extends Fragment implements LoaderMan
 	@Override
 	public void onLoadFinished(Loader<Cursor> loader, Cursor cursor) {
 		viewAdapter.swapCursor(cursor);
+
+		if (savedInstanceState != null) {
+			restoreGridScrollPosition(savedInstanceState);
+			savedInstanceState = null;
+		}
 
 		// determine whether we should update the list
 		// TODO determine whether to update the list from the server
