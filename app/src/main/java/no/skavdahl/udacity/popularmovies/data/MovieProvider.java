@@ -38,7 +38,7 @@ public class MovieProvider extends ContentProvider {
 	static final int IMAGE_DIRECTORY = 7;
 	static final int IMAGE_ITEM = 8;
 
-	static final int LIST_INDEX_LISTNAME = 1;
+	static final int LIST_INDEX_LIST_NAME = 1;
 	static final int LIST_INDEX_MOVIE_ID = 3;
 	static final int MOVIE_INDEX_MOVIE_ID = 1;
 	static final int IMAGE_INDEX_IMAGE_ID = 1;
@@ -163,6 +163,8 @@ public class MovieProvider extends ContentProvider {
 				return null;
 		}
 
+		// disable warning "getContext() may return null": it is non-null after onCreate()
+		//noinspection ConstantConditions
 		cursor.setNotificationUri(getContext().getContentResolver(), uri);
 		return cursor;
 	}
@@ -182,13 +184,15 @@ public class MovieProvider extends ContentProvider {
 				return null;
 		}
 
+		// disable warning "getContext() may return null": it is non-null after onCreate()
+		//noinspection ConstantConditions
 		getContext().getContentResolver().notifyChange(uri, null);
 
 		return newUri;
 	}
 
 	@Override
-	public int bulkInsert(@NonNull Uri uri, ContentValues[] values) {
+	public int bulkInsert(@NonNull Uri uri, @NonNull ContentValues[] values) {
 		int insertCount;
 
 		switch (uriMatcher.match(uri)) {
@@ -201,8 +205,11 @@ public class MovieProvider extends ContentProvider {
 				return 0;
 		}
 
-		if (insertCount > 0)
+		if (insertCount > 0) {
+			// disable warning "getContext() may return null": it is non-null after onCreate()
+			//noinspection ConstantConditions
 			getContext().getContentResolver().notifyChange(uri, null);
+		}
 
 		return insertCount;
 	}
@@ -227,8 +234,11 @@ public class MovieProvider extends ContentProvider {
 				break;
 		}
 
-		if (rowCount > 0)
+		if (rowCount > 0) {
+			// disable warning "getContext() may return null": it is non-null after onCreate()
+			//noinspection ConstantConditions
 			getContext().getContentResolver().notifyChange(uri, null);
+		}
 
 		return rowCount;
 	}
@@ -252,7 +262,7 @@ public class MovieProvider extends ContentProvider {
 
 		if (verbose) Log.v(LOG_TAG, "Database query: " + uri);
 
-		String listName =  uri.getPathSegments().get(LIST_INDEX_LISTNAME);
+		String listName =  uri.getPathSegments().get(LIST_INDEX_LIST_NAME);
 
 		Cursor cursor = dbHelper.getReadableDatabase().query(
 			PopularMoviesContract.ListContract.TABLE_NAME,
@@ -275,7 +285,7 @@ public class MovieProvider extends ContentProvider {
 
 		if (verbose) Log.v(LOG_TAG, "Querying list member directory from database: " + uri);
 
-		String listName =  uri.getPathSegments().get(LIST_INDEX_LISTNAME);
+		String listName =  uri.getPathSegments().get(LIST_INDEX_LIST_NAME);
 
 		String sql =
 			"SELECT M." + TextUtils.join(", M.", projection) + " " +

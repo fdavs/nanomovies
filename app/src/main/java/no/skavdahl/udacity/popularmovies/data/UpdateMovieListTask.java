@@ -95,7 +95,7 @@ public class UpdateMovieListTask extends AsyncTask<UpdateMovieListTask.Input, Vo
 				null,
 				null);
 
-			if (!listCursor.moveToFirst()) {
+			if (listCursor == null || !listCursor.moveToFirst()) {
 				Log.w(LOG_TAG, "List not found in database: " + listName);
 				return null; // nothing more we can do
 			}

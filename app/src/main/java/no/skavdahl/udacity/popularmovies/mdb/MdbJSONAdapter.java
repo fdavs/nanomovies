@@ -330,10 +330,10 @@ public class MdbJSONAdapter extends JSONAdapter {
 	/**
 	 *
 	 */
-	public static boolean containsExtendedData(String jsondata) {
-		// Note that without parsing the jsondata and reading the actual attribute names,
+	public static boolean containsExtendedData(String json) {
+		// Note that without parsing the json and reading the actual attribute names,
 		// the test as implemented below can theoretically match an attribute *value* and
 		// return an incorrect result. It is unlikely, though, and much faster than parsing.
-		return jsondata.contains(JSON_EXTENDED_DATA);
+		return json.contains(JSON_EXTENDED_DATA);
 	}
 }

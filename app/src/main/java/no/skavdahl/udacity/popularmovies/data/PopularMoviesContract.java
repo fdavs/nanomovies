@@ -80,7 +80,7 @@ public class PopularMoviesContract {
 		/** An invalid list type, similar in semantics to <code>null</code>. */
 		public static final int LISTTYPE_NONE = 0;
 
-		/** Identifies a standard list (popular, upcoming, toprated, nowplaying) */
+		/** Identifies a standard list (popular, upcoming, top_rated, now_playing) */
 		public static final int LISTTYPE_STANDARD = 1;
 
 		/** Identifies the user's list of favorite movies */
@@ -218,9 +218,9 @@ public class PopularMoviesContract {
 			BASE_CONTENT_URI.buildUpon().appendPath(CONTENT_URI_PATH).build();
 
 		public static final String CONTENT_DIR_TYPE =
-			ContentResolver.CURSOR_DIR_BASE_TYPE + "/vnd." + CONTENT_AUTHORITY + "." + CONTENT_URI_PATH + "_v" + CONTRACT_VERSION;;
+			ContentResolver.CURSOR_DIR_BASE_TYPE + "/vnd." + CONTENT_AUTHORITY + "." + CONTENT_URI_PATH + "_v" + CONTRACT_VERSION;
 		public static final String CONTENT_ITEM_TYPE =
-			ContentResolver.CURSOR_ITEM_BASE_TYPE + "/vnd." + CONTENT_AUTHORITY + "." + CONTENT_URI_PATH + "_v" + CONTRACT_VERSION;;
+			ContentResolver.CURSOR_ITEM_BASE_TYPE + "/vnd." + CONTENT_AUTHORITY + "." + CONTENT_URI_PATH + "_v" + CONTRACT_VERSION;
 
 		// AUTHORITY/image                      -- query image directory
 		// AUTHORITY/image/id#                  -- query image data

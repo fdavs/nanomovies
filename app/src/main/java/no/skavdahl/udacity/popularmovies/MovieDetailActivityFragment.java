@@ -79,6 +79,8 @@ public class MovieDetailActivityFragment extends Fragment implements LoaderManag
 		return inflater.inflate(R.layout.fragment_movie_detail, container, false);
 	}
 
+	// disable "findViewById() may return null" warning; it's true but will be caught quickly in testing
+	@SuppressWarnings("ConstantConditions")
 	private void bindModelToView(final Movie movie) {
 		final View view = getView();
 		final Context context = getActivity();
@@ -175,8 +177,9 @@ public class MovieDetailActivityFragment extends Fragment implements LoaderManag
 		long dataAge = System.currentTimeMillis() - dataModifiedTime;
 		long maxAge = BuildConfig.MOVIE_DATA_TIMEOUT;
 
-		if (MdbJSONAdapter.containsExtendedData(jsonData) && dataAge <= maxAge)
+		if (MdbJSONAdapter.containsExtendedData(jsonData) && dataAge <= maxAge) {
 			if (verbose) Log.v(LOG_TAG, "Movie data is up to date - no further action");
+		}
 		else {
 			if (verbose) Log.v(LOG_TAG, "Movie data is missing or stale - updating");
 
