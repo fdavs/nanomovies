@@ -36,7 +36,7 @@ import static no.skavdahl.udacity.popularmovies.data.PopularMoviesContract.*;
  */
 public class MovieDetailActivityFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor> {
 
-	private final String LOG_TAG = getClass().getSimpleName();
+	private final String LOG_TAG = getClass().getSimpleName().substring(0, 23);
 
 	private final int LOADER_ID = 0;
 
