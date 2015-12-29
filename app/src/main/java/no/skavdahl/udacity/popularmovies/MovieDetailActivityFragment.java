@@ -177,6 +177,8 @@ public class MovieDetailActivityFragment extends Fragment implements LoaderManag
 		long dataAge = System.currentTimeMillis() - dataModifiedTime;
 		long maxAge = BuildConfig.MOVIE_DATA_TIMEOUT;
 
+		// FIXME Critical bug: infinite loop when opening a movie which does not contain any trailers or comments
+
 		if (MdbJSONAdapter.containsExtendedData(jsonData) && dataAge <= maxAge) {
 			if (verbose) Log.v(LOG_TAG, "Movie data is up to date - no further action");
 		}

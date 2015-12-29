@@ -130,10 +130,12 @@ public class MdbJSONAdapter extends JSONAdapter {
 		List<Integer> genreList = getOptIntArray(obj.optJSONArray(JSON_MOVIE_GENRES));
 		int fallbackColor = generateColorCode(title);
 
+		boolean hasExtendedData = obj.has(JSON_MOVIE_REVIEWS);
+
 		List<Video> videos = toVideoList(obj, JSON_MOVIE_VIDEOS);
 		List<Review> reviews = toReviewList(obj, JSON_MOVIE_REVIEWS);
 
-		return new Movie(id, releaseDate, title, posterPath, backdropPath, synopsis, popularity, voteAverage, voteCount, genreList, reviews, videos, fallbackColor);
+		return new Movie(id, releaseDate, title, posterPath, backdropPath, synopsis, popularity, voteAverage, voteCount, genreList, hasExtendedData, reviews, videos, fallbackColor);
 	}
 
 	private List<Video> toVideoList(JSONObject obj, String key) throws JSONException {
@@ -284,7 +286,7 @@ public class MdbJSONAdapter extends JSONAdapter {
 		// put a marker (here in front) that allows us to quickly decide whether this movie
 		// contains extended movie data, such as reviews and video, which are not included
 		// in a basic discovery or list request
-		if (!movie.getReviews().isEmpty() || !movie.getVideos().isEmpty())
+		if (movie.hasExtendedData())
 			obj.put(JSON_EXTENDED_DATA, true);
 
 		obj.put(JSON_MOVIE_ID, movie.getMovieDbId());
@@ -297,8 +299,11 @@ public class MdbJSONAdapter extends JSONAdapter {
 		obj.put(JSON_MOVIE_VOTE_COUNT, movie.getVoteCount());
 		putOptDate(obj, JSON_MOVIE_RELEASE_DATE, movie.getReleaseDate());
 		putOptArray(obj, JSON_MOVIE_GENRES, movie.getGenres());
-		obj.put(JSON_MOVIE_REVIEWS, toReviewJSONArray(movie.getReviews()));
-		obj.put(JSON_MOVIE_VIDEOS, toVideoJSONArray(movie.getVideos()));
+
+		if (movie.hasExtendedData()) {
+			obj.put(JSON_MOVIE_REVIEWS, toReviewJSONArray(movie.getReviews()));
+			obj.put(JSON_MOVIE_VIDEOS, toVideoJSONArray(movie.getVideos()));
+		}
 
 		return obj.toString();
 	}
@@ -328,7 +333,8 @@ public class MdbJSONAdapter extends JSONAdapter {
 	}
 
 	/**
-	 *
+	 * Returns true if the given json string contains extended movie data.
+	 * For a definition of "extended", see {@link Movie#hasExtendedData()}.
 	 */
 	public static boolean containsExtendedData(String json) {
 		// Note that without parsing the json and reading the actual attribute names,

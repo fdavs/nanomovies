@@ -26,6 +26,7 @@ public class Movie {
 	private final List<Integer> genres;
 	private final int fallbackColor;
 
+	private final boolean hasExtendedData;
 	private final List<Review> optReviews;
 	private final List<Video> optVideos;
 
@@ -49,6 +50,7 @@ public class Movie {
 		final double voteAverage,
 		final int voteCount,
 		final List<Integer> genres,
+		final boolean hasExtendedData,
 		final List<Review> reviews,
 		final List<Video> videos,
 		final int fallbackColor) {
@@ -65,6 +67,7 @@ public class Movie {
 		this.optVoteAverage = voteAverage;
 		this.optVoteCount = voteCount;
 		this.optReleaseDate = releaseDate;
+		this.hasExtendedData = hasExtendedData;
 
 		if (genres != null && !genres.isEmpty())
 			this.genres = Collections.unmodifiableList(genres);
@@ -127,6 +130,15 @@ public class Movie {
 	/** Returns the movie's release date. May be null. */
 	public Date getReleaseDate() {
 		return optReleaseDate;
+	}
+
+	/**
+	 * Returns true if this movie contains extended data. This is defined as additional data
+	 * that is available when the movie is looked up individually but not included when the
+	 * movie is merely discovered as an element in a list.
+	 */
+	public boolean hasExtendedData() {
+		return hasExtendedData;
 	}
 
 	/**
