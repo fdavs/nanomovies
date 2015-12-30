@@ -10,7 +10,6 @@
     <string name="action_upcoming_movies">Upcoming movies</string>
     <string name="action_favorite_movies">Favorite movies</string>
 
-
     <!-- strings in the Movie Detail fragment -->
     <string name="activity_detail_name">Movie Details</string>
     <string name="movie_title"><xliff:g id="title" example="Inside Out">%1$s</xliff:g></string>
@@ -23,6 +22,8 @@
     <string name="movie_poster">Movie poster</string>
     <string name="movie_backdrop">Backdrop image</string>
     <string name="data_unknown">&lt;unknown&gt;</string>
+    <string name="reviews_heading">Reviews</string>
+    <string name="no_reviews">No reviews yet.</string>
 
     <!-- error messages -->
     <string name="no_permission_try_again">This app needs permission to access the internet in order to download movie information.</string>

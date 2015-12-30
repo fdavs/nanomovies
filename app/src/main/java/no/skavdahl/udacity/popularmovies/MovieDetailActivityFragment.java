@@ -6,6 +6,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.Loader;
 import android.database.Cursor;
+import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
@@ -14,6 +15,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageButton;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import org.json.JSONException;
@@ -22,12 +24,14 @@ import org.json.JSONObject;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
+import java.util.List;
 import java.util.Locale;
 
 import no.skavdahl.udacity.popularmovies.data.ToggleFavoriteTask;
 import no.skavdahl.udacity.popularmovies.data.UpdateMovieTask;
 import no.skavdahl.udacity.popularmovies.mdb.MdbJSONAdapter;
 import no.skavdahl.udacity.popularmovies.model.Movie;
+import no.skavdahl.udacity.popularmovies.model.Review;
 
 import static no.skavdahl.udacity.popularmovies.data.PopularMoviesContract.*;
 
@@ -116,6 +120,48 @@ public class MovieDetailActivityFragment extends Fragment implements LoaderManag
 
 		final ImageButton favoriteBtn = (ImageButton) view.findViewById(R.id.favorite_button);
 		configureFavoriteBtn(favoriteBtn, movie, isFavorite);
+
+		// reviews
+		ViewGroup reviews_container = (ViewGroup) view.findViewById(R.id.review_container);
+		bindReviewsToView(movie.getReviews(), reviews_container);
+	}
+
+	private void bindReviewsToView(List<Review> reviewList, ViewGroup reviews_container) {
+		reviews_container.removeAllViews();
+
+		if (reviewList.isEmpty()) {
+			// TODO is there a simple way to add short messages like this to a view, except creating a layout resource?
+
+			TextView textView = new TextView(getActivity());
+			textView.setLayoutParams(
+				new LinearLayout.LayoutParams(
+					LinearLayout.LayoutParams.MATCH_PARENT,
+					LinearLayout.LayoutParams.WRAP_CONTENT));
+			textView.setText(R.string.no_reviews);
+			textView.setTextColor(Color.WHITE); // theme?
+
+			reviews_container.addView(textView);
+		}
+		else {
+			final LayoutInflater inflater = LayoutInflater.from(getActivity());
+
+			final int maxReviews = 10; // display no more than this many reviews
+			int reviewNo = 0;
+			for (Review review : reviewList) {
+				if (reviewNo++ == maxReviews)
+					break;
+
+				View review_view = inflater.inflate(R.layout.review_detail, reviews_container, false);
+
+				TextView reviewTextView = (TextView) review_view.findViewById(R.id.review_content_textview);
+				reviewTextView.setText(review.getContent());
+
+				TextView authorTextView = (TextView) review_view.findViewById(R.id.review_author_textview);
+				authorTextView.setText(review.getAuthor());
+
+				reviews_container.addView(review_view);
+			}
+		}
 	}
 
 	private void configureFavoriteBtn(ImageButton favoriteBtn, final Movie movie, final boolean isFavorite) {
@@ -129,7 +175,8 @@ public class MovieDetailActivityFragment extends Fragment implements LoaderManag
 			public void onClick(View v) {
 				ImageButton favoriteBtn = (ImageButton) v;
 				toggleFavorite(favoriteBtn, movie, isFavorite);
-			}});
+			}
+		});
 	}
 
 	/**
