@@ -65,11 +65,11 @@ public class PopularMoviesContract {
 		}
 
 		/** Constructs a URI to access one specific list member. */
-		public static Uri buildListMemberItemUri(String listName, int id) {
+		public static Uri buildListMemberItemUri(String listName, int movieId) {
 			return CONTENT_URI.buildUpon()
 				.appendPath(listName)
 				.appendPath(CONTENT_URI_PATH_MEMBER)
-				.appendPath(Integer.toString(id))
+				.appendPath(Integer.toString(movieId))
 				.build();
 		}
 
@@ -188,13 +188,16 @@ public class PopularMoviesContract {
 			 */
 			public static final String MODIFIED = "modified";
 
+			/** String -- the (relative) path to the movie poster. */
+			public static final String POSTER_PATH = "poster";
+
 			/** String -- the movie information encoded as a JSON string. */
 			public static final String JSONDATA = "jsondata";
 
 			/**
 			 * Integer -- if true (1), the movie is a favorite movie. If false (0 or null),
-			 * this movie is not a favorite movie. This column is only available in the
-			 * extended movie table.
+			 * this movie is not a favorite movie. This column is only available in queries
+			 * in the extended movie table.
 			 */
 			public static final String FAVORITE = "favorite";
 		}

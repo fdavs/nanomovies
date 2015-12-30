@@ -26,15 +26,16 @@ Basic requirements:
   - [ ] Feature: Allow user to view movie trailer (in the YouTube app or web browser)
   - [ ] Feature: Allow user to read reviews
   - [ ] Feature: Allow user to bookmark a movie as a personal favorite (offline storage)
-  - [ ] Feature: Allow user to view his/her personal favorites
+  - [x] Feature: Allow user to view his/her personal favorites
   - [ ] Optimize for tablet
 
 Requirements for the "Exceeds specifications" distinction:
   - [ ] Exceeds feature: App persists favorite movie details using a database
-    - [ ] Store detailed info for movies that have been explored offline
-    - [ ] Purge old data from the database periodically
+    - [x] Store detailed info for movies that have been explored offline
+    - [ ] Store image data locally
+    - [x] Purge old data from the database periodically
   - [ ] Exceeds feature: App displays favorite movie details even when offline
-  - [ ] Exceeds feature: App uses a contentProvider to populate favorite movie details. (It is allowed to use a library to generate the content provider rather than to build one by hand)
+  - [x] Exceeds feature: App uses a contentProvider to populate favorite movie details. (It is allowed to use a library to generate the content provider rather than to build one by hand)
   - [ ] Exceeds feature: Movie Details View includes an action bar item that allows the user to share the first trailer video URL from the list of trailers
   - [ ] Exceeds feature: App uses a share Intent to expose the external youtube URL for the trailer
 

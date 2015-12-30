@@ -12,6 +12,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -23,6 +24,7 @@ import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.Locale;
 
+import no.skavdahl.udacity.popularmovies.data.ToggleFavoriteTask;
 import no.skavdahl.udacity.popularmovies.data.UpdateMovieTask;
 import no.skavdahl.udacity.popularmovies.mdb.MdbJSONAdapter;
 import no.skavdahl.udacity.popularmovies.model.Movie;
@@ -46,11 +48,13 @@ public class MovieDetailActivityFragment extends Fragment implements LoaderManag
 
 	private final static String[] CURSOR_PROJECTION = new String[] {
 		MovieContract.Column.MODIFIED,
+		MovieContract.Column.FAVORITE,
 		MovieContract.Column.JSONDATA
 	};
 
 	private final static int CURSOR_INDEX_MODIFIED = 0;
-	private final static int CURSOR_INDEX_MOVIE_JSON = 1;
+	private final static int CURSOR_INDEX_FAVORITE = 1;
+	private final static int CURSOR_INDEX_MOVIE_JSON = 2;
 
 	@Override
 	public void onActivityCreated(Bundle savedInstanceState) {
@@ -81,7 +85,7 @@ public class MovieDetailActivityFragment extends Fragment implements LoaderManag
 
 	// disable "findViewById() may return null" warning; it's true but will be caught quickly in testing
 	@SuppressWarnings("ConstantConditions")
-	private void bindModelToView(final Movie movie) {
+	private void bindModelToView(final Movie movie, final boolean isFavorite) {
 		final View view = getView();
 		final Context context = getActivity();
 
@@ -104,11 +108,40 @@ public class MovieDetailActivityFragment extends Fragment implements LoaderManag
 				movie.getVoteCount(), // quantity
 				movie.getVoteAverage(), movie.getVoteCount())); // format args
 
-		final ImageView posterView = (ImageView) view.findViewById(R.id.poster_imageview);
+		ImageView posterView = (ImageView) view.findViewById(R.id.poster_imageview);
 		PicassoUtils.displayPosterWithOfflineFallback(context, movie, posterView);
 
-		final ImageView backdropView = (ImageView) view.findViewById(R.id.backdrop_imageview);
+		ImageView backdropView = (ImageView) view.findViewById(R.id.backdrop_imageview);
 		PicassoUtils.displayBackdrop(context, movie, backdropView);
+
+		final ImageButton favoriteBtn = (ImageButton) view.findViewById(R.id.favorite_button);
+		configureFavoriteBtn(favoriteBtn, movie, isFavorite);
+	}
+
+	private void configureFavoriteBtn(ImageButton favoriteBtn, final Movie movie, final boolean isFavorite) {
+		favoriteBtn.setImageResource(
+			isFavorite
+				? R.mipmap.favorite_yes
+				: R.mipmap.favorite_no);
+
+		favoriteBtn.setOnClickListener(new View.OnClickListener() {
+			@Override
+			public void onClick(View v) {
+				ImageButton favoriteBtn = (ImageButton) v;
+				toggleFavorite(favoriteBtn, movie, isFavorite);
+			}});
+	}
+
+	/**
+	 * Toggles whether the currently displayed movie is one of the user's favorite movies
+	 * or not.
+	 *
+	 * @param favoriteBtn Reference to the toggle button, whose appearance will change
+	 * @param movie The movie being added or removed from the favorite movies list
+	 */
+	private void toggleFavorite(ImageButton favoriteBtn, Movie movie, boolean isFavorite) {
+		configureFavoriteBtn(favoriteBtn, movie, !isFavorite);
+		new ToggleFavoriteTask(getActivity(), movie.getMovieDbId(), !isFavorite).execute();
 	}
 
 	private String formatOptString(final String str, final String fallback) {
@@ -150,6 +183,7 @@ public class MovieDetailActivityFragment extends Fragment implements LoaderManag
 		// TODO ideally this deserialization should happen on a background thread
 		String jsonData = cursor.getString(CURSOR_INDEX_MOVIE_JSON);
 		long dataModifiedTime = cursor.getLong(CURSOR_INDEX_MODIFIED);
+		boolean isFavorite = cursor.getInt(CURSOR_INDEX_FAVORITE) > 0;
 
 		Movie movie;
 		try {
@@ -162,7 +196,7 @@ public class MovieDetailActivityFragment extends Fragment implements LoaderManag
 		}
 
 		// update the view
-		bindModelToView(movie);
+		bindModelToView(movie, isFavorite);
 
 		// evaluate the data: do we need to issue an web update?
 		// we need to decide if the data is current and up-to-date or need to be refreshed
@@ -177,9 +211,7 @@ public class MovieDetailActivityFragment extends Fragment implements LoaderManag
 		long dataAge = System.currentTimeMillis() - dataModifiedTime;
 		long maxAge = BuildConfig.MOVIE_DATA_TIMEOUT;
 
-		// FIXME Critical bug: infinite loop when opening a movie which does not contain any trailers or comments
-
-		if (MdbJSONAdapter.containsExtendedData(jsonData) && dataAge <= maxAge) {
+		if (movie.hasExtendedData() && dataAge <= maxAge) {
 			if (verbose) Log.v(LOG_TAG, "Movie data is up to date - no further action");
 		}
 		else {

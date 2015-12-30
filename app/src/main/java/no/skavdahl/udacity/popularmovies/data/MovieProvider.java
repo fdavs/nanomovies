@@ -26,6 +26,9 @@ import static no.skavdahl.udacity.popularmovies.data.PopularMoviesContract.*;
  *
  * @author fdavs
  */
+// Disable "try can use automatic resource management" tip from Android Studio
+// This feature requires API level 19, which is higher than our current minimum API level
+@SuppressWarnings("TryFinallyCanBeTryWithResources")
 public class MovieProvider extends ContentProvider {
 
 	private static final String LOG_TAG = MovieProvider.class.getSimpleName();
@@ -180,6 +183,10 @@ public class MovieProvider extends ContentProvider {
 				newUri = insertMovieItem(uri, values);
 				break;
 
+			case LIST_MEMBER_ITEM:
+				newUri = addMemberToList(uri);
+				break;
+
 			default:
 				Log.w(LOG_TAG, "Unsupported operation: insert " + uri.getPath());
 				return null;
@@ -220,6 +227,10 @@ public class MovieProvider extends ContentProvider {
 		int deleteCount = 0;
 
 		switch (uriMatcher.match(uri)) {
+			case LIST_MEMBER_ITEM:
+				deleteCount = removeMemberFromList(uri);
+				break;
+
 			case MOVIE_DIRECTORY:
 				if (uri.getBooleanQueryParameter("orphan", false)) {
 					deleteCount = deleteOrphanedMovies(uri);
@@ -311,6 +322,10 @@ public class MovieProvider extends ContentProvider {
 
 		String listName =  uri.getPathSegments().get(LIST_INDEX_LIST_NAME);
 
+		// SELECT <projection>
+		// FROM movie M, list L, listmember
+		// WHERE L.name = ? AND L._id = listid AND movieid = M._id AND <selection>
+		// ORDER BY <sortorder>
 		String sql =
 			"SELECT M." + TextUtils.join(", M.", projection) + " " +
 			"FROM " + MovieContract.TABLE_NAME + " M, " + ListContract.TABLE_NAME + " L, " + ListMembershipContract.TABLE_NAME + " " +
@@ -338,75 +353,254 @@ public class MovieProvider extends ContentProvider {
 		// but it is more clear, more efficient and no more verbose (I tried) to just
 		// use SQL directly
 
-		String movieSql =
-			"INSERT OR REPLACE INTO " + MovieContract.TABLE_NAME + "(" +
-				TextUtils.join(",", new String[] {
-					MovieContract.Column._ID,
-					MovieContract.Column.MODIFIED,
-					MovieContract.Column.JSONDATA
-				}) + ") " +
-			"VALUES(?, ?, ?)";
-
-		String listSql =
-			"INSERT OR REPLACE INTO " + ListMembershipContract.TABLE_NAME + "(" +
-				TextUtils.join(",", new String[] {
-					ListMembershipContract.Column._ID,
-					ListMembershipContract.Column.LIST_ID,
-					ListMembershipContract.Column.MOVIE_ID,
-					ListMembershipContract.Column.PAGE,
-					ListMembershipContract.Column.POSITION,
-					ListMembershipContract.Column.ADDED
-				}) + ") " +
-			"VALUES(?, ?, ?, ?, ?, ?)";
-
 		SQLiteDatabase db = dbHelper.getWritableDatabase();
-		SQLiteStatement movieStmt  = db.compileStatement(movieSql);
-		SQLiteStatement listStmt  = db.compileStatement(listSql);
+		SQLiteStatement movieStmt  = db.compileStatement(INSERT_OR_REPLACE_INTO_MOVIE);
+		SQLiteStatement listStmt  = db.compileStatement(INSERT_OR_REPLACE_INTO_LISTMEMBER_SQL);
 
 		int rowsInserted = 0;
-
-		db.beginTransaction();
 		try {
-			for (ContentValues cv : values) {
-				try {
-					long movieId = cv.getAsInteger(ListMembershipContract.Column.MOVIE_ID);
-					long modified = cv.getAsLong(MovieContract.Column.MODIFIED);
-					String movieJson = cv.getAsString(MovieContract.Column.JSONDATA);
-					int listId = cv.getAsInteger(ListMembershipContract.Column.LIST_ID);
-					int page = cv.getAsInteger(ListMembershipContract.Column.PAGE);
-					int position = cv.getAsInteger(ListMembershipContract.Column.POSITION);
+			db.beginTransaction();
+			try {
+				for (ContentValues cv : values) {
+					try {
+						long movieId = cv.getAsInteger(ListMembershipContract.Column.MOVIE_ID);
+						long modified = cv.getAsLong(MovieContract.Column.MODIFIED);
+						String movieJson = cv.getAsString(MovieContract.Column.JSONDATA);
+						int listId = cv.getAsInteger(ListMembershipContract.Column.LIST_ID);
+						int page = cv.getAsInteger(ListMembershipContract.Column.PAGE);
+						int position = cv.getAsInteger(ListMembershipContract.Column.POSITION);
 
-					movieStmt.bindLong(1, movieId);
-					movieStmt.bindLong(2, modified);
-					movieStmt.bindString(3, movieJson);
+						movieStmt.bindLong(1, movieId);
+						movieStmt.bindLong(2, modified);
+						movieStmt.bindString(3, movieJson);
 
-					movieStmt.executeInsert();
+						movieStmt.executeInsert();
 
-					listStmt.bindLong(1, getListMemberId(listId, page, position));
-					listStmt.bindLong(2, listId);
-					listStmt.bindLong(3, movieId);
-					listStmt.bindLong(4, page);
-					listStmt.bindLong(5, position);
-					listStmt.bindLong(6, modified);
+						listStmt.bindLong(1, getListMemberId(listId, page, position));
+						listStmt.bindLong(2, listId);
+						listStmt.bindLong(3, movieId);
+						listStmt.bindLong(4, page);
+						listStmt.bindLong(5, position);
+						listStmt.bindLong(6, modified);
 
-					listStmt.executeInsert();
+						listStmt.executeInsert();
 
-					rowsInserted++;
+						rowsInserted++;
+					}
+					catch (Exception e) {
+						Log.w(LOG_TAG, "Error during movie insert: " + cv, e);
+					}
 				}
-				catch (Exception e) {
-					Log.w(LOG_TAG, "Error during movie insert: " + cv, e);
-				}
+				db.setTransactionSuccessful();
 			}
-			db.setTransactionSuccessful();
+			finally {
+				db.endTransaction();
+			}
 		}
 		finally {
-			db.endTransaction();
+			movieStmt.close();
+			listStmt.close();
 		}
 
 		if (debug) Log.d(LOG_TAG, "INSERT " + uri.getPath() + " -> " + rowsInserted + " rows inserted");
 
 		return rowsInserted;
 	}
+
+	// --- List member item operations ---
+
+	protected Uri addMemberToList(Uri uri) {
+		final boolean verbose = BuildConfig.DEBUG && Log.isLoggable(LOG_TAG, Log.VERBOSE);
+		final boolean debug = BuildConfig.DEBUG && Log.isLoggable(LOG_TAG, Log.DEBUG);
+
+		if (verbose) Log.v(LOG_TAG, "Start insert: " + uri.getPath());
+
+		String listName = uri.getPathSegments().get(LIST_INDEX_LIST_NAME);
+		int movieId = getPathSegmentAsInt(uri, LIST_INDEX_MOVIE_ID, 0);
+		if (movieId == 0) {
+			Log.e(LOG_TAG, "INSERT " + uri.getPath() + ": invalid or missing movie id");
+			return null;
+		}
+
+		SQLiteDatabase db = dbHelper.getWritableDatabase();
+		db.beginTransaction();
+
+		try {
+			// find the list id, page and position of the new list member
+			final int listId;
+			final int page;
+			final int position;
+
+			Cursor listCursor = null;
+			try {
+				listCursor = db.rawQuery(
+					SELECT_POSITION_FOR_NEW_LISTMEMBER,
+					new String[]{listName});
+
+				if (listCursor.moveToFirst()) {
+					listId = listCursor.getInt(0);
+					page = listCursor.getInt(1);
+					position = listCursor.getInt(2);
+				}
+				else {
+					Log.e(LOG_TAG, "INSERT " + uri.getPath() + ": invalid list name");
+					return null;
+				}
+			}
+			finally {
+				if (listCursor != null) listCursor.close();
+			}
+
+			// insert the new movie in the next available position
+			int insertPosition = position + 1;
+			long listMemberId = getListMemberId(listId, page, insertPosition);
+
+			if (verbose) Log.v(LOG_TAG,
+				"Position for new list member: " +
+				"listId=" + listId + ", " +
+				"page=" + page + ", " +
+				"position=" + insertPosition);
+
+			long newId;
+			SQLiteStatement stmt = db.compileStatement(INSERT_OR_REPLACE_INTO_LISTMEMBER_SQL);
+			try {
+				stmt.bindLong(1, listMemberId);
+				stmt.bindLong(2, listId);
+				stmt.bindLong(3, movieId);
+				stmt.bindLong(4, page);
+				stmt.bindLong(5, insertPosition);
+				stmt.bindLong(6, System.currentTimeMillis());
+
+				newId = stmt.executeInsert();
+			}
+			finally {
+				stmt.close();
+			}
+
+			if (newId == -1) {
+				Log.e(LOG_TAG, "INSERT " + uri.getPath() + " failed (reason unknown)");
+				return null;
+			}
+			else {
+				db.setTransactionSuccessful();
+				if (debug) Log.d(LOG_TAG, "INSERT " + uri.getPath() + " -> 1 row inserted, id = " + newId);
+			}
+		}
+		finally {
+			db.endTransaction();
+		}
+
+		return uri;
+	}
+
+	protected int removeMemberFromList(Uri uri) {
+		final boolean verbose = BuildConfig.DEBUG && Log.isLoggable(LOG_TAG, Log.VERBOSE);
+		final boolean debug = BuildConfig.DEBUG && Log.isLoggable(LOG_TAG, Log.DEBUG);
+
+		if (verbose) Log.v(LOG_TAG, "Start delete: " + uri.getPath());
+
+		String listName = uri.getPathSegments().get(LIST_INDEX_LIST_NAME);
+
+		int movieId = getPathSegmentAsInt(uri, LIST_INDEX_MOVIE_ID, 0);
+		if (movieId == 0) {
+			Log.e(LOG_TAG, "DELETE " + uri.getPath() + ": invalid or missing movie id");
+			return 0;
+		}
+
+		SQLiteStatement stmt = dbHelper
+			.getWritableDatabase()
+			.compileStatement(DELETE_FROM_LISTMEMBER);
+
+		int deletedCount;
+		try {
+			stmt.bindString(1, listName);
+			stmt.bindLong(2, movieId);
+
+			deletedCount = stmt.executeUpdateDelete();
+		}
+		finally {
+			stmt.close();
+		}
+
+		if (debug) Log.d(LOG_TAG, "DELETE " + uri.getPath() + " -> " + deletedCount + " rows deleted");
+
+		return deletedCount;
+	}
+
+
+	/**
+	 * <pre>
+	 * INSERT OR REPLACE INTO MOVIE (_id, modified, jsondata)
+	 * VALUE (?, ?, ?)
+	 * </pre>
+	 */
+	private static final String INSERT_OR_REPLACE_INTO_MOVIE =
+		"INSERT OR REPLACE INTO " + MovieContract.TABLE_NAME + "(" +
+			TextUtils.join(",", new String[] {
+			MovieContract.Column._ID,
+				MovieContract.Column.MODIFIED,
+				MovieContract.Column.JSONDATA
+			}) + ") " +
+		"VALUES(?, ?, ?)";
+
+	/**
+	 * <pre>
+	 * INSERT OR REPLACE INTO listmember (_id, listid, movieid, page, position, added)
+	 * VALUES (?, ?, ?, ?, ?, ?)
+	 * </pre>
+	 */
+	private static final String INSERT_OR_REPLACE_INTO_LISTMEMBER_SQL =
+		"INSERT OR REPLACE INTO " + ListMembershipContract.TABLE_NAME + "(" +
+			TextUtils.join(",", new String[] {
+				ListMembershipContract.Column._ID,
+				ListMembershipContract.Column.LIST_ID,
+				ListMembershipContract.Column.MOVIE_ID,
+				ListMembershipContract.Column.PAGE,
+				ListMembershipContract.Column.POSITION,
+				ListMembershipContract.Column.ADDED
+			}) + ") " +
+		"VALUES(?, ?, ?, ?, ?, ?)";
+
+	/**
+	 * <pre>
+	 * SELECT L._id, COALESCE(page, 0), COALESCE(position, -1)
+	 * FROM list L LEFT JOIN listmember ON listid = L._id
+	 * WHERE L.name = ?
+	 * ORDER BY page DESC, position DESC
+	 * LIMIT 1
+	 * </pre>
+	 */
+	private static final String SELECT_POSITION_FOR_NEW_LISTMEMBER =
+		"SELECT " +
+			"L." + ListContract.Column._ID + ", " +
+			"COALESCE(" + ListMembershipContract.Column.PAGE + ",1), " +
+			"COALESCE(" + ListMembershipContract.Column.POSITION + ",-1) " +
+		"FROM " +
+			ListContract.TABLE_NAME + " L " +
+			"LEFT JOIN " + ListMembershipContract.TABLE_NAME + " " +
+				"ON " + ListMembershipContract.Column.LIST_ID + " = L." + ListContract.Column._ID + " " +
+		"WHERE " +
+			"L." + ListContract.Column.NAME + " = ? " +
+		"ORDER BY " +
+			ListMembershipContract.Column.PAGE + " DESC, " +
+			ListMembershipContract.Column.POSITION + " DESC " +
+		"LIMIT 1";
+
+	/**
+	 * <pre>
+	 * DELETE FROM listmember
+	 * WHERE listid = (SELECT _id FROM List where name = ?)
+	 *   AND movieid = ?
+	 * </pre>
+	 */
+	private static final String DELETE_FROM_LISTMEMBER =
+		"DELETE FROM " + ListMembershipContract.TABLE_NAME + " " +
+		"WHERE " +
+			ListMembershipContract.Column.LIST_ID + " = (" +
+				"SELECT " + ListContract.Column._ID + " " +
+				"FROM " + ListContract.TABLE_NAME + " " +
+				"WHERE " + ListContract.Column.NAME + " = ?) AND " +
+			ListMembershipContract.Column.MOVIE_ID + " = ?";
 
 	/**
 	 * Generates a unique id for a list member row.
