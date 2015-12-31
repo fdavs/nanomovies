@@ -4,7 +4,6 @@ import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
-import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
@@ -18,17 +17,11 @@ import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
-import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
 import android.widget.ImageButton;
 import android.widget.ImageView;
-import android.widget.LinearLayout;
-import android.widget.ListView;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -60,6 +53,11 @@ public class MovieDetailActivityFragment extends Fragment implements LoaderManag
 	private final int LOADER_ID = 0;
 
 	private final String LOADER_ARGS_MOVIE_ID = "movieid";
+
+	// --- view configuration ---
+
+	private static final int MAX_VIDEOS = 10;
+	private static final int MAX_REVIEWS = 10;
 
 	// --- cursor configuration ---
 
@@ -168,71 +166,49 @@ public class MovieDetailActivityFragment extends Fragment implements LoaderManag
 		configureShareIntent();
 	}
 
-	private void bindReviewsToView(Movie movie, ViewGroup reviews_container) {
-		reviews_container.removeAllViews();
+	private void bindReviewsToView(Movie movie, ViewGroup container) {
+		final LayoutInflater inflater = LayoutInflater.from(getActivity());
+
+		container.removeAllViews();
 
 		List<Review> reviewList = movie.getReviews();
 		if (reviewList.isEmpty()) {
-			// TODO is there a simple way to add short messages like this to a view, except creating a layout resource?
-
-			TextView textView = new TextView(getActivity());
-			textView.setLayoutParams(
-				new LinearLayout.LayoutParams(
-					LinearLayout.LayoutParams.MATCH_PARENT,
-					LinearLayout.LayoutParams.WRAP_CONTENT));
+			View rootView = inflater.inflate(R.layout.simple_textview, container, true);
+			TextView textView = (TextView) rootView.findViewById(R.id.text);
 			textView.setText(R.string.no_reviews);
-			textView.setTextColor(Color.WHITE); // theme?
-
-			reviews_container.addView(textView);
 		}
 		else {
-			final LayoutInflater inflater = LayoutInflater.from(getActivity());
+			int numberToDisplay = Math.min(reviewList.size(), MAX_REVIEWS);
+			for (int i = 0; i < numberToDisplay; ++i) {
+				Review review = reviewList.get(i);
+				View reviewView = inflater.inflate(R.layout.review_detail, container, false);
 
-			final int maxReviews = 10; // display no more than this many reviews
-			int reviewNo = 0;
-			for (Review review : reviewList) {
-				if (reviewNo++ == maxReviews)
-					break;
-
-				View review_view = inflater.inflate(R.layout.review_detail, reviews_container, false);
-
-				TextView reviewTextView = (TextView) review_view.findViewById(R.id.review_content_textview);
+				TextView reviewTextView = (TextView) reviewView.findViewById(R.id.review_content_textview);
 				reviewTextView.setText(review.getContent());
 
-				TextView authorTextView = (TextView) review_view.findViewById(R.id.review_author_textview);
+				TextView authorTextView = (TextView) reviewView.findViewById(R.id.review_author_textview);
 				authorTextView.setText(review.getAuthor());
 
-				reviews_container.addView(review_view);
+				container.addView(reviewView);
 			}
 		}
 	}
 
 	private void bindVideosToView(Movie movie, ViewGroup container) {
+		final LayoutInflater inflater = LayoutInflater.from(getActivity());
+
 		container.removeAllViews();
 
 		List<Video> youtubeVideos = movie.getVideosFilterBySite(Video.SITE_YOUTUBE);
 		if (youtubeVideos.isEmpty()) {
-			// TODO is there a simple way to add short messages like this to a view, except creating a layout resource?
-			// TODO share code with bindReviewsToView
-
-			TextView textView = new TextView(getActivity());
-			textView.setLayoutParams(
-				new LinearLayout.LayoutParams(
-					LinearLayout.LayoutParams.MATCH_PARENT,
-					LinearLayout.LayoutParams.WRAP_CONTENT));
+			View rootView = inflater.inflate(R.layout.simple_textview, container, true);
+			TextView textView = (TextView) rootView.findViewById(R.id.text);
 			textView.setText(R.string.no_videos);
-			textView.setTextColor(Color.WHITE); // theme?
-
-			container.addView(textView);
 		}
 		else {
-			final LayoutInflater inflater = LayoutInflater.from(getActivity());
-
-			final int maxVideos = 10; // display no more than this many reviews
-			int videoNo = 0;
-			for (final Video video : youtubeVideos) {
-				if (videoNo++ == maxVideos)
-					break;
+			int numberToDisplay = Math.min(youtubeVideos.size(), MAX_VIDEOS);
+			for (int i = 0; i < numberToDisplay; ++i) {
+				final Video video = youtubeVideos.get(i);
 
 				View video_view = inflater.inflate(R.layout.trailer_detail, container, false);
 
@@ -251,49 +227,15 @@ public class MovieDetailActivityFragment extends Fragment implements LoaderManag
 		}
 	}
 
-	/*
-	 * Tried to use a list view.
-	 * + using a listview, which seems logical -- we want to display a list of videos
-	 * - the entire view scrolls to the bottom of the listview when opened
-	 *   (pushing the top of the screen up and out of the display)
-	 * - has a "hacking" feel to it due to the need to manually calculate the full height
-	 *   of the list (necessary since it's inside a ScrollView)
-	 *
-	private void bindVideosToViewUsingListView() {
-		ListView videosListview = (ListView) view.findViewById(R.id.videos_listview);
-
-		final List<Video> youtubeVideos = movie.getVideosFilterBySite(Video.SITE_YOUTUBE);
-		String[] options = new String[youtubeVideos.size()];
-		for (int i = 0, s = youtubeVideos.size(); i < s; ++i)
-			options[i] = youtubeVideos.get(i).getName();
-
-		ArrayAdapter<String> videosAdapter = new ArrayAdapter<>(getContext(), R.layout.trailer_detail, R.id.video_title, options);
-		//videosListview.setBackgroundColor(R.);
-		videosListview.setAdapter(videosAdapter);
-		videosListview.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-			@Override
-			public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-				playVideo(youtubeVideos.get(position));
-			}
-		});
-
-		if (options.length > 0) {
-			int desiredWidth = View.MeasureSpec.makeMeasureSpec(videosListview.getWidth(), View.MeasureSpec.UNSPECIFIED);
-			View itemView = videosAdapter.getView(0, null, videosListview);
-			itemView.setLayoutParams(new ViewGroup.LayoutParams(desiredWidth, ListView.LayoutParams.WRAP_CONTENT));
-			itemView.measure(desiredWidth, View.MeasureSpec.UNSPECIFIED);
-			int totalHeight = itemView.getMeasuredHeight() * videosAdapter.getCount();
-			ViewGroup.LayoutParams params = videosListview.getLayoutParams();
-			params.height = totalHeight + (videosListview.getDividerHeight() * (videosAdapter.getCount() - 1));
-			videosListview.setLayoutParams(params);
-		}
-	} */
-
+	/**
+	 * Configure the favorite button, settings its on/off state and installing an appropriate
+	 * click listener to toggle the favorite state.
+	 */
 	private void configureFavoriteBtn(ImageButton favoriteBtn, final Movie movie, final boolean isFavorite) {
 		favoriteBtn.setImageResource(
 			isFavorite
-				? android.R.drawable.btn_star_big_off  // R.mipmap.favorite_yes
-				: android.R.drawable.btn_star_big_on); //R.mipmap.favorite_no);
+				? android.R.drawable.btn_star_big_off
+				: android.R.drawable.btn_star_big_on);
 
 		favoriteBtn.setOnClickListener(new View.OnClickListener() {
 			@Override
