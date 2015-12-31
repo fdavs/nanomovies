@@ -1,5 +1,6 @@
 package no.skavdahl.udacity.popularmovies;
 
+import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
@@ -17,12 +18,17 @@ import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.ListView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -150,17 +156,22 @@ public class MovieDetailActivityFragment extends Fragment implements LoaderManag
 		final ImageButton favoriteBtn = (ImageButton) view.findViewById(R.id.favorite_button);
 		configureFavoriteBtn(favoriteBtn, movie, isFavorite);
 
+		// videos
+		ViewGroup videoContainer = (ViewGroup) view.findViewById(R.id.videos_container);
+		bindVideosToView(movie, videoContainer);
+
 		// reviews
-		ViewGroup reviews_container = (ViewGroup) view.findViewById(R.id.review_container);
-		bindReviewsToView(movie.getReviews(), reviews_container);
+		ViewGroup reviewsContainer = (ViewGroup) view.findViewById(R.id.review_container);
+		bindReviewsToView(movie, reviewsContainer);
 
 		// configure the share action
 		configureShareIntent();
 	}
 
-	private void bindReviewsToView(List<Review> reviewList, ViewGroup reviews_container) {
+	private void bindReviewsToView(Movie movie, ViewGroup reviews_container) {
 		reviews_container.removeAllViews();
 
+		List<Review> reviewList = movie.getReviews();
 		if (reviewList.isEmpty()) {
 			// TODO is there a simple way to add short messages like this to a view, except creating a layout resource?
 
@@ -196,11 +207,93 @@ public class MovieDetailActivityFragment extends Fragment implements LoaderManag
 		}
 	}
 
+	private void bindVideosToView(Movie movie, ViewGroup container) {
+		container.removeAllViews();
+
+		List<Video> youtubeVideos = movie.getVideosFilterBySite(Video.SITE_YOUTUBE);
+		if (youtubeVideos.isEmpty()) {
+			// TODO is there a simple way to add short messages like this to a view, except creating a layout resource?
+			// TODO share code with bindReviewsToView
+
+			TextView textView = new TextView(getActivity());
+			textView.setLayoutParams(
+				new LinearLayout.LayoutParams(
+					LinearLayout.LayoutParams.MATCH_PARENT,
+					LinearLayout.LayoutParams.WRAP_CONTENT));
+			textView.setText(R.string.no_videos);
+			textView.setTextColor(Color.WHITE); // theme?
+
+			container.addView(textView);
+		}
+		else {
+			final LayoutInflater inflater = LayoutInflater.from(getActivity());
+
+			final int maxVideos = 10; // display no more than this many reviews
+			int videoNo = 0;
+			for (final Video video : youtubeVideos) {
+				if (videoNo++ == maxVideos)
+					break;
+
+				View video_view = inflater.inflate(R.layout.trailer_detail, container, false);
+
+				TextView titleTextView = (TextView) video_view.findViewById(R.id.video_title);
+				titleTextView.setText(video.getName());
+
+				video_view.setOnClickListener(new View.OnClickListener() {
+					@Override
+					public void onClick(View v) {
+						playVideo(video);
+					}
+				});
+
+				container.addView(video_view);
+			}
+		}
+	}
+
+	/*
+	 * Tried to use a list view.
+	 * + using a listview, which seems logical -- we want to display a list of videos
+	 * - the entire view scrolls to the bottom of the listview when opened
+	 *   (pushing the top of the screen up and out of the display)
+	 * - has a "hacking" feel to it due to the need to manually calculate the full height
+	 *   of the list (necessary since it's inside a ScrollView)
+	 *
+	private void bindVideosToViewUsingListView() {
+		ListView videosListview = (ListView) view.findViewById(R.id.videos_listview);
+
+		final List<Video> youtubeVideos = movie.getVideosFilterBySite(Video.SITE_YOUTUBE);
+		String[] options = new String[youtubeVideos.size()];
+		for (int i = 0, s = youtubeVideos.size(); i < s; ++i)
+			options[i] = youtubeVideos.get(i).getName();
+
+		ArrayAdapter<String> videosAdapter = new ArrayAdapter<>(getContext(), R.layout.trailer_detail, R.id.video_title, options);
+		//videosListview.setBackgroundColor(R.);
+		videosListview.setAdapter(videosAdapter);
+		videosListview.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+			@Override
+			public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+				playVideo(youtubeVideos.get(position));
+			}
+		});
+
+		if (options.length > 0) {
+			int desiredWidth = View.MeasureSpec.makeMeasureSpec(videosListview.getWidth(), View.MeasureSpec.UNSPECIFIED);
+			View itemView = videosAdapter.getView(0, null, videosListview);
+			itemView.setLayoutParams(new ViewGroup.LayoutParams(desiredWidth, ListView.LayoutParams.WRAP_CONTENT));
+			itemView.measure(desiredWidth, View.MeasureSpec.UNSPECIFIED);
+			int totalHeight = itemView.getMeasuredHeight() * videosAdapter.getCount();
+			ViewGroup.LayoutParams params = videosListview.getLayoutParams();
+			params.height = totalHeight + (videosListview.getDividerHeight() * (videosAdapter.getCount() - 1));
+			videosListview.setLayoutParams(params);
+		}
+	} */
+
 	private void configureFavoriteBtn(ImageButton favoriteBtn, final Movie movie, final boolean isFavorite) {
 		favoriteBtn.setImageResource(
 			isFavorite
-				? R.mipmap.favorite_yes
-				: R.mipmap.favorite_no);
+				? android.R.drawable.btn_star_big_off  // R.mipmap.favorite_yes
+				: android.R.drawable.btn_star_big_on); //R.mipmap.favorite_no);
 
 		favoriteBtn.setOnClickListener(new View.OnClickListener() {
 			@Override
@@ -221,7 +314,10 @@ public class MovieDetailActivityFragment extends Fragment implements LoaderManag
 		if (shareActionProvider == null || shareMovie == null)
 			return;
 
-		Video shareableVideo = shareMovie.getFirstVideoForSite(Video.SITE_YOUTUBE);
+		// pick the first YouTube video:
+		// videos.stream().filter(v -> v.site == YouTube).findFirst()
+		List<Video> youtubeVideos = shareMovie.getVideosFilterBySite(Video.SITE_YOUTUBE);
+		Video shareableVideo = youtubeVideos.isEmpty() ? null : youtubeVideos.get(0);
 		String linkToShare = (shareableVideo != null)
 			? SHARE_YOUTUBE_LINK + shareableVideo.getKey()
 			: SHARE_THEMOVIEDB_LINK + shareMovie.getMovieDbId();
@@ -233,6 +329,27 @@ public class MovieDetailActivityFragment extends Fragment implements LoaderManag
 		intent.putExtra(android.content.Intent.EXTRA_TEXT, messageToFriend);
 
 		shareActionProvider.setShareIntent(intent);
+	}
+
+	/**
+	 * Plays the given video. If YouTube is installed on the device, the video is opened
+	 * in that app. Otherwise, fall back to the web browser or similar app to play the
+	 * video there.
+	 *
+	 * @param video Reference to the video that is to be played
+	 */
+	private void playVideo(Video video) {
+		String key = video.getKey();
+		try {
+			Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse("vnd.youtube:" + key));
+			startActivity(intent);
+		}
+		catch (ActivityNotFoundException ex) {
+			Intent intent = new Intent(
+				Intent.ACTION_VIEW,
+				Uri.parse("http://www.youtube.com/watch?v=" + key));
+			startActivity(intent);
+		}
 	}
 
 	/**

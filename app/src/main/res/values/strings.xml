@@ -27,6 +27,8 @@
     <string name="no_reviews">No reviews yet.</string>
     <string name="content_desc_make_favorite">Add or remove this movie from the list of favorite movies.</string>
     <string name="share_video_message">Check out this movie: <xliff:g id="link" example="http://www.youtube.com/watch?v=12345">%1$s</xliff:g></string>
+    <string name="play_video">Play video</string>
+    <string name="no_videos">No videos.</string>
 
     <!-- error messages -->
     <string name="no_permission_try_again">This app needs permission to access the internet in order to download movie information.</string>

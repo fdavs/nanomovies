@@ -2,6 +2,7 @@ package no.skavdahl.udacity.popularmovies.model;
 
 import android.text.TextUtils;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
@@ -161,17 +162,22 @@ public class Movie {
 		return optVideos;
 	}
 
-	/** Returns the first movie, if any, that references the specified site. */
-	public Video getFirstVideoForSite(String site) {
-		if (optVideos == null || TextUtils.isEmpty(site))
-			return null;
+	/**
+	 * Returns the (possibly empty) list of movies for a particular site.
+	 *
+	 * Equivalent to <code>videos.filter(v => v.site == targetSite)</code> in Scala.
+	 */
+	public List<Video> getVideosFilterBySite(final String site) {
+		if (TextUtils.isEmpty(site))
+			return Collections.emptyList();
 
+		List<Video> result = new ArrayList<>();
 		for (Video v : optVideos) {
 			if (site.equals(v.getSite()))
-				return v;
+				result.add(v);
 		}
 
-		return null;
+		return result;
 	}
 
 	/**
