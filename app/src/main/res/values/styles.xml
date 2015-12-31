@@ -1,7 +1,7 @@
 <resources>
 
     <!-- Movie discovery theme -->
-    <style name="MovieDiscoveryTheme" parent="AppTheme">
+    <style name="PopularMoviesTheme" parent="AppTheme.NoActionBar">
         <item name="android:background">#ff000000</item>
         <item name="android:textColor">#ffffffff</item>
     </style>

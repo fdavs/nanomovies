@@ -1,15 +1,17 @@
-<GridView xmlns:android="http://schemas.android.com/apk/res/android"
-                xmlns:tools="http://schemas.android.com/tools"
-                android:id="@+id/poster_grid"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:numColumns="auto_fit"
-                android:verticalSpacing="0dp"
-                android:horizontalSpacing="0dp"
-                android:stretchMode="spacingWidthUniform"
-                android:gravity="center"
-                android:theme="@style/MovieDiscoveryTheme"
-                tools:context="no.skavdahl.udacity.popularmovies.MainDiscoveryActivityFragment"
-                tools:showIn="@layout/activity_main_discovery">
+<?xml version="1.0" encoding="utf-8"?>
+<GridView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/poster_grid"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:numColumns="auto_fit"
+    android:verticalSpacing="0dp"
+    android:horizontalSpacing="0dp"
+    android:stretchMode="spacingWidthUniform"
+    android:gravity="center"
+    android:theme="@style/PopularMoviesTheme"
+    tools:context="no.skavdahl.udacity.popularmovies.MainDiscoveryActivityFragment"
+    tools:showIn="@layout/activity_main_discovery">
 
 </GridView>

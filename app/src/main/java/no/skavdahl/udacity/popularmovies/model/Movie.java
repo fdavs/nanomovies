@@ -1,5 +1,7 @@
 package no.skavdahl.udacity.popularmovies.model;
 
+import android.text.TextUtils;
+
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
@@ -157,6 +159,19 @@ public class Movie {
 	/** Returns the set of videos related to this movie. May be an empty list. */
 	public List<Video> getVideos() {
 		return optVideos;
+	}
+
+	/** Returns the first movie, if any, that references the specified site. */
+	public Video getFirstVideoForSite(String site) {
+		if (optVideos == null || TextUtils.isEmpty(site))
+			return null;
+
+		for (Video v : optVideos) {
+			if (site.equals(v.getSite()))
+				return v;
+		}
+
+		return null;
 	}
 
 	/**

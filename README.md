@@ -24,8 +24,8 @@ TODO
 
 Basic requirements:
   - [ ] Feature: Allow user to view movie trailer (in the YouTube app or web browser)
-  - [ ] Feature: Allow user to read reviews
-  - [ ] Feature: Allow user to bookmark a movie as a personal favorite (offline storage)
+  - [x] Feature: Allow user to read reviews
+  - [x] Feature: Allow user to bookmark a movie as a personal favorite
   - [x] Feature: Allow user to view his/her personal favorites
   - [ ] Optimize for tablet
 
@@ -37,7 +37,7 @@ Requirements for the "Exceeds specifications" distinction:
   - [ ] Exceeds feature: App displays favorite movie details even when offline
   - [x] Exceeds feature: App uses a contentProvider to populate favorite movie details. (It is allowed to use a library to generate the content provider rather than to build one by hand)
   - [ ] Exceeds feature: Movie Details View includes an action bar item that allows the user to share the first trailer video URL from the list of trailers
-  - [ ] Exceeds feature: App uses a share Intent to expose the external youtube URL for the trailer
+  - [x] Exceeds feature: App uses a share Intent to expose the external youtube URL for the trailer
 
 Refactorings and other improvements:
   - [x] ~~Refactor: Move themoviedb API key from app.properties to the global Gradle properties~~
@@ -48,6 +48,7 @@ Refactorings and other improvements:
   - [ ] Bonus: Store enumerations (genre lists, actor names etc) in a database, refresh on app start
   - [ ] Bonus: Support the local language with english as fallback
     - [ ] Include original title in the movie detail activity
+  - [ ] Possible: change movie list by tapping the list name, opening a list menu (removing these options from the "settings" menu)
   - [ ] Possible: Expose the favorite movies as searchable through the content provider
   - [ ] Possible: consider alternative JSON serialization frameworks (like [gson] [gson])
   - [ ] Possible: review other popular android libraries at [appbrain.com] [appbrain], like [guava] [guava]

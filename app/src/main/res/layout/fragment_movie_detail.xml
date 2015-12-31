@@ -4,9 +4,10 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:theme="@style/MovieDiscoveryTheme"
+    android:theme="@style/PopularMoviesTheme"
     android:orientation="vertical"
-    tools:context="no.skavdahl.udacity.popularmovies.mdb.MovieDetailActivityFragment">
+    tools:context="no.skavdahl.udacity.popularmovies.mdb.MovieDetailActivityFragment"
+    tools:showIn="@layout/activity_movie_detail">
 
     <RelativeLayout
         android:layout_width="match_parent"
@@ -75,9 +76,10 @@
             android:text="@string/movie_synopsis"/>
 
         <ImageButton
+            android:id="@+id/favorite_button"
+            android:contentDescription="@string/content_desc_make_favorite"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:id="@+id/favorite_button"
             android:layout_alignParentTop="true"
             android:layout_alignParentRight="true"
             android:layout_alignParentEnd="true"

@@ -9,6 +9,8 @@ import android.text.TextUtils;
  */
 public class Video {
 
+	public static final String SITE_YOUTUBE = "YouTube";
+
 	private final String key;
 	private final String site;
 	private final String name;

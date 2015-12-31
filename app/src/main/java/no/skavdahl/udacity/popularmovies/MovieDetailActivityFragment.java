@@ -1,16 +1,22 @@
 package no.skavdahl.udacity.popularmovies;
 
-import android.app.Fragment;
-import android.app.LoaderManager;
 import android.content.Context;
 import android.content.Intent;
-import android.content.Loader;
 import android.database.Cursor;
 import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
+import android.support.v4.app.Fragment;
+import android.support.v4.app.LoaderManager;
+import android.support.v4.content.CursorLoader;
+import android.support.v4.content.Loader;
+import android.support.v4.view.MenuItemCompat;
+import android.support.v7.widget.ShareActionProvider;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageButton;
@@ -32,6 +38,7 @@ import no.skavdahl.udacity.popularmovies.data.UpdateMovieTask;
 import no.skavdahl.udacity.popularmovies.mdb.MdbJSONAdapter;
 import no.skavdahl.udacity.popularmovies.model.Movie;
 import no.skavdahl.udacity.popularmovies.model.Review;
+import no.skavdahl.udacity.popularmovies.model.Video;
 
 import static no.skavdahl.udacity.popularmovies.data.PopularMoviesContract.*;
 
@@ -60,6 +67,14 @@ public class MovieDetailActivityFragment extends Fragment implements LoaderManag
 	private final static int CURSOR_INDEX_FAVORITE = 1;
 	private final static int CURSOR_INDEX_MOVIE_JSON = 2;
 
+	// --- share configuration ---
+
+	private Movie shareMovie;
+	private ShareActionProvider shareActionProvider;
+
+	private static final String SHARE_YOUTUBE_LINK = "http://www.youtube.com/watch?v=";
+	private static final String SHARE_THEMOVIEDB_LINK = "https://www.themoviedb.org/movie/";
+
 	@Override
 	public void onActivityCreated(Bundle savedInstanceState) {
 		super.onActivityCreated(savedInstanceState);
@@ -77,6 +92,9 @@ public class MovieDetailActivityFragment extends Fragment implements LoaderManag
 		loaderArgs.putInt(LOADER_ARGS_MOVIE_ID, movieId);
 
 		getLoaderManager().initLoader(LOADER_ID, loaderArgs, this);
+
+		// enable the options menu for "share" actions
+		setHasOptionsMenu(true);
 	}
 
 	@Override
@@ -87,9 +105,20 @@ public class MovieDetailActivityFragment extends Fragment implements LoaderManag
 		return inflater.inflate(R.layout.fragment_movie_detail, container, false);
 	}
 
+	@Override
+	public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+		super.onCreateOptionsMenu(menu, inflater);
+
+		inflater.inflate(R.menu.menu_movie_details, menu);
+		MenuItem shareMenuItem = menu.findItem(R.id.menu_item_share);
+		shareActionProvider = (ShareActionProvider) MenuItemCompat.getActionProvider(shareMenuItem);
+	}
+
 	// disable "findViewById() may return null" warning; it's true but will be caught quickly in testing
 	@SuppressWarnings("ConstantConditions")
 	private void bindModelToView(final Movie movie, final boolean isFavorite) {
+		this.shareMovie = movie;
+
 		final View view = getView();
 		final Context context = getActivity();
 
@@ -124,6 +153,9 @@ public class MovieDetailActivityFragment extends Fragment implements LoaderManag
 		// reviews
 		ViewGroup reviews_container = (ViewGroup) view.findViewById(R.id.review_container);
 		bindReviewsToView(movie.getReviews(), reviews_container);
+
+		// configure the share action
+		configureShareIntent();
 	}
 
 	private void bindReviewsToView(List<Review> reviewList, ViewGroup reviews_container) {
@@ -180,6 +212,30 @@ public class MovieDetailActivityFragment extends Fragment implements LoaderManag
 	}
 
 	/**
+	 * Set up the share menu with a suitable link.
+	 *
+	 * If the displayed movie has at least one YouTube trailer, the share action will send
+	 * a link to the trailer. Otherwise, it will send a link to the movie on themoviedb.org.
+	 */
+	private void configureShareIntent() {
+		if (shareActionProvider == null || shareMovie == null)
+			return;
+
+		Video shareableVideo = shareMovie.getFirstVideoForSite(Video.SITE_YOUTUBE);
+		String linkToShare = (shareableVideo != null)
+			? SHARE_YOUTUBE_LINK + shareableVideo.getKey()
+			: SHARE_THEMOVIEDB_LINK + shareMovie.getMovieDbId();
+
+		String messageToFriend = getContext().getString(R.string.share_video_message, linkToShare);
+
+		Intent intent = new Intent(Intent.ACTION_SEND);
+		intent.setType("text/plain");
+		intent.putExtra(android.content.Intent.EXTRA_TEXT, messageToFriend);
+
+		shareActionProvider.setShareIntent(intent);
+	}
+
+	/**
 	 * Toggles whether the currently displayed movie is one of the user's favorite movies
 	 * or not.
 	 *
@@ -212,7 +268,7 @@ public class MovieDetailActivityFragment extends Fragment implements LoaderManag
 		int movieId = loaderArgs.getInt(LOADER_ARGS_MOVIE_ID);
 
 		Uri listMemberUri = MovieContract.buildMovieItemUri(movieId);
-		return new android.content.CursorLoader(
+		return new CursorLoader(
 			getActivity(),
 			listMemberUri,
 			CURSOR_PROJECTION,
