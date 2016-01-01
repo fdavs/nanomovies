@@ -173,9 +173,9 @@ public class MovieDetailActivityFragment extends Fragment implements LoaderManag
 
 		List<Review> reviewList = movie.getReviews();
 		if (reviewList.isEmpty()) {
-			View rootView = inflater.inflate(R.layout.simple_textview, container, true);
-			TextView textView = (TextView) rootView.findViewById(R.id.text);
+			TextView textView = (TextView) inflater.inflate(R.layout.simple_textview, container, false);
 			textView.setText(R.string.no_reviews);
+			container.addView(textView);
 		}
 		else {
 			int numberToDisplay = Math.min(reviewList.size(), MAX_REVIEWS);
@@ -201,9 +201,9 @@ public class MovieDetailActivityFragment extends Fragment implements LoaderManag
 
 		List<Video> youtubeVideos = movie.getVideosFilterBySite(Video.SITE_YOUTUBE);
 		if (youtubeVideos.isEmpty()) {
-			View rootView = inflater.inflate(R.layout.simple_textview, container, true);
-			TextView textView = (TextView) rootView.findViewById(R.id.text);
+			TextView textView = (TextView) inflater.inflate(R.layout.simple_textview, container, false);
 			textView.setText(R.string.no_videos);
+			container.addView(textView);
 		}
 		else {
 			int numberToDisplay = Math.min(youtubeVideos.size(), MAX_VIDEOS);

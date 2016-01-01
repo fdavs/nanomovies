@@ -23,7 +23,7 @@ TODO
 ====
 
 Basic requirements:
-  - [ ] Feature: Allow user to view movie trailer (in the YouTube app or web browser)
+  - [x] Feature: Allow user to view movie trailer (in the YouTube app or web browser)
   - [x] Feature: Allow user to read reviews
   - [x] Feature: Allow user to bookmark a movie as a personal favorite
   - [x] Feature: Allow user to view his/her personal favorites
@@ -32,11 +32,11 @@ Basic requirements:
 Requirements for the "Exceeds specifications" distinction:
   - [ ] Exceeds feature: App persists favorite movie details using a database
     - [x] Store detailed info for movies that have been explored offline
-    - [ ] Store image data locally
+    - [ ] Store image data in database or on the file system
     - [x] Purge old data from the database periodically
   - [ ] Exceeds feature: App displays favorite movie details even when offline
   - [x] Exceeds feature: App uses a contentProvider to populate favorite movie details. (It is allowed to use a library to generate the content provider rather than to build one by hand)
-  - [ ] Exceeds feature: Movie Details View includes an action bar item that allows the user to share the first trailer video URL from the list of trailers
+  - [x] Exceeds feature: Movie Details View includes an action bar item that allows the user to share the first trailer video URL from the list of trailers
   - [x] Exceeds feature: App uses a share Intent to expose the external youtube URL for the trailer
 
 Refactorings and other improvements:
@@ -57,6 +57,8 @@ Simplifications:
 
   - [ ] Refactor: Utilize [Butterknife] [butterknife] for view binding (ref. stage 1 feedback)
   - [ ] Refactor: Utilize [Retrofit] [retrofit] or [OkHttp] [okhttp] for REST services (ref. stage 1 feedback)
+  - [ ] Replace the homemade favorite icon with the material icons "favorite" and "favorite border", or "star" and "star border" -- see https://design.google.com/icons/
+  - [ ] Show a rating bar for the movie's vote score
 
   [appbrain]: http://www.appbrain.com/stats/libraries/dev
   [butterknife]: http://jakewharton.github.io/butterknife/
