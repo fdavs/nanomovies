@@ -46,7 +46,22 @@ public class MainDiscoveryActivityFragment extends Fragment implements LoaderMan
 	//private RecyclerView posterGrid;
 	private MoviePosterAdapter viewAdapter;
 
-	private final int LOADER_ID = 0;
+	// --- movie list loading support ---
+
+	/** ID of the movie list loader, used by the LoaderManager. */
+	private static final int LOADER_ID = 0;
+
+	/** Constant indicating that no movie data is currently being downloaded. */
+	private static final int NO_PAGE = -1;
+
+	/**
+	 * Indicates if a page is already being downloaded. This is used to protect against
+	 * multiple requests to download the same data. While this variable has a value different
+	 * from <tt>NO_PAGE</tt>, additional download requests are ignored.
+	 *
+	 * <p>Note: access only from the UI thread.</p>
+ 	 */
+	private int currentlyLoadingPage = NO_PAGE;
 
 	// It is recommended to keep a local reference to this ChangeListener to avoid
 	// garbage collection -- see the Android API docs at http://goo.gl/0yFyTy
@@ -68,14 +83,6 @@ public class MainDiscoveryActivityFragment extends Fragment implements LoaderMan
 	/** Do not issue database cleanup commands more frequently that this */
 	private final static long DATABASE_SWEEP_INTERVAL = 12 * 60 * 60 * 1000; // 12 hours
 
-	public MainDiscoveryActivityFragment() {
-    }
-
-	@Override
-	public void onCreate(Bundle savedInstanceState) {
-		super.onCreate(savedInstanceState);
-	}
-
 	@Override
     public View onCreateView(LayoutInflater inflater,
                              ViewGroup container,
@@ -92,7 +99,8 @@ public class MainDiscoveryActivityFragment extends Fragment implements LoaderMan
 		int numColumns = columnSize[0];
 		int posterViewWidth = columnSize[1];
 
-		posterGrid.setLayoutManager(new GridLayoutManager(getContext(), numColumns));
+		final GridLayoutManager layoutManager = new GridLayoutManager(getContext(), numColumns);
+		posterGrid.setLayoutManager(layoutManager);
 		posterGrid.setHasFixedSize(true);
 
 		// -- what should happen when a movie poster is clicked
@@ -107,7 +115,21 @@ public class MainDiscoveryActivityFragment extends Fragment implements LoaderMan
 		viewAdapter = new MoviePosterAdapter(getContext(), CURSOR_INDEX_MOVIE_ID, CURSOR_INDEX_MOVIE_JSON, posterViewWidth, movieClickListener);
 		posterGrid.setAdapter(viewAdapter);
 
-	    return view;
+		// -- what to do when we need more data
+		posterGrid.addOnScrollListener(new RecyclerView.OnScrollListener() {
+			@Override
+			public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
+				int visibleCount = layoutManager.getChildCount();
+				int itemCount = layoutManager.getItemCount();
+				int firstVisibleItemPosition = layoutManager.findFirstVisibleItemPosition();
+				if ((firstVisibleItemPosition + visibleCount) >= itemCount) {
+					int pagesDisplayed = viewAdapter.getItemCount() / 20; // TODO avoid magic constant
+					downloadMovieData(pagesDisplayed + 1);
+				}
+			}
+		});
+
+		return view;
     }
 
 	@Override
@@ -209,7 +231,10 @@ public class MainDiscoveryActivityFragment extends Fragment implements LoaderMan
 			String currentList = UserPreferences.getMovieList(getActivity());
 			if (!listName.equals(currentList)) {
 				UserPreferences.setMovieList(getActivity(), listName);
-				refreshMovies();
+
+				// load the new movie list from the database
+				getLoaderManager().restartLoader(LOADER_ID, null, this);
+
 				return true;
 			}
 		}
@@ -269,12 +294,61 @@ public class MainDiscoveryActivityFragment extends Fragment implements LoaderMan
 
 	// --- LoaderManager.LoaderCallback<Loader> interface ---
 
+	private class SequentialUpdateMovieListTask extends UpdateMovieListTask {
+		public SequentialUpdateMovieListTask(Context context) {
+			super(context);
+		}
+
+		@Override
+		protected void onPostExecute(Void unused) {
+			currentlyLoadingPage = NO_PAGE;
+		}
+	}
+
+	/**
+	 * Initiates download of additional movie data.
+	 *
+	 * @param pageToLoad Which "page" in the movie list to download
+	 */
+	private void downloadMovieData(int pageToLoad) {
+		if (currentlyLoadingPage != NO_PAGE)
+			return;
+		currentlyLoadingPage = pageToLoad;
+
+		final boolean verbose = BuildConfig.DEBUG && Log.isLoggable(LOG_TAG, Log.VERBOSE);
+
+		// verify that we have the permission to perform this operation
+		int permissionCheck = ContextCompat.checkSelfPermission(
+			this.getActivity(),
+			Manifest.permission.INTERNET);
+
+		if (permissionCheck != PackageManager.PERMISSION_GRANTED) {
+			if (verbose) Log.w(LOG_TAG, "Operation canceled: permission denied by user: " + Manifest.permission.INTERNET);
+
+			// Inform the user that the operation is aborted due to missing permission
+			// so it is clear why the screen doesn't update
+			showFailureDialog(R.string.no_permission_try_again, pageToLoad);
+			currentlyLoadingPage = NO_PAGE;
+			return;
+		}
+
+		// permission granted, go ahead with the operation
+
+		if (verbose) Log.v(LOG_TAG, "Load movies, page=" + pageToLoad);
+
+		String listName = UserPreferences.getMovieList(getActivity());
+
+		SequentialUpdateMovieListTask updateTask = new SequentialUpdateMovieListTask(getActivity());
+		updateTask.execute(new UpdateMovieListTask.Input(listName, pageToLoad));
+	}
+
 	@Override
 	public Loader<Cursor> onCreateLoader(int id, Bundle args) {
+		Log.d(LOG_TAG, "onCreateLoader");
 		String listName = UserPreferences.getMovieList(getActivity());
 		String sortOrder =
 			PopularMoviesContract.ListMembershipContract.Column.PAGE + " ASC, " +
-				PopularMoviesContract.ListMembershipContract.Column.POSITION + " ASC";
+			PopularMoviesContract.ListMembershipContract.Column.POSITION + " ASC";
 
 		Uri listMemberUri = PopularMoviesContract.ListContract.buildListMemberDirectoryUri(listName);
 
@@ -282,13 +356,15 @@ public class MainDiscoveryActivityFragment extends Fragment implements LoaderMan
 			getContext(),
 			listMemberUri,
 			CURSOR_PROJECTION,
-			null, // selection
-			null, // selectionArgs
+			null,
+			null,
 			sortOrder);
 	}
 
 	@Override
 	public void onLoadFinished(Loader<Cursor> loader, Cursor cursor) {
+		Log.d(LOG_TAG, "onLoadFinished");
+
 		viewAdapter.swapCursor(cursor);
 
 		// determine whether we should update the list
@@ -297,61 +373,33 @@ public class MainDiscoveryActivityFragment extends Fragment implements LoaderMan
 		if (cursor.getCount() > 0)
 			return; // database query returned results so we're done
 
-		final boolean verbose = BuildConfig.DEBUG && Log.isLoggable(LOG_TAG, Log.VERBOSE);
+		// there are no movies in the database
+		// query the first page
 
-		if (verbose) Log.v(LOG_TAG, "Database query returned empty result: scheduling update");
-
-		String listName = UserPreferences.getMovieList(getActivity());
-		int page = 1; // TODO read from... somewhere
-
-		UpdateMovieListTask updateTask = new UpdateMovieListTask(getActivity());
-		updateTask.execute(new UpdateMovieListTask.Input(listName, page));
+		downloadMovieData(1); // start with page 1
 	}
 
 	@Override
 	public void onLoaderReset(Loader<Cursor> loader) {
+		Log.d(LOG_TAG, "onLoaderReset");
 		viewAdapter.swapCursor(null);
 	}
 
-	// --- End LoaderManager.LoaderCallback<Loader> interface ---
+	// --- Error handling ---
 
 	/**
-     * Issues or re-issues the current query to themoviedb.org and updates the display with the
-     * new results from the query.
-     */
-    private void refreshMovies() {
-        // verify that we have the permission to perform this operation
-        int permissionCheck = ContextCompat.checkSelfPermission(
-            this.getActivity(),
-            Manifest.permission.INTERNET);
-
-        if (permissionCheck != PackageManager.PERMISSION_GRANTED) {
-            Log.w(LOG_TAG, "Operation canceled: permission denied by user: " + Manifest.permission.INTERNET);
-
-            // Inform the user that the operation is aborted due to missing permission
-            // so it is clear why the screen doesn't update
-	        showFailureDialog(R.string.no_permission_try_again);
-
-            return;
-        }
-
-        // permission granted, go ahead with the operation
-	    getLoaderManager().restartLoader(LOADER_ID, null, this);
-    }
-
-	/**
-	 * Displays a dialog informing the user that the refreshMovies() operation failed
-	 * with a critical error (network down or required permission denied). The user gets the
-	 * choice between retrying the operation og closing the activity.
+	 * Displays a dialog informing the user that movie data download failed with a critical
+	 * error (network down or required permission denied). The user gets the choice between
+	 * retrying the operation og closing the activity.
 	 */
-	private void showFailureDialog(int messageId) {
+	private void showFailureDialog(final int messageId, final int pageToLoad) {
 		AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(getContext());
 		alertDialogBuilder.setMessage(messageId);
 
 		alertDialogBuilder.setPositiveButton(R.string.try_again, new DialogInterface.OnClickListener() {
 			@Override
 			public void onClick(DialogInterface dialog, int which) {
-				refreshMovies();
+				downloadMovieData(pageToLoad);
 			}
 		});
 		alertDialogBuilder.setNegativeButton(R.string.exit, new DialogInterface.OnClickListener() {

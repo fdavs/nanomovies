@@ -234,8 +234,8 @@ public class MovieDetailActivityFragment extends Fragment implements LoaderManag
 	private void configureFavoriteBtn(ImageButton favoriteBtn, final Movie movie, final boolean isFavorite) {
 		favoriteBtn.setImageResource(
 			isFavorite
-				? android.R.drawable.btn_star_big_off
-				: android.R.drawable.btn_star_big_on);
+				? android.R.drawable.btn_star_big_on
+				: android.R.drawable.btn_star_big_off);
 
 		favoriteBtn.setOnClickListener(new View.OnClickListener() {
 			@Override

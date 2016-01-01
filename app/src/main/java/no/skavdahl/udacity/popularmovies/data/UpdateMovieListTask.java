@@ -32,7 +32,7 @@ public class UpdateMovieListTask extends AsyncTask<UpdateMovieListTask.Input, Vo
 		}
 	}
 
-	private final String LOG_TAG = getClass().getSimpleName();
+	private final String LOG_TAG = getClass().getSimpleName().substring(0, Math.min(23, getClass().getSimpleName().length()));
 	private final boolean verbose = BuildConfig.DEBUG && Log.isLoggable(LOG_TAG, Log.VERBOSE);
 	private final boolean debug = BuildConfig.DEBUG && Log.isLoggable(LOG_TAG, Log.DEBUG);
 

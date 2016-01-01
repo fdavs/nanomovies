@@ -340,6 +340,9 @@ public class MovieProvider extends ContentProvider {
 
 		if (debug) Log.d(LOG_TAG, "QUERY " + uri.getPath() + " -> " + cursor.getCount() + " rows returned");
 
+		// disable warning "getContext() may return null": it is non-null after onCreate()
+		//noinspection ConstantConditions
+		cursor.setNotificationUri(getContext().getContentResolver(), uri);
 		return cursor;
 	}
 
@@ -403,6 +406,12 @@ public class MovieProvider extends ContentProvider {
 		}
 
 		if (debug) Log.d(LOG_TAG, "INSERT " + uri.getPath() + " -> " + rowsInserted + " rows inserted");
+
+		if (rowsInserted > 0) {
+			// disable warning "getContext() may return null": it is non-null after onCreate()
+			//noinspection ConstantConditions
+			getContext().getContentResolver().notifyChange(uri, null);
+		}
 
 		return rowsInserted;
 	}

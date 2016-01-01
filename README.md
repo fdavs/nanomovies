@@ -41,8 +41,8 @@ Requirements for the "Exceeds specifications" distinction:
 
 Refactorings and other improvements:
   - [x] ~~Refactor: Move themoviedb API key from app.properties to the global Gradle properties~~
-  - [ ] Bonus: Enable endless scrolling
-    - [ ] Refactor: Replace GridView with RecycleView
+  - [x] Bonus: Enable endless scrolling
+    - [x] Refactor: Replace GridView with RecycleView
   - [ ] Bonus: App icon
   - [ ] Bonus: Default poster image when none can be downloaded from themoviedb.org (replace the somewhat ugly generated color-based poster image)
   - [ ] Bonus: Store enumerations (genre lists, actor names etc) in a database, refresh on app start
