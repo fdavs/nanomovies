@@ -35,6 +35,7 @@ dependencies {
     testCompile 'org.json:json:20140107'          // implementation of JSON library to replace the mocked library in Android's test library.
     compile 'com.android.support:appcompat-v7:23.1.1'
     compile 'com.android.support:design:23.1.1'
+    compile 'com.android.support:recyclerview-v7:23.1.1'
     compile 'com.squareup.picasso:picasso:2.5.2'  // for async downloading of movie posters
     //androidTestCompile 'junit:junit:4.12'
     // TODO androidTestCompile 'com.squareup.assertj:assertj-android:1.1.1' // for testing of activities

@@ -16,6 +16,8 @@ import android.support.v4.content.ContextCompat;
 import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
 import android.support.v7.app.AlertDialog;
+import android.support.v7.widget.GridLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -24,8 +26,6 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.AdapterView;
-import android.widget.GridView;
 
 import no.skavdahl.udacity.popularmovies.data.PopularMoviesContract;
 import no.skavdahl.udacity.popularmovies.data.SweepDatabaseTask;
@@ -43,7 +43,7 @@ public class MainDiscoveryActivityFragment extends Fragment implements LoaderMan
 	// see Log.isLoggable() throws description
     private final String LOG_TAG = getClass().getSimpleName().substring(0, 23);
 
-	private GridView posterGrid;
+	//private RecyclerView posterGrid;
 	private MoviePosterAdapter viewAdapter;
 
 	private final int LOADER_ID = 0;
@@ -52,12 +52,6 @@ public class MainDiscoveryActivityFragment extends Fragment implements LoaderMan
 	// garbage collection -- see the Android API docs at http://goo.gl/0yFyTy
 	// (SharedPreferences#registerOnSharedPreferenceChangeListener)
 	private SharedPreferences.OnSharedPreferenceChangeListener prefChangeListener;
-
-	// --- saved instance state ---
-
-	private Bundle savedInstanceState;
-
-	private final static String BUNDLE_SCROLL_INDEX = "scroll.index";
 
 	// --- cursor configuration ---
 
@@ -91,48 +85,34 @@ public class MainDiscoveryActivityFragment extends Fragment implements LoaderMan
 	    final View view = inflater.inflate(R.layout.fragment_main_discovery, container, false);
 
 	    // Configure the grid display of movie posters
-	    posterGrid = (GridView) view.findViewById(R.id.poster_grid);
+	    RecyclerView posterGrid = (RecyclerView) view.findViewById(R.id.poster_grid);
 
 	    // -- how many posters to display on each row
-	    int posterViewWidth = calculateOptimalColumnWidth();
-	    posterGrid.setColumnWidth(posterViewWidth);
+		Integer[] columnSize = calculateOptimalColumnSize();
+		int numColumns = columnSize[0];
+		int posterViewWidth = columnSize[1];
+
+		posterGrid.setLayoutManager(new GridLayoutManager(getContext(), numColumns));
+		posterGrid.setHasFixedSize(true);
+
+		// -- what should happen when a movie poster is clicked
+		MoviePosterAdapter.MovieClickListener movieClickListener = new MoviePosterAdapter.MovieClickListener() {
+			@Override
+			public void OnMovieClicked(int movieId) {
+				openMovieDetailsActivity(movieId);
+			}
+		};
 
 	    // -- how to display movie posters
-		posterGrid.setAdapter(
-			viewAdapter =
-				new MoviePosterAdapter(getContext(), null, 0, CURSOR_INDEX_MOVIE_JSON, posterViewWidth));
-
-	    // -- what should happen when a movie poster is clicked
-		posterGrid.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-			@Override
-			public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-				Cursor cursor = (Cursor) viewAdapter.getItem(position);
-				if (cursor != null) {
-					int movieId = cursor.getInt(CURSOR_INDEX_MOVIE_ID);
-					openMovieDetailsActivity(movieId);
-				}
-			}
-		});
+		viewAdapter = new MoviePosterAdapter(getContext(), CURSOR_INDEX_MOVIE_ID, CURSOR_INDEX_MOVIE_JSON, posterViewWidth, movieClickListener);
+		posterGrid.setAdapter(viewAdapter);
 
 	    return view;
     }
 
 	@Override
-	public void onSaveInstanceState(Bundle outState) {
-		saveGridScrollPosition(outState);
-		super.onSaveInstanceState(outState);
-	}
-
-	private void saveGridScrollPosition(Bundle outState) {
-		outState.putInt(BUNDLE_SCROLL_INDEX, posterGrid.getFirstVisiblePosition());
-	}
-
-	@Override
 	public void onActivityCreated(Bundle inState) {
 		super.onActivityCreated(inState);
-
-		// save so we can restore scroll position once the movie list has been loaded
-		savedInstanceState = inState;
 
 		// initialize the loader
 		getLoaderManager().initLoader(LOADER_ID, null, this);
@@ -144,11 +124,6 @@ public class MainDiscoveryActivityFragment extends Fragment implements LoaderMan
 			UserPreferences.setSweepTime(getActivity(), now);
 			new SweepDatabaseTask(getContext()).execute();
 		}
-	}
-
-	private void restoreGridScrollPosition(Bundle inState) {
-		int position = inState.getInt(BUNDLE_SCROLL_INDEX);
-		posterGrid.setSelection(position);
 	}
 
 	@Override
@@ -167,14 +142,15 @@ public class MainDiscoveryActivityFragment extends Fragment implements LoaderMan
 	 * Calculates the optimal column width based on the width of the display and an ideal
 	 * poster width of approximately one inch.
 	 *
-	 * @return tne optimal column width in pixels.
+	 * @return an array containing tne optimal column count in slot 0 and the column width
+	 *         measured in pixels in slot 1
 	 */
-	private int calculateOptimalColumnWidth() {
+	private Integer[] calculateOptimalColumnSize() {
 		DisplayMetrics dm = getResources().getDisplayMetrics();
 		double widthInches = ((double)dm.widthPixels) / dm.xdpi;
 		int numCols = (int) Math.round(widthInches);
-
-		return dm.widthPixels / numCols;
+		int colWidth = dm.widthPixels / numCols;
+		return new Integer[] { numCols, colWidth };
 	}
 
 	/**
@@ -314,11 +290,6 @@ public class MainDiscoveryActivityFragment extends Fragment implements LoaderMan
 	@Override
 	public void onLoadFinished(Loader<Cursor> loader, Cursor cursor) {
 		viewAdapter.swapCursor(cursor);
-
-		if (savedInstanceState != null) {
-			restoreGridScrollPosition(savedInstanceState);
-			savedInstanceState = null;
-		}
 
 		// determine whether we should update the list
 		// TODO determine whether to update the list from the server
