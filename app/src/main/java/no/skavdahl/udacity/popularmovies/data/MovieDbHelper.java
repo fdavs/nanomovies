@@ -86,7 +86,7 @@ public class MovieDbHelper extends SQLiteOpenHelper {
 
 	private void createListTable_v1(SQLiteDatabase db) {
 		db.execSQL(
-			"CREATE TABLE " + ListContract.TABLE_NAME + " (" +
+			"CREATE TABLE IF NOT EXISTS " + ListContract.TABLE_NAME + " (" +
 				ListContract.Column._ID + " INTEGER PRIMARY KEY," +
 				ListContract.Column.NAME + " TEXT NOT NULL," +
 				ListContract.Column.TYPE + " INTEGER NOT NULL" +
@@ -110,7 +110,7 @@ public class MovieDbHelper extends SQLiteOpenHelper {
 
 	private void createMovieTable_v1(SQLiteDatabase db) {
 		db.execSQL(
-			"CREATE TABLE " + MovieContract.TABLE_NAME + " (" +
+			"CREATE TABLE IF NOT EXISTS " + MovieContract.TABLE_NAME + " (" +
 				MovieContract.Column._ID + " INTEGER PRIMARY KEY," +
 				MovieContract.Column.MODIFIED + " INTEGER NOT NULL, " +
 				MovieContract.Column.JSONDATA + " TEXT NOT NULL" +
@@ -124,7 +124,7 @@ public class MovieDbHelper extends SQLiteOpenHelper {
 		//         WHERE LM.movieid = M._id AND L._id = LM.listid AND L.listtype = 2) AS favorite
 		// FROM movie M;
 		db.execSQL(
-			"CREATE VIEW " + MovieContract.TABLE_EX_NAME + " " +
+			"CREATE VIEW IF NOT EXISTS " + MovieContract.TABLE_EX_NAME + " " +
 				"AS SELECT " +
 					"M." + MovieContract.Column._ID + "," +
 					"M." + MovieContract.Column.MODIFIED + "," +
@@ -142,7 +142,7 @@ public class MovieDbHelper extends SQLiteOpenHelper {
 
 	private void createListMembershipTable_v1(SQLiteDatabase db) {
 		db.execSQL(
-			"CREATE TABLE " + ListMembershipContract.TABLE_NAME + " (" +
+			"CREATE TABLE IF NOT EXISTS " + ListMembershipContract.TABLE_NAME + " (" +
 				ListMembershipContract.Column._ID + " INTEGER PRIMARY KEY," +
 				ListMembershipContract.Column.LIST_ID + " INTEGER NOT NULL," +
 				ListMembershipContract.Column.MOVIE_ID + " INTEGER NOT NULL," +
@@ -164,7 +164,7 @@ public class MovieDbHelper extends SQLiteOpenHelper {
 
 	private void createImageTable_v1(SQLiteDatabase db) {
 		db.execSQL(
-			"CREATE TABLE " + ImageContract.TABLE_NAME + " (" +
+			"CREATE TABLE IF NOT EXISTS " + ImageContract.TABLE_NAME + " (" +
 				ImageContract.Column._ID + " INTEGER PRIMARY KEY," +
 				ImageContract.Column.PATH + " TEXT NOT NULL," +
 				ImageContract.Column.WIDTH + " INTEGER NOT NULL," +
@@ -180,7 +180,7 @@ public class MovieDbHelper extends SQLiteOpenHelper {
 
 	private void createTriggers_v1(SQLiteDatabase db) {
 		db.execSQL(
-			"CREATE TRIGGER " + ON_DELETE_MOVIE_TRIGGER + " " +
+			"CREATE TRIGGER IF NOT EXISTS " + ON_DELETE_MOVIE_TRIGGER + " " +
 			"AFTER DELETE ON " + MovieContract.TABLE_NAME + " " +
 			"BEGIN " +
 				"DELETE FROM " + ListMembershipContract.TABLE_NAME + " " +
@@ -190,7 +190,7 @@ public class MovieDbHelper extends SQLiteOpenHelper {
 			"END");
 
 		db.execSQL(
-			"CREATE TRIGGER " + ON_DELETE_LIST_TRIGGER + " " +
+			"CREATE TRIGGER IF NOT EXISTS " + ON_DELETE_LIST_TRIGGER + " " +
 				"AFTER DELETE ON " + ListContract.TABLE_NAME + " " +
 				"BEGIN " +
 					"DELETE FROM " + ListMembershipContract.TABLE_NAME + " " +
