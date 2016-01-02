@@ -22,6 +22,11 @@
 
     </android.support.design.widget.AppBarLayout>
 
-    <include layout="@layout/content_main_discovery"/>
+    <fragment android:id="@+id/fragment"
+              android:name="no.skavdahl.udacity.popularmovies.MainDiscoveryActivityFragment"
+              android:layout_width="match_parent"
+              android:layout_height="match_parent"
+              support:layout_behavior="@string/appbar_scrolling_view_behavior"
+              tools:layout="@layout/fragment_main_discovery"/>
 
 </android.support.design.widget.CoordinatorLayout>
