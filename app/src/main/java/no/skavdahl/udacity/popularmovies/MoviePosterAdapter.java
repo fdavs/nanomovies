@@ -37,8 +37,8 @@ public class MoviePosterAdapter extends RecyclerView.Adapter<MoviePosterAdapter.
 
 	private final int cursorMovieIdIndex;
 	private final int cursorPosterIndex;
-	private final int posterViewWidth;
-	private final int posterViewHeight;
+
+	private ViewGroup.LayoutParams layoutParams = new ViewGroup.LayoutParams(0, 0);
 
 	private final MdbJSONAdapter movieJsonAdapter;
 
@@ -74,13 +74,20 @@ public class MoviePosterAdapter extends RecyclerView.Adapter<MoviePosterAdapter.
 		this.cursorMovieIdIndex = cursorMovieIdIndex;
 		this.cursorPosterIndex = cursorPosterIndex;
 
+		setPosterViewSize(posterViewWidth);
+
+		movieJsonAdapter = new MdbJSONAdapter(context.getResources());
+	}
+
+	public void setPosterViewSize(int posterViewWidth) {
 		float posterWidth = context.getResources().getDimension(R.dimen.poster_width);
 		float posterHeight = context.getResources().getDimension(R.dimen.poster_height);
 
-		this.posterViewWidth = posterViewWidth;
-		this.posterViewHeight = (int) (posterViewWidth * posterHeight /posterWidth);
+		layoutParams.width = posterViewWidth;
+		layoutParams.height = Math.round((posterViewWidth * posterHeight / posterWidth));
 
-		movieJsonAdapter = new MdbJSONAdapter(context.getResources());
+		Log.d(LOG_TAG, "Set Poster Size: w=" + layoutParams.width + ", h=" + layoutParams.height);
+
 	}
 
 	// --- RecyclerView.Adapter interface ---
@@ -90,7 +97,7 @@ public class MoviePosterAdapter extends RecyclerView.Adapter<MoviePosterAdapter.
 		ImageView posterView = new ImageView(parent.getContext());
 		posterView.setPadding(0, 0, 0, 0);
 		posterView.setScaleType(ImageView.ScaleType.CENTER_CROP);
-		posterView.setLayoutParams(new ViewGroup.LayoutParams(posterViewWidth, posterViewHeight));
+		posterView.setLayoutParams(layoutParams);
 		posterView.setOnClickListener(viewClickListener);
 
 		return new ViewHolder(posterView);
@@ -106,7 +113,6 @@ public class MoviePosterAdapter extends RecyclerView.Adapter<MoviePosterAdapter.
 			Movie m = movieJsonAdapter.toMovie(new JSONObject(movieJson));
 
 			ImageView posterView = (ImageView) holder.itemView;
-
 			posterView.setTag(movieId);
 			PicassoUtils.displayPosterWithOfflineFallback(context, m, posterView);
 		}

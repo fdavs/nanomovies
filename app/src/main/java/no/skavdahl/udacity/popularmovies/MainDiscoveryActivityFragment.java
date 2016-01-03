@@ -1,10 +1,8 @@
 package no.skavdahl.udacity.popularmovies;
 
 import android.Manifest;
-import android.app.Activity;
 import android.content.Context;
 import android.content.DialogInterface;
-import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
@@ -83,37 +81,81 @@ public class MainDiscoveryActivityFragment extends Fragment implements LoaderMan
 	/** Do not issue database cleanup commands more frequently that this */
 	private final static long DATABASE_SWEEP_INTERVAL = 12 * 60 * 60 * 1000; // 12 hours
 
+	// --- Interface through which to report user activity ---
+
+	public interface ItemSelectionListener {
+		/** Called when the user selects one movie in the movie gallery. */
+		void onItemSelected(Uri contentUri);
+	}
+
+	public ItemSelectionListener itemSelectionListener;
+
+	public void setItemSelectionListener(final ItemSelectionListener listener) {
+		this.itemSelectionListener = listener;
+	}
+
+	/**
+	 * Notify the listeners that a new movie has been selected.
+	 *
+	 * @param movieId Identifies the movie that has been selected
+	 */
+	private void notifyMovieSelected(final int movieId) {
+		if (itemSelectionListener != null) {
+			try {
+				Uri contentUri = PopularMoviesContract.MovieContract.buildMovieItemUri(movieId);
+				itemSelectionListener.onItemSelected(contentUri);
+			}
+			catch (Exception e) {
+				Log.w(LOG_TAG, "Error in handler: " + itemSelectionListener, e);
+			}
+		}
+	}
+
 	@Override
     public View onCreateView(LayoutInflater inflater,
                              ViewGroup container,
                              Bundle savedInstanceState) {
 	    setHasOptionsMenu(true);
 
+		Log.v(LOG_TAG, "onCreateView");
+
 	    final View view = inflater.inflate(R.layout.fragment_main_discovery, container, false);
 
 	    // Configure the grid display of movie posters
-	    RecyclerView posterGrid = (RecyclerView) view.findViewById(R.id.poster_grid);
-
-	    // -- how many posters to display on each row
-		Integer[] columnSize = calculateOptimalColumnSize();
-		int numColumns = columnSize[0];
-		int posterViewWidth = columnSize[1];
-
-		final GridLayoutManager layoutManager = new GridLayoutManager(getContext(), numColumns);
-		posterGrid.setLayoutManager(layoutManager);
+	    final RecyclerView posterGrid = (RecyclerView) view.findViewById(R.id.poster_grid);
 		posterGrid.setHasFixedSize(true);
 
 		// -- what should happen when a movie poster is clicked
 		MoviePosterAdapter.MovieClickListener movieClickListener = new MoviePosterAdapter.MovieClickListener() {
 			@Override
 			public void OnMovieClicked(int movieId) {
-				openMovieDetailsActivity(movieId);
+				notifyMovieSelected(movieId);
 			}
 		};
 
-	    // -- how to display movie posters
-		viewAdapter = new MoviePosterAdapter(getContext(), CURSOR_INDEX_MOVIE_ID, CURSOR_INDEX_MOVIE_JSON, posterViewWidth, movieClickListener);
-		posterGrid.setAdapter(viewAdapter);
+		// -- how to display each movie poster
+		posterGrid.setAdapter(
+			viewAdapter = new MoviePosterAdapter(
+				getContext(),
+				CURSOR_INDEX_MOVIE_ID,
+				CURSOR_INDEX_MOVIE_JSON,
+				(int) getResources().getDimension(R.dimen.poster_width),
+				movieClickListener));
+
+	    // -- how many posters to display on each row
+		final GridLayoutManager layoutManager = new GridLayoutManager(getContext(), 3); // TODO remove constant
+		posterGrid.setLayoutManager(layoutManager);
+
+		configureColumns(posterGrid);
+
+		posterGrid.addOnLayoutChangeListener(new View.OnLayoutChangeListener() {
+			@Override
+			public void onLayoutChange(View v, int left, int top, int right, int bottom, int oldLeft, int oldTop, int oldRight, int oldBottom) {
+				Log.v(LOG_TAG, "OnLayoutChange: new fragment width=" + (right - left));
+				configureColumns(posterGrid);
+
+			}
+		});
 
 		// -- what to do when we need more data
 		posterGrid.addOnScrollListener(new RecyclerView.OnScrollListener() {
@@ -131,6 +173,23 @@ public class MainDiscoveryActivityFragment extends Fragment implements LoaderMan
 
 		return view;
     }
+
+	private void configureColumns(RecyclerView posterGrid) {
+		Integer[] columnSize = calculateOptimalColumnSize(posterGrid);
+		int numColumns = columnSize[0];
+		int posterViewWidth = columnSize[1];
+
+		Log.d(LOG_TAG, "Optimal poster width=" + posterViewWidth + ", numCol=" + numColumns);
+
+		viewAdapter.setPosterViewSize(posterViewWidth);
+
+		GridLayoutManager layoutManager = (GridLayoutManager) posterGrid.getLayoutManager();
+		layoutManager.setSpanCount(numColumns);
+
+		posterGrid.requestLayout();
+		posterGrid.invalidate();
+
+	}
 
 	@Override
 	public void onActivityCreated(Bundle inState) {
@@ -167,26 +226,17 @@ public class MainDiscoveryActivityFragment extends Fragment implements LoaderMan
 	 * @return an array containing tne optimal column count in slot 0 and the column width
 	 *         measured in pixels in slot 1
 	 */
-	private Integer[] calculateOptimalColumnSize() {
+	private Integer[] calculateOptimalColumnSize(View posterGrid) {
 		DisplayMetrics dm = getResources().getDisplayMetrics();
-		double widthInches = ((double)dm.widthPixels) / dm.xdpi;
+		int fragmentWidth = 0;
+		if (posterGrid != null)
+			fragmentWidth = posterGrid.getWidth();
+		if (fragmentWidth == 0)
+			fragmentWidth = dm.widthPixels;
+		double widthInches = ((double)fragmentWidth) / dm.xdpi;
 		int numCols = (int) Math.round(widthInches);
-		int colWidth = dm.widthPixels / numCols;
+		int colWidth = fragmentWidth / numCols;
 		return new Integer[] { numCols, colWidth };
-	}
-
-	/**
-	 * Starts the Movie Details activity for the given movie.
-	 *
-	 * @param movieId The movie for which to show details.
-	 */
-	private void openMovieDetailsActivity(final int movieId) {
-		Intent openMovieDetailsIntent = new Intent(getContext(), MovieDetailActivity.class);
-		openMovieDetailsIntent.putExtra(MovieDetailActivity.INTENT_EXTRA_DATA, movieId);
-
-		Activity contextActivity = MainDiscoveryActivityFragment.this.getActivity();
-		if (openMovieDetailsIntent.resolveActivity(contextActivity.getPackageManager()) != null)
-			startActivity(openMovieDetailsIntent);
 	}
 
     @Override
@@ -363,8 +413,6 @@ public class MainDiscoveryActivityFragment extends Fragment implements LoaderMan
 
 	@Override
 	public void onLoadFinished(Loader<Cursor> loader, Cursor cursor) {
-		Log.d(LOG_TAG, "onLoadFinished");
-
 		viewAdapter.swapCursor(cursor);
 
 		// determine whether we should update the list
@@ -381,7 +429,6 @@ public class MainDiscoveryActivityFragment extends Fragment implements LoaderMan
 
 	@Override
 	public void onLoaderReset(Loader<Cursor> loader) {
-		Log.d(LOG_TAG, "onLoaderReset");
 		viewAdapter.swapCursor(null);
 	}
 

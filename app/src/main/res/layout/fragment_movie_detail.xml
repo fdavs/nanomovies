@@ -2,6 +2,7 @@
 <ScrollView
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/movie_detail_fragment"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:theme="@style/PopularMoviesTheme"
@@ -87,7 +88,7 @@
             android:layout_marginEnd="@dimen/activity_horizontal_margin"
             android:layout_marginTop="@dimen/activity_vertical_margin"
             android:background="#00ffffff"
-            android:src="@android:drawable/btn_star_big_on"/>
+            android:src="@android:drawable/btn_star_big_off"/>
 
         <TextView
             android:id="@+id/videos_textview"
@@ -99,7 +100,7 @@
             android:layout_marginStart="@dimen/activity_horizontal_margin"
             android:layout_marginRight="@dimen/activity_horizontal_margin"
             android:layout_marginEnd="@dimen/activity_horizontal_margin"
-            android:text="Videos"
+            android:text="@string/videos_heading"
             style="@style/TextAppearance.AppCompat.Medium.Inverse"/>
 
         <LinearLayout

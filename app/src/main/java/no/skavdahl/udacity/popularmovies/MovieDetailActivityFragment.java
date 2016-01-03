@@ -50,14 +50,24 @@ public class MovieDetailActivityFragment extends Fragment implements LoaderManag
 
 	private final String LOG_TAG = getClass().getSimpleName().substring(0, 23);
 
-	private final int LOADER_ID = 0;
+	// --- content ---
 
-	private final String LOADER_ARGS_MOVIE_ID = "movieid";
+	/** Key to find the content URI in the fragment arguments (savedInstanceState). */
+	public static final String CONTENT_URI = "contentUri";
 
-	// --- view configuration ---
+	///** URI to the content (movie) being displayed by this fragment. May be <tt>null</tt>. */
+	private Uri contentUri;
 
+	/** The maximum number of video and trailer links to display. */
 	private static final int MAX_VIDEOS = 10;
+
+	/** The maximum number of reviews to display. */
 	private static final int MAX_REVIEWS = 10;
+
+	// --- loader ---
+
+	/** Identity of the movie details loader within the LoaderManager. */
+	private static final int LOADER_ID = 0;
 
 	// --- cursor configuration ---
 
@@ -79,21 +89,27 @@ public class MovieDetailActivityFragment extends Fragment implements LoaderManag
 	private static final String SHARE_YOUTUBE_LINK = "http://www.youtube.com/watch?v=";
 	private static final String SHARE_THEMOVIEDB_LINK = "https://www.themoviedb.org/movie/";
 
+
 	@Override
 	public void onActivityCreated(Bundle savedInstanceState) {
 		super.onActivityCreated(savedInstanceState);
 
-		// register the loader
-		Intent startingIntent = getActivity().getIntent();
-		int movieId = startingIntent.getIntExtra(MovieDetailActivity.INTENT_EXTRA_DATA, 0);
-		if (movieId == 0) {
-			Log.e(LOG_TAG, "Intent extra does not specify movie id");
-			getActivity().finish(); // abort the execution of this activity
-			return;
+		// register the data loader
+		Bundle loaderArgs = null;
+
+		Bundle arguments = getArguments();
+		if (arguments != null)
+			contentUri = arguments.getParcelable(CONTENT_URI);
+		else {
+			Intent startingIntent = getActivity().getIntent();
+			if (startingIntent != null)
+				contentUri = startingIntent.getParcelableExtra(MovieDetailActivity.INTENT_EXTRA_DATA);
 		}
 
-		Bundle loaderArgs = new Bundle();
-		loaderArgs.putInt(LOADER_ARGS_MOVIE_ID, movieId);
+		if (contentUri != null) {
+			loaderArgs = new Bundle();
+			loaderArgs.putParcelable(CONTENT_URI, contentUri);
+		}
 
 		getLoaderManager().initLoader(LOADER_ID, loaderArgs, this);
 
@@ -113,9 +129,11 @@ public class MovieDetailActivityFragment extends Fragment implements LoaderManag
 	public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
 		super.onCreateOptionsMenu(menu, inflater);
 
-		inflater.inflate(R.menu.menu_movie_details, menu);
-		MenuItem shareMenuItem = menu.findItem(R.id.menu_item_share);
-		shareActionProvider = (ShareActionProvider) MenuItemCompat.getActionProvider(shareMenuItem);
+		if (contentUri != null) {
+			inflater.inflate(R.menu.menu_movie_details, menu);
+			MenuItem shareMenuItem = menu.findItem(R.id.menu_item_share);
+			shareActionProvider = (ShareActionProvider) MenuItemCompat.getActionProvider(shareMenuItem);
+		}
 	}
 
 	// disable "findViewById() may return null" warning; it's true but will be caught quickly in testing
@@ -324,12 +342,16 @@ public class MovieDetailActivityFragment extends Fragment implements LoaderManag
 
 	@Override
 	public Loader<Cursor> onCreateLoader(int loaderId, Bundle loaderArgs) {
-		int movieId = loaderArgs.getInt(LOADER_ARGS_MOVIE_ID);
+		if (loaderArgs == null)
+			return null;
 
-		Uri listMemberUri = MovieContract.buildMovieItemUri(movieId);
+		Uri contentUri = loaderArgs.getParcelable(CONTENT_URI);
+		if (contentUri == null)
+			return null;
+
 		return new CursorLoader(
 			getActivity(),
-			listMemberUri,
+			contentUri,
 			CURSOR_PROJECTION,
 			null, // selection
 			null, // selection args
@@ -365,18 +387,15 @@ public class MovieDetailActivityFragment extends Fragment implements LoaderManag
 		// It is up-to-date if
 		//   a) we have extended movie data (reviews, videos)
 		//   b) the data are not "too old"
-		// "too old" is determined by the quality of the network connection. A better and faster
+		// "too old" is determined by the quality of the network connection. A faster and cheaper
 		// connection makes "too old" a shorter amount of time
-		// TODO include network quality in the calculation of "too old"
-		final boolean verbose = BuildConfig.DEBUG && Log.isLoggable(LOG_TAG, Log.VERBOSE);
+		// TODO include network quality (none, metered, broadband) in the decision of "too old"
 
 		long dataAge = System.currentTimeMillis() - dataModifiedTime;
 		long maxAge = BuildConfig.MOVIE_DATA_TIMEOUT;
 
-		if (movie.hasExtendedData() && dataAge <= maxAge) {
-			if (verbose) Log.v(LOG_TAG, "Movie data is up to date - no further action");
-		}
-		else {
+		if (!movie.hasExtendedData() || dataAge > maxAge) {
+			final boolean verbose = BuildConfig.DEBUG && Log.isLoggable(LOG_TAG, Log.VERBOSE);
 			if (verbose) Log.v(LOG_TAG, "Movie data is missing or stale - updating");
 
 			UpdateMovieTask asyncTask = new UpdateMovieTask(this.getActivity());
