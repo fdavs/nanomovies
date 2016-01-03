@@ -15,6 +15,9 @@
     <dimen name="poster_margin_offline">8px</dimen>
     <dimen name="poster_title_size" >24px</dimen>
 
+    <!-- Dimensions for the movie discovery view -->
+    <integer name="movielist_columns">3</integer>
+
     <!-- Dimensions for the movie detail view -->
     <dimen name="detail_backdrop_height">200dp</dimen>
     <dimen name="detail_poster_left">30dp</dimen>

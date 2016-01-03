@@ -4,6 +4,7 @@ import android.content.Context;
 import android.database.Cursor;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
@@ -38,8 +39,6 @@ public class MoviePosterAdapter extends RecyclerView.Adapter<MoviePosterAdapter.
 	private final int cursorMovieIdIndex;
 	private final int cursorPosterIndex;
 
-	private ViewGroup.LayoutParams layoutParams = new ViewGroup.LayoutParams(0, 0);
-
 	private final MdbJSONAdapter movieJsonAdapter;
 
 	private final MovieClickListener movieClickListener;
@@ -59,14 +58,12 @@ public class MoviePosterAdapter extends RecyclerView.Adapter<MoviePosterAdapter.
 	 * @param context The context
 	 * @param cursorMovieIdIndex The index into the cursor for reading the movie id
 	 * @param cursorPosterIndex The index into the cursor for reading the poster path
-	 * @param posterViewWidth The desired poster view width in pixels
 	 * @param clickListener Callback to be notified about clicks on movie poster images
 	 */
 	public MoviePosterAdapter(
 		final Context context,
 		final int cursorMovieIdIndex,
 		final int cursorPosterIndex,
-		final int posterViewWidth,
 		final MovieClickListener clickListener) {
 
 		this.context = context;
@@ -74,30 +71,16 @@ public class MoviePosterAdapter extends RecyclerView.Adapter<MoviePosterAdapter.
 		this.cursorMovieIdIndex = cursorMovieIdIndex;
 		this.cursorPosterIndex = cursorPosterIndex;
 
-		setPosterViewSize(posterViewWidth);
-
 		movieJsonAdapter = new MdbJSONAdapter(context.getResources());
-	}
-
-	public void setPosterViewSize(int posterViewWidth) {
-		float posterWidth = context.getResources().getDimension(R.dimen.poster_width);
-		float posterHeight = context.getResources().getDimension(R.dimen.poster_height);
-
-		layoutParams.width = posterViewWidth;
-		layoutParams.height = Math.round((posterViewWidth * posterHeight / posterWidth));
-
-		Log.d(LOG_TAG, "Set Poster Size: w=" + layoutParams.width + ", h=" + layoutParams.height);
-
 	}
 
 	// --- RecyclerView.Adapter interface ---
 
 	@Override
 	public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-		ImageView posterView = new ImageView(parent.getContext());
-		posterView.setPadding(0, 0, 0, 0);
-		posterView.setScaleType(ImageView.ScaleType.CENTER_CROP);
-		posterView.setLayoutParams(layoutParams);
+		LayoutInflater inflater = LayoutInflater.from(parent.getContext());
+		ImageView posterView = (ImageView) inflater.inflate(R.layout.movie_poster_item, parent, false);
+
 		posterView.setOnClickListener(viewClickListener);
 
 		return new ViewHolder(posterView);

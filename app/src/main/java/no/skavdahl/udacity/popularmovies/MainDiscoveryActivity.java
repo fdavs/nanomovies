@@ -73,6 +73,7 @@ public class MainDiscoveryActivity
 			Intent openMovieDetailsIntent = new Intent(this, MovieDetailActivity.class);
 			openMovieDetailsIntent.putExtra(MovieDetailActivity.INTENT_EXTRA_DATA, contentUri);
 
+			assert openMovieDetailsIntent.resolveActivity(getPackageManager()) != null;
 			startActivity(openMovieDetailsIntent);
 		}
 	}

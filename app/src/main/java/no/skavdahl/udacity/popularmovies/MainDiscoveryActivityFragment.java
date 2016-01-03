@@ -139,23 +139,13 @@ public class MainDiscoveryActivityFragment extends Fragment implements LoaderMan
 				getContext(),
 				CURSOR_INDEX_MOVIE_ID,
 				CURSOR_INDEX_MOVIE_JSON,
-				(int) getResources().getDimension(R.dimen.poster_width),
 				movieClickListener));
 
 	    // -- how many posters to display on each row
-		final GridLayoutManager layoutManager = new GridLayoutManager(getContext(), 3); // TODO remove constant
+		final GridLayoutManager layoutManager = new GridLayoutManager(
+			getContext(),
+			getResources().getInteger(R.integer.movielist_columns));
 		posterGrid.setLayoutManager(layoutManager);
-
-		configureColumns(posterGrid);
-
-		posterGrid.addOnLayoutChangeListener(new View.OnLayoutChangeListener() {
-			@Override
-			public void onLayoutChange(View v, int left, int top, int right, int bottom, int oldLeft, int oldTop, int oldRight, int oldBottom) {
-				Log.v(LOG_TAG, "OnLayoutChange: new fragment width=" + (right - left));
-				configureColumns(posterGrid);
-
-			}
-		});
 
 		// -- what to do when we need more data
 		posterGrid.addOnScrollListener(new RecyclerView.OnScrollListener() {
@@ -173,23 +163,6 @@ public class MainDiscoveryActivityFragment extends Fragment implements LoaderMan
 
 		return view;
     }
-
-	private void configureColumns(RecyclerView posterGrid) {
-		Integer[] columnSize = calculateOptimalColumnSize(posterGrid);
-		int numColumns = columnSize[0];
-		int posterViewWidth = columnSize[1];
-
-		Log.d(LOG_TAG, "Optimal poster width=" + posterViewWidth + ", numCol=" + numColumns);
-
-		viewAdapter.setPosterViewSize(posterViewWidth);
-
-		GridLayoutManager layoutManager = (GridLayoutManager) posterGrid.getLayoutManager();
-		layoutManager.setSpanCount(numColumns);
-
-		posterGrid.requestLayout();
-		posterGrid.invalidate();
-
-	}
 
 	@Override
 	public void onActivityCreated(Bundle inState) {
@@ -217,26 +190,6 @@ public class MainDiscoveryActivityFragment extends Fragment implements LoaderMan
 				.unregisterOnSharedPreferenceChangeListener(prefChangeListener);
 			prefChangeListener = null;
 		}
-	}
-
-	/**
-	 * Calculates the optimal column width based on the width of the display and an ideal
-	 * poster width of approximately one inch.
-	 *
-	 * @return an array containing tne optimal column count in slot 0 and the column width
-	 *         measured in pixels in slot 1
-	 */
-	private Integer[] calculateOptimalColumnSize(View posterGrid) {
-		DisplayMetrics dm = getResources().getDisplayMetrics();
-		int fragmentWidth = 0;
-		if (posterGrid != null)
-			fragmentWidth = posterGrid.getWidth();
-		if (fragmentWidth == 0)
-			fragmentWidth = dm.widthPixels;
-		double widthInches = ((double)fragmentWidth) / dm.xdpi;
-		int numCols = (int) Math.round(widthInches);
-		int colWidth = fragmentWidth / numCols;
-		return new Integer[] { numCols, colWidth };
 	}
 
     @Override
