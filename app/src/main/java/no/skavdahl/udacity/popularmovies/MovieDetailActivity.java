@@ -1,5 +1,7 @@
 package no.skavdahl.udacity.popularmovies;
 
+import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
@@ -21,13 +23,24 @@ public class MovieDetailActivity extends AppCompatActivity {
 		Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
 		setSupportActionBar(toolbar);
 
-		if (savedInstanceState != null) {
+		if (savedInstanceState == null) {
+			MovieDetailActivityFragment detailFragment = new MovieDetailActivityFragment();
+
+			Intent startingIntent = getIntent();
+			if (startingIntent != null) {
+				Uri contentUri = startingIntent.getParcelableExtra(MovieDetailActivity.INTENT_EXTRA_DATA);
+				if (contentUri != null) {
+					Bundle args = new Bundle();
+					args.putParcelable(MovieDetailActivityFragment.CONTENT_URI, contentUri);
+
+					detailFragment.setArguments(args);
+				}
+			}
+
 			getSupportFragmentManager()
 				.beginTransaction()
-				.add(R.id.movie_detail_container, new MovieDetailActivityFragment())
+				.add(R.id.movie_detail_container, detailFragment)
 				.commit();
 		}
 	}
-
-
 }

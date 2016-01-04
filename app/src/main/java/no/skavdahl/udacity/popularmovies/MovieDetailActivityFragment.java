@@ -90,31 +90,8 @@ public class MovieDetailActivityFragment extends Fragment implements LoaderManag
 	private static final String SHARE_THEMOVIEDB_LINK = "https://www.themoviedb.org/movie/";
 
 
-	@Override
-	public void onActivityCreated(Bundle savedInstanceState) {
-		super.onActivityCreated(savedInstanceState);
-
-		// register the data loader
-		Bundle loaderArgs = null;
-
-		Bundle arguments = getArguments();
-		if (arguments != null)
-			contentUri = arguments.getParcelable(CONTENT_URI);
-		else {
-			Intent startingIntent = getActivity().getIntent();
-			if (startingIntent != null)
-				contentUri = startingIntent.getParcelableExtra(MovieDetailActivity.INTENT_EXTRA_DATA);
-		}
-
-		if (contentUri != null) {
-			loaderArgs = new Bundle();
-			loaderArgs.putParcelable(CONTENT_URI, contentUri);
-		}
-
-		getLoaderManager().initLoader(LOADER_ID, loaderArgs, this);
-
-		// enable the options menu for "share" actions
-		setHasOptionsMenu(true);
+	public MovieDetailActivityFragment() {
+		setHasOptionsMenu(true); // required for "share" actions
 	}
 
 	@Override
@@ -122,7 +99,17 @@ public class MovieDetailActivityFragment extends Fragment implements LoaderManag
 	                         ViewGroup container,
 	                         Bundle savedInstanceState) {
 		super.onCreateView(inflater, container, savedInstanceState);
-		return inflater.inflate(R.layout.fragment_movie_detail, container, false);
+
+		Bundle arguments = getArguments();
+		if (arguments != null)
+			contentUri = arguments.getParcelable(CONTENT_URI);
+
+		Log.d(LOG_TAG, "onCreateView: contentUri=" + contentUri);
+
+		if (contentUri != null)
+			return inflater.inflate(R.layout.fragment_movie_detail, container, false);
+		else
+			return inflater.inflate(R.layout.fragment_movie_empty, container, false);
 	}
 
 	@Override
@@ -134,6 +121,23 @@ public class MovieDetailActivityFragment extends Fragment implements LoaderManag
 			MenuItem shareMenuItem = menu.findItem(R.id.menu_item_share);
 			shareActionProvider = (ShareActionProvider) MenuItemCompat.getActionProvider(shareMenuItem);
 		}
+	}
+
+	@Override
+	public void onActivityCreated(Bundle savedInstanceState) {
+		super.onActivityCreated(savedInstanceState);
+
+		// register the data loader
+		Bundle loaderArgs = null;
+
+		if (contentUri != null) {
+			loaderArgs = new Bundle();
+			loaderArgs.putParcelable(CONTENT_URI, contentUri);
+		}
+
+		Log.d(LOG_TAG, "onActivityCreated contentUri=" + contentUri);
+
+		getLoaderManager().initLoader(LOADER_ID, loaderArgs, this);
 	}
 
 	// disable "findViewById() may return null" warning; it's true but will be caught quickly in testing

@@ -1,4 +1,4 @@
 <resources>
     <!-- Dimensions for the movie discovery view -->
-    <integer name="movielist_columns">1</integer>
+    <integer name="movielist_columns">2</integer>
 </resources>

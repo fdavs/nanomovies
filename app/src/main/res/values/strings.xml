@@ -13,6 +13,7 @@
 
     <!-- strings in the Movie Detail fragment -->
     <string name="activity_detail_name">Movie Details</string>
+    <string name="select_movie">Select a movie on the left to show it here</string>
     <string name="movie_title"><xliff:g id="title" example="Inside Out">%1$s</xliff:g></string>
     <string name="movie_synopsis"><xliff:g id="synopsis" example="Growing up can be a bumpy road, and it's no exception for Riley...">%1$s</xliff:g></string>
     <plurals name="movie_user_rating">
