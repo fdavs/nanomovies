@@ -25,7 +25,8 @@
     <LinearLayout
         android:orientation="horizontal"
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
+        android:layout_height="match_parent"
+        support:layout_behavior="@string/appbar_scrolling_view_behavior">
 
         <fragment
             android:id="@+id/fragment_discovery"
@@ -33,13 +34,13 @@
             android:layout_width="0px"
             android:layout_height="match_parent"
             android:layout_weight="1"
-            support:layout_behavior="@string/appbar_scrolling_view_behavior"
             tools:layout="@layout/fragment_main_discovery"/>
 
         <FrameLayout android:id="@+id/movie_detail_container"
                      android:layout_width="0px"
                      android:layout_height="match_parent"
-                     android:layout_weight="2" />
+                     android:layout_weight="2"
+                     support:layout_behavior="@string/appbar_scrolling_view_behavior"/>
                      <!--android:background="?android:attr/detailsElementBackground" />-->
     </LinearLayout>
 </android.support.design.widget.CoordinatorLayout>
