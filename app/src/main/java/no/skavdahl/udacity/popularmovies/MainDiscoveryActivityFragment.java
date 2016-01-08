@@ -6,6 +6,8 @@ import android.content.DialogInterface;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
@@ -16,7 +18,6 @@ import android.support.v4.content.Loader;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -119,6 +120,7 @@ public class MainDiscoveryActivityFragment extends Fragment implements LoaderMan
 
 		Log.v(LOG_TAG, "onCreateView");
 
+		// initialize the view
 	    final View view = inflater.inflate(R.layout.fragment_main_discovery, container, false);
 
 	    // Configure the grid display of movie posters
@@ -168,6 +170,9 @@ public class MainDiscoveryActivityFragment extends Fragment implements LoaderMan
 	public void onActivityCreated(Bundle inState) {
 		super.onActivityCreated(inState);
 
+		// choose which movie list to show first
+		configureStartupMovieList();
+
 		// initialize the loader
 		getLoaderManager().initLoader(LOADER_ID, null, this);
 
@@ -178,6 +183,22 @@ public class MainDiscoveryActivityFragment extends Fragment implements LoaderMan
 			UserPreferences.setSweepTime(getActivity(), now);
 			new SweepDatabaseTask(getContext()).execute();
 		}
+	}
+
+	/**
+	 * Determines which movie list to show when the activity starts.
+	 * If the device is offline, the favorite movie list is displayed first.
+	 * Otherwise, the same movie list that was viewed last is displayed first.
+	 */
+	private void configureStartupMovieList() {
+		// this operation requires the permission "android.permission.ACCESS_NETWORK_STATE"
+		ConnectivityManager connectivityManager =
+			(ConnectivityManager) getContext()
+				.getSystemService(Context.CONNECTIVITY_SERVICE);
+		NetworkInfo networkInfo = connectivityManager.getActiveNetworkInfo();
+
+		if (networkInfo == null || !networkInfo.isConnected())
+			UserPreferences.setMovieList(getActivity(), StandardMovieList.FAVORITE);
 	}
 
 	@Override
@@ -347,7 +368,6 @@ public class MainDiscoveryActivityFragment extends Fragment implements LoaderMan
 
 	@Override
 	public Loader<Cursor> onCreateLoader(int id, Bundle args) {
-		Log.d(LOG_TAG, "onCreateLoader");
 		String listName = UserPreferences.getMovieList(getActivity());
 		String sortOrder =
 			PopularMoviesContract.ListMembershipContract.Column.PAGE + " ASC, " +
