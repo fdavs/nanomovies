@@ -18,6 +18,7 @@ public class DiscoverMovies extends WebApiClient {
 	 * @param apiKey The API key necessary to perform a query at themoviedb.org
 	 * @param listName Which movie list to query. This must be one of the standard movie
 	 *                 list names.
+	 * @param page Desired page number (starting with 1) of the response
 	 *
 	 * @return the JSON string response
 	 *
