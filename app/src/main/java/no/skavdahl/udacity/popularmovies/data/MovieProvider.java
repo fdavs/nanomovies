@@ -39,13 +39,10 @@ public class MovieProvider extends ContentProvider {
 	static final int LIST_MEMBER_ITEM = 4;
 	static final int MOVIE_DIRECTORY = 5;
 	static final int MOVIE_ITEM = 6;
-	static final int IMAGE_DIRECTORY = 7;
-	static final int IMAGE_ITEM = 8;
 
 	static final int LIST_INDEX_LIST_NAME = 1;
 	static final int LIST_INDEX_MOVIE_ID = 3;
 	static final int MOVIE_INDEX_MOVIE_ID = 1;
-	static final int IMAGE_INDEX_IMAGE_ID = 1;
 
 	private final static UriMatcher uriMatcher = buildUriMatcher();
 
@@ -71,12 +68,6 @@ public class MovieProvider extends ContentProvider {
 
 		m.addURI(CONTENT_AUTHORITY, MovieContract.CONTENT_URI_PATH, MOVIE_DIRECTORY);
 		m.addURI(CONTENT_AUTHORITY, MovieContract.CONTENT_URI_PATH + "/#", MOVIE_ITEM);
-
-		// AUTHORITY/image                      -- query image directory
-		// AUTHORITY/image/id#                  -- query image data
-
-		m.addURI(CONTENT_AUTHORITY, ImageContract.CONTENT_URI_PATH , IMAGE_DIRECTORY);
-		m.addURI(CONTENT_AUTHORITY, ImageContract.CONTENT_URI_PATH + "/#", IMAGE_ITEM);
 
 		return m;
 	}
@@ -113,10 +104,6 @@ public class MovieProvider extends ContentProvider {
 				return MovieContract.CONTENT_DIR_TYPE;
 			case MOVIE_ITEM:
 				return MovieContract.CONTENT_ITEM_TYPE;
-			case IMAGE_DIRECTORY:
-				return ImageContract.CONTENT_DIR_TYPE;
-			case IMAGE_ITEM:
-				return ImageContract.CONTENT_ITEM_TYPE;
 			default:
 				Log.w(LOG_TAG, "Unsupported operation: getType " + uri.getPath());
 				return null;
@@ -149,17 +136,6 @@ public class MovieProvider extends ContentProvider {
 
 			case MOVIE_ITEM:
 				cursor = queryMovieItem(uri, projection);
-				break;
-
-			case IMAGE_ITEM:
-				cursor = dbHelper.getReadableDatabase().query(
-					ImageContract.TABLE_NAME,
-					projection,
-					selection,
-					selectionArgs,
-					null, // groupBy
-					null, // having
-					sortOrder);
 				break;
 
 			default:
@@ -368,14 +344,45 @@ public class MovieProvider extends ContentProvider {
 					try {
 						long movieId = cv.getAsInteger(ListMembershipContract.Column.MOVIE_ID);
 						long modified = cv.getAsLong(MovieContract.Column.MODIFIED);
-						String movieJson = cv.getAsString(MovieContract.Column.JSONDATA);
+						String title = cv.getAsString(MovieContract.Column.TITLE);
+						String posterPath = cv.getAsString(MovieContract.Column.POSTER_PATH);
+						String backdropPath = cv.getAsString(MovieContract.Column.BACKDROP_PATH);
+						String synopsis = cv.getAsString(MovieContract.Column.SYNOPSIS);
+						double popularity = cv.getAsDouble(MovieContract.Column.POPULARITY);
+						double voteAvg = cv.getAsDouble(MovieContract.Column.VOTE_AVERAGE);
+						long voteCount = cv.getAsLong(MovieContract.Column.VOTE_COUNT);
+						long releaseDate = cv.getAsLong(MovieContract.Column.RELEASE_DATE);
 						int listId = cv.getAsInteger(ListMembershipContract.Column.LIST_ID);
 						int page = cv.getAsInteger(ListMembershipContract.Column.PAGE);
 						int position = cv.getAsInteger(ListMembershipContract.Column.POSITION);
 
 						movieStmt.bindLong(1, movieId);
 						movieStmt.bindLong(2, modified);
-						movieStmt.bindString(3, movieJson);
+						movieStmt.bindString(3, title);
+
+						if (posterPath != null)
+							movieStmt.bindString(4, posterPath);
+						else
+							movieStmt.bindNull(4);
+
+						if (backdropPath != null)
+							movieStmt.bindString(5, backdropPath);
+						else
+							movieStmt.bindNull(5);
+
+						if (synopsis != null)
+							movieStmt.bindString(6, synopsis);
+						else
+							movieStmt.bindNull(6);
+
+						movieStmt.bindDouble(7, popularity);
+						movieStmt.bindDouble(8, voteAvg);
+						movieStmt.bindLong(9, voteCount);
+
+						if (releaseDate > 0)
+							movieStmt.bindLong(10, releaseDate);
+						else
+							movieStmt.bindNull(10);
 
 						movieStmt.executeInsert();
 
@@ -536,21 +543,28 @@ public class MovieProvider extends ContentProvider {
 		return deletedCount;
 	}
 
-
 	/**
 	 * <pre>
-	 * INSERT OR REPLACE INTO MOVIE (_id, modified, jsondata)
-	 * VALUE (?, ?, ?)
+	 * INSERT OR REPLACE INTO MOVIE (_id, modified, title, posterPath, backdropPath,
+	 *    synopsis, popularity, voteAvg, voteCount, releaseDate)
+	 * VALUE (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 	 * </pre>
 	 */
 	private static final String INSERT_OR_REPLACE_INTO_MOVIE =
 		"INSERT OR REPLACE INTO " + MovieContract.TABLE_NAME + "(" +
 			TextUtils.join(",", new String[] {
-			MovieContract.Column._ID,
+				MovieContract.Column._ID,
 				MovieContract.Column.MODIFIED,
-				MovieContract.Column.JSONDATA
+				MovieContract.Column.TITLE,
+				MovieContract.Column.POSTER_PATH,
+				MovieContract.Column.BACKDROP_PATH,
+				MovieContract.Column.SYNOPSIS,
+				MovieContract.Column.POPULARITY,
+				MovieContract.Column.VOTE_AVERAGE,
+				MovieContract.Column.VOTE_COUNT,
+				MovieContract.Column.RELEASE_DATE,
 			}) + ") " +
-		"VALUES(?, ?, ?)";
+		"VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
 	/**
 	 * <pre>
@@ -738,7 +752,7 @@ public class MovieProvider extends ContentProvider {
 			MovieContract.TABLE_NAME,
 			values,
 			MovieContract.Column._ID + "=?",
-			new String[]{Integer.toString(movieId)});
+			new String[] { Integer.toString(movieId) });
 
 		if (debug) Log.d(LOG_TAG, "UPDATE " + uri.getPath() + " -> " + rowCount + " rows updated");
 

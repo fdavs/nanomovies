@@ -188,11 +188,38 @@ public class PopularMoviesContract {
 			 */
 			public static final String MODIFIED = "modified";
 
-			/** String -- the (relative) path to the movie poster. */
+			/** String -- the movie title. */
+			public static final String TITLE = "title";
+
+			/** String -- the path to the movie poster (if any). */
 			public static final String POSTER_PATH = "poster";
 
-			/** String -- the movie information encoded as a JSON string. */
-			public static final String JSONDATA = "jsondata";
+			/** String -- the path to the movie backdrop (if any). */
+			public static final String BACKDROP_PATH = "backdrop";
+
+			/** String -- the movie synopsis (if any). */
+			public static final String SYNOPSIS = "synopsis";
+
+			/** Double -- the popularity rating of the movie. */
+			public static final String POPULARITY = "popularity";
+
+			/** Double -- the user vote average. */
+			public static final String VOTE_AVERAGE = "voteavg";
+
+			/** Int -- the user vote count. */
+			public static final String VOTE_COUNT = "votecount";
+
+			/** Date -- the release date (if known). */
+			public static final String RELEASE_DATE = "releasedate";
+
+			/** Integer -- if true (1) extended movie data (reviews etc.) has been downloaded. */
+			public static final String EXTENDED_DATA = "extdata";
+
+			/** String -- movie reviews stored as a JSON array of strings. */
+			public static final String REVIEWS_JSON = "reviews";
+
+			/** String -- video links stored as a JSON array of strings. */
+			public static final String VIDEOS_JSON = "videos";
 
 			/**
 			 * Integer -- if true (1), the movie is a favorite movie. If false (0 or null),
@@ -200,66 +227,6 @@ public class PopularMoviesContract {
 			 * in the extended movie table.
 			 */
 			public static final String FAVORITE = "favorite";
-		}
-	}
-
-	/**
-	 * Defines the contract for image data.
-	 *
-	 * <p>Supported content provider URIs:
-	 * <ul>
-	 *     <li>Image data:<br/>
-	 *         <tt>content://no.skavdahl.udacity.popularmovies/image/[path *]/[width #]</tt><br/>
-	 *         Accesses the image associated with the specified path and width</li>
-	 * </ul></p>
-	 */
-	public static final class ImageContract {
-
-		public static final String CONTENT_URI_PATH = "image";
-
-		public static final Uri CONTENT_URI =
-			BASE_CONTENT_URI.buildUpon().appendPath(CONTENT_URI_PATH).build();
-
-		public static final String CONTENT_DIR_TYPE =
-			ContentResolver.CURSOR_DIR_BASE_TYPE + "/vnd." + CONTENT_AUTHORITY + "." + CONTENT_URI_PATH + "_v" + CONTRACT_VERSION;
-		public static final String CONTENT_ITEM_TYPE =
-			ContentResolver.CURSOR_ITEM_BASE_TYPE + "/vnd." + CONTENT_AUTHORITY + "." + CONTENT_URI_PATH + "_v" + CONTRACT_VERSION;
-
-		// AUTHORITY/image                      -- query image directory
-		// AUTHORITY/image/id#                  -- query image data
-
-		public static Uri buildImageDirectoryUri() {
-			return CONTENT_URI;
-		}
-
-		public static Uri buildImageItemUri(int imageId) {
-			return ContentUris.withAppendedId(CONTENT_URI, imageId);
-		}
-
-		public static final String TABLE_NAME = "image";
-
-		public static final class Column implements BaseColumns {
-
-			/**
-			 * Integer -- references the movie this image is associated with. If that movie
-			 * is deleted from the database, then this image should be deleted as well.
-			 */
-			public static final String MOVIE_ID = "movieid";
-
-			/** String -- the unique path to this image. */
-			public static final String PATH = "path";
-
-			/**
-			 * Image width specification, corresponding to the image size specifier that was used
-			 * to download the image from themoviedb.org. Most often this will be a number like
-			 * 800 (pixels) but it can also be the string 'original'.
-			 */
-			public static final String WIDTH = "width";
-
-			/**
-			 * Blob -- the image data.
-			 */
-			public static final String IMAGEDATA = "imagedata";
 		}
 	}
 }

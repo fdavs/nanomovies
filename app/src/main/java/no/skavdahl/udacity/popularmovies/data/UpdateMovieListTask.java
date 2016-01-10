@@ -131,7 +131,7 @@ public class UpdateMovieListTask extends AsyncTask<UpdateMovieListTask.Input, Vo
 			if (verbose) Log.v(LOG_TAG, "Received web query response:" + jsonResponse.substring(0, Math.min(40, jsonResponse.length())) + "...");
 
 			// convert the data to ContentValues for insertion into database
-			MdbJSONAdapter jsonAdapter = new MdbJSONAdapter(null);
+			MdbJSONAdapter jsonAdapter = new MdbJSONAdapter();
 			List<Movie> movieList = jsonAdapter.getMoviesList(jsonResponse);
 
 			final long now = System.currentTimeMillis();
@@ -142,7 +142,14 @@ public class UpdateMovieListTask extends AsyncTask<UpdateMovieListTask.Input, Vo
 				ContentValues cv = new ContentValues();
 				cv.put(ListMembershipContract.Column.MOVIE_ID, movie.getMovieDbId());
 				cv.put(MovieContract.Column.MODIFIED, now);
-				cv.put(MovieContract.Column.JSONDATA, jsonAdapter.toJSONString(movie));
+				cv.put(MovieContract.Column.TITLE, movie.getTitle());
+				cv.put(MovieContract.Column.POSTER_PATH, movie.getPosterPath());
+				cv.put(MovieContract.Column.BACKDROP_PATH, movie.getBackdropPath());
+				cv.put(MovieContract.Column.SYNOPSIS, movie.getSynopsis());
+				cv.put(MovieContract.Column.POPULARITY, movie.getPopularity());
+				cv.put(MovieContract.Column.VOTE_AVERAGE, movie.getVoteAverage());
+				cv.put(MovieContract.Column.VOTE_COUNT, movie.getVoteCount());
+				cv.put(MovieContract.Column.RELEASE_DATE, movie.getReleaseDate() != null ? movie.getReleaseDate().getTime() : 0);
 				cv.put(ListMembershipContract.Column.LIST_ID, listId);
 				cv.put(ListMembershipContract.Column.PAGE, page);
 				cv.put(ListMembershipContract.Column.POSITION, position);

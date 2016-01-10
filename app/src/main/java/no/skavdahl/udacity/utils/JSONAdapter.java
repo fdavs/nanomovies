@@ -23,7 +23,7 @@ import java.util.Locale;
 public abstract class JSONAdapter {
 
 	/** Format string for dates as used in JSON responses from themoviedb.org. */
-	private final String MOVIEDB_DATE_FORMAT = "yyyy-MM-dd";
+	private static final String MOVIEDB_DATE_FORMAT = "yyyy-MM-dd";
 
 	/**
 	 * Returns the value mapped by name if it exists. If the value does not exist,
@@ -36,7 +36,7 @@ public abstract class JSONAdapter {
 	 *
 	 * @throws JSONException if unable to access the attribute value.
 	 */
-	protected String getOptString(JSONObject obj, String attrName) throws JSONException {
+	protected static String getOptString(JSONObject obj, String attrName) throws JSONException {
 		String value = obj.optString(attrName, null);
 		return "null".equals(value) ? null : value;
 	}
@@ -54,7 +54,7 @@ public abstract class JSONAdapter {
 	 *
 	 * @throws JSONException if unable to parse the attribute value as a date.
 	 */
-	protected Date getOptDate(JSONObject obj, String attrName) throws JSONException {
+	protected static Date getOptDate(JSONObject obj, String attrName) throws JSONException {
 		String dateString = obj.optString(attrName);
 		if (dateString == null)
 			return null;
@@ -84,7 +84,7 @@ public abstract class JSONAdapter {
 	 *
 	 * @see org.json.JSONObject#put(String, Object)
 	 */
-	protected void putOptDate(JSONObject obj, String attrName, Date value) throws JSONException {
+	protected static void putOptDate(JSONObject obj, String attrName, Date value) throws JSONException {
 		if (value == null)
 			obj.put(attrName, null); // removes the existing value for the attribute
 		else {
@@ -103,7 +103,7 @@ public abstract class JSONAdapter {
 	 *
 	 * @throws JSONException if unable to parse the array.
 	 */
-	protected List<Integer> getOptIntArray(JSONArray arr) throws JSONException {
+	protected static List<Integer> getOptIntArray(JSONArray arr) throws JSONException {
 		if (arr == null)
 			return Collections.emptyList();
 
@@ -125,7 +125,7 @@ public abstract class JSONAdapter {
 	 *
 	 * @throws JSONException if unable to parse the array.
 	 */
-	protected void putOptArray(JSONObject obj, String attrName, List<Integer> list) throws JSONException {
+	protected static void putOptArray(JSONObject obj, String attrName, List<Integer> list) throws JSONException {
 		if (list == null)
 			obj.put(attrName, null);
 

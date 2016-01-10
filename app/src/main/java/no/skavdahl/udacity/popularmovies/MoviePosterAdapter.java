@@ -3,16 +3,10 @@ package no.skavdahl.udacity.popularmovies;
 import android.content.Context;
 import android.database.Cursor;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
-
-import org.json.JSONObject;
-
-import no.skavdahl.udacity.popularmovies.mdb.MdbJSONAdapter;
-import no.skavdahl.udacity.popularmovies.model.Movie;
 
 /**
  * Adapter for displaying movie posters.
@@ -31,15 +25,12 @@ public class MoviePosterAdapter extends RecyclerView.Adapter<MoviePosterAdapter.
 		void OnMovieClicked(int movieId);
 	}
 
-	private final String LOG_TAG = getClass().getSimpleName();
-
 	private Cursor cursor;
 	private final Context context;
 
 	private final int cursorMovieIdIndex;
 	private final int cursorPosterIndex;
-
-	private final MdbJSONAdapter movieJsonAdapter;
+	private final int cursorTitleIndex;
 
 	private final MovieClickListener movieClickListener;
 	private final View.OnClickListener viewClickListener = new View.OnClickListener() {
@@ -64,14 +55,14 @@ public class MoviePosterAdapter extends RecyclerView.Adapter<MoviePosterAdapter.
 		final Context context,
 		final int cursorMovieIdIndex,
 		final int cursorPosterIndex,
+		final int cursorTitleIndex,
 		final MovieClickListener clickListener) {
 
 		this.context = context;
 		this.movieClickListener = clickListener;
 		this.cursorMovieIdIndex = cursorMovieIdIndex;
 		this.cursorPosterIndex = cursorPosterIndex;
-
-		movieJsonAdapter = new MdbJSONAdapter(context.getResources());
+		this.cursorTitleIndex = cursorTitleIndex;
 	}
 
 	// --- RecyclerView.Adapter interface ---
@@ -89,19 +80,14 @@ public class MoviePosterAdapter extends RecyclerView.Adapter<MoviePosterAdapter.
 	@Override
 	public void onBindViewHolder(ViewHolder holder, int position) {
 		cursor.moveToPosition(position);
+
 		int movieId = cursor.getInt(cursorMovieIdIndex);
-		String movieJson = cursor.getString(cursorPosterIndex); // TODO read poster path directly from cursor
+		String posterPath = cursor.getString(cursorPosterIndex);
+		String title = cursor.getString(cursorTitleIndex);
 
-		try {
-			Movie m = movieJsonAdapter.toMovie(new JSONObject(movieJson));
-
-			ImageView posterView = (ImageView) holder.itemView;
-			posterView.setTag(movieId);
-			PicassoUtils.displayPosterWithOfflineFallback(context, m, posterView);
-		}
-		catch (Exception e) {
-			Log.e(LOG_TAG, "Unable to bind movie to view #" + position, e);
-		}
+		ImageView posterView = (ImageView) holder.itemView;
+		posterView.setTag(movieId);
+		PicassoUtils.displayPosterWithOfflineFallback(context, posterPath, title, posterView);
 	}
 
 	@Override

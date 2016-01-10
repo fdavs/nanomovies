@@ -57,10 +57,8 @@ public class MdbJSONAdapterTest {
 		discoveryResultJSON = null;
 	}
 
-
 	private List<Movie> fromJSON(String json) throws JSONException {
-		MdbJSONAdapter adapter = new MdbJSONAdapter(null);
-		return adapter.getMoviesList(json);
+		return MdbJSONAdapter.getMoviesList(json);
 	}
 
 	/** Verifies that one movie is correctly parsed from the JSON string. */
@@ -81,8 +79,7 @@ public class MdbJSONAdapterTest {
 	/** Verifies that a collection of movies are correctly parsed from the JSON string. */
 	@Test
 	public void testCorrectNumberOfMoviesInResult() throws JSONException {
-		MdbJSONAdapter adapter = new MdbJSONAdapter(null);
-		List<Movie> movies = adapter.getMoviesList(discoveryResultJSON);
+		List<Movie> movies = MdbJSONAdapter.getMoviesList(discoveryResultJSON);
 
 		assertThat(movies).hasSize(20);
 		assertThat(movies.get(0).getMovieDbId()).isEqualTo(206647);

@@ -23,14 +23,12 @@ import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-import org.json.JSONException;
-import org.json.JSONObject;
-
 import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.List;
 import java.util.Locale;
+import java.util.Objects;
 
 import no.skavdahl.udacity.popularmovies.data.ToggleFavoriteTask;
 import no.skavdahl.udacity.popularmovies.data.UpdateMovieTask;
@@ -72,18 +70,37 @@ public class MovieDetailActivityFragment extends Fragment implements LoaderManag
 	// --- cursor configuration ---
 
 	private final static String[] CURSOR_PROJECTION = new String[] {
+		MovieContract.Column._ID,
 		MovieContract.Column.MODIFIED,
-		MovieContract.Column.FAVORITE,
-		MovieContract.Column.JSONDATA
+		MovieContract.Column.TITLE,
+		MovieContract.Column.POSTER_PATH,
+		MovieContract.Column.BACKDROP_PATH,
+		MovieContract.Column.SYNOPSIS,
+		MovieContract.Column.VOTE_AVERAGE,
+		MovieContract.Column.VOTE_COUNT,
+		MovieContract.Column.RELEASE_DATE,
+		MovieContract.Column.EXTENDED_DATA,
+		MovieContract.Column.REVIEWS_JSON,
+		MovieContract.Column.VIDEOS_JSON,
+		MovieContract.Column.FAVORITE
 	};
 
-	private final static int CURSOR_INDEX_MODIFIED = 0;
-	private final static int CURSOR_INDEX_FAVORITE = 1;
-	private final static int CURSOR_INDEX_MOVIE_JSON = 2;
+	private final static int CURSOR_INDEX_ID = 0;
+	private final static int CURSOR_INDEX_MODIFIED = 1;
+	private final static int CURSOR_INDEX_TITLE = 2;
+	private final static int CURSOR_INDEX_POSTER_PATH = 3;
+	private final static int CURSOR_INDEX_BACKDROP_PATH = 4;
+	private final static int CURSOR_INDEX_SYNOPSIS = 5;
+	private final static int CURSOR_INDEX_VOTE_AVERAGE = 6;
+	private final static int CURSOR_INDEX_VOTE_COUNT = 7;
+	private final static int CURSOR_INDEX_RELEASE_DATE = 8;
+	private final static int CURSOR_INDEX_EXTENDED_DATA = 9;
+	private final static int CURSOR_INDEX_REVIEWS_JSON = 10;
+	private final static int CURSOR_INDEX_VIDEOS_JSON = 11;
+	private final static int CURSOR_INDEX_FAVORITE = 12;
 
 	// --- share configuration ---
 
-	private Movie shareMovie;
 	private ShareActionProvider shareActionProvider;
 
 	private static final String SHARE_YOUTUBE_LINK = "http://www.youtube.com/watch?v=";
@@ -142,58 +159,84 @@ public class MovieDetailActivityFragment extends Fragment implements LoaderManag
 
 	// disable "findViewById() may return null" warning; it's true but will be caught quickly in testing
 	@SuppressWarnings("ConstantConditions")
-	private void bindModelToView(final Movie movie, final boolean isFavorite) {
-		this.shareMovie = movie;
-
+	private void bindModelToView(final Cursor cursor) {
 		final View view = getView();
 		final Context context = getActivity();
 
+		// Some fields can change when the movie information is updated from the online
+		// database. Other fields are more static. In order to avoid a "flashing" effect,
+		// prevent updating the static fields unless it's necessary.
 		TextView movieTitleView = (TextView) view.findViewById(R.id.movie_title_textview);
-		movieTitleView.setText(context.getString(R.string.movie_title, movie.getTitle()));
+		String currentTitle = movieTitleView.getText().toString();
+		String cursorTitle = cursor.getString(CURSOR_INDEX_TITLE);
+		boolean hasChanged =
+			(currentTitle == null && cursorTitle != null) ||
+			(currentTitle != null && !currentTitle.equals(cursorTitle));
 
-		TextView synopsisView = (TextView) view.findViewById(R.id.synopsis_textview);
-		synopsisView.setText(
-			context.getString(R.string.movie_synopsis, formatOptString(movie.getSynopsis(), "")));
+		if (hasChanged) {
+			movieTitleView.setText(cursorTitle);
 
-		TextView releaseDateTextView = (TextView) view.findViewById(R.id.release_rate_textview);
-		releaseDateTextView.setText(
-			context.getString(R.string.movie_release_date, formatOptYear(movie.getReleaseDate(),
-				context.getString(R.string.data_unknown))));
+			TextView synopsisView = (TextView) view.findViewById(R.id.synopsis_textview);
+			synopsisView.setText(formatOptString(cursor.getString(CURSOR_INDEX_SYNOPSIS), ""));
+
+			TextView releaseDateTextView = (TextView) view.findViewById(R.id.release_rate_textview);
+			releaseDateTextView.setText(
+				context.getString(
+					R.string.movie_release_date,
+					formatOptYear(
+						new Date(cursor.getLong(CURSOR_INDEX_RELEASE_DATE)),
+						context.getString(R.string.data_unknown))));
+
+			ImageView posterView = (ImageView) view.findViewById(R.id.poster_imageview);
+			PicassoUtils.displayPosterWithOfflineFallback(
+				context,
+				cursor.getString(CURSOR_INDEX_POSTER_PATH),
+				cursor.getString(CURSOR_INDEX_TITLE),
+				posterView);
+
+			ImageView backdropView = (ImageView) view.findViewById(R.id.backdrop_imageview);
+			PicassoUtils.displayBackdrop(
+				context,
+				cursor.getString(CURSOR_INDEX_BACKDROP_PATH),
+				cursor.getString(CURSOR_INDEX_POSTER_PATH),
+				backdropView);
+		}
 
 		TextView userRatingTextView = (TextView) view.findViewById(R.id.user_rating_textview);
 		userRatingTextView.setText(
 			context.getResources().getQuantityString(
 				R.plurals.movie_user_rating, // id
-				movie.getVoteCount(), // quantity
-				movie.getVoteAverage(), movie.getVoteCount())); // format args
-
-		ImageView posterView = (ImageView) view.findViewById(R.id.poster_imageview);
-		PicassoUtils.displayPosterWithOfflineFallback(context, movie, posterView);
-
-		ImageView backdropView = (ImageView) view.findViewById(R.id.backdrop_imageview);
-		PicassoUtils.displayBackdrop(context, movie, backdropView);
+				cursor.getInt(CURSOR_INDEX_VOTE_COUNT), // quantity
+				cursor.getDouble(CURSOR_INDEX_VOTE_AVERAGE), cursor.getInt(CURSOR_INDEX_VOTE_COUNT))); // format args
 
 		final ImageButton favoriteBtn = (ImageButton) view.findViewById(R.id.favorite_button);
-		configureFavoriteBtn(favoriteBtn, movie, isFavorite);
+		configureFavoriteBtn(
+			favoriteBtn,
+			cursor.getInt(CURSOR_INDEX_ID),
+			cursor.getString(CURSOR_INDEX_POSTER_PATH),
+			cursor.getString(CURSOR_INDEX_BACKDROP_PATH),
+			cursor.getInt(CURSOR_INDEX_FAVORITE) > 0);
 
 		// videos
 		ViewGroup videoContainer = (ViewGroup) view.findViewById(R.id.videos_container);
-		bindVideosToView(movie, videoContainer);
+		bindVideosToView(cursor, videoContainer);
 
 		// reviews
 		ViewGroup reviewsContainer = (ViewGroup) view.findViewById(R.id.review_container);
-		bindReviewsToView(movie, reviewsContainer);
+		bindReviewsToView(cursor, reviewsContainer);
 
 		// configure the share action
-		configureShareIntent();
+		configureShareIntent(
+			cursor.getInt(CURSOR_INDEX_ID),
+			MdbJSONAdapter.toVideoList(cursor.getString(CURSOR_INDEX_VIDEOS_JSON)));
 	}
 
-	private void bindReviewsToView(Movie movie, ViewGroup container) {
+	private void bindReviewsToView(Cursor cursor, ViewGroup container) {
 		final LayoutInflater inflater = LayoutInflater.from(getActivity());
 
 		container.removeAllViews();
 
-		List<Review> reviewList = movie.getReviews();
+		List<Review> reviewList = MdbJSONAdapter.toReviewList(cursor.getString(CURSOR_INDEX_REVIEWS_JSON));
 		if (reviewList.isEmpty()) {
 			TextView textView = (TextView) inflater.inflate(R.layout.simple_textview, container, false);
 			textView.setText(R.string.no_reviews);
@@ -216,12 +259,13 @@ public class MovieDetailActivityFragment extends Fragment implements LoaderManag
 		}
 	}
 
-	private void bindVideosToView(Movie movie, ViewGroup container) {
+	private void bindVideosToView(Cursor cursor, ViewGroup container) {
 		final LayoutInflater inflater = LayoutInflater.from(getActivity());
 
 		container.removeAllViews();
 
-		List<Video> youtubeVideos = movie.getVideosFilterBySite(Video.SITE_YOUTUBE);
+		List<Video> allVideos = MdbJSONAdapter.toVideoList(cursor.getString(CURSOR_INDEX_VIDEOS_JSON));
+		List<Video> youtubeVideos = Movie.filterVideosBySite(allVideos, Video.SITE_YOUTUBE);
 		if (youtubeVideos.isEmpty()) {
 			TextView textView = (TextView) inflater.inflate(R.layout.simple_textview, container, false);
 			textView.setText(R.string.no_videos);
@@ -253,7 +297,13 @@ public class MovieDetailActivityFragment extends Fragment implements LoaderManag
 	 * Configure the favorite button, settings its on/off state and installing an appropriate
 	 * click listener to toggle the favorite state.
 	 */
-	private void configureFavoriteBtn(ImageButton favoriteBtn, final Movie movie, final boolean isFavorite) {
+	private void configureFavoriteBtn(
+		final ImageButton favoriteBtn,
+		final int movieId,
+		final String posterPath,
+		final String backdropPath,
+		final boolean isFavorite) {
+
 		favoriteBtn.setImageResource(
 			isFavorite
 				? android.R.drawable.btn_star_big_on
@@ -263,7 +313,7 @@ public class MovieDetailActivityFragment extends Fragment implements LoaderManag
 			@Override
 			public void onClick(View v) {
 				ImageButton favoriteBtn = (ImageButton) v;
-				toggleFavorite(favoriteBtn, movie, isFavorite);
+				toggleFavorite(favoriteBtn, movieId, posterPath, backdropPath, isFavorite);
 			}
 		});
 	}
@@ -274,17 +324,17 @@ public class MovieDetailActivityFragment extends Fragment implements LoaderManag
 	 * If the displayed movie has at least one YouTube trailer, the share action will send
 	 * a link to the trailer. Otherwise, it will send a link to the movie on themoviedb.org.
 	 */
-	private void configureShareIntent() {
-		if (shareActionProvider == null || shareMovie == null)
+	private void configureShareIntent(int shareMovieId, List<Video> shareVideos) {
+		if (shareActionProvider == null || shareMovieId == 0 || shareVideos == null)
 			return;
 
 		// pick the first YouTube video:
 		// videos.stream().filter(v -> v.site == YouTube).findFirst()
-		List<Video> youtubeVideos = shareMovie.getVideosFilterBySite(Video.SITE_YOUTUBE);
+		List<Video> youtubeVideos = Movie.filterVideosBySite(shareVideos, Video.SITE_YOUTUBE);
 		Video shareableVideo = youtubeVideos.isEmpty() ? null : youtubeVideos.get(0);
 		String linkToShare = (shareableVideo != null)
 			? SHARE_YOUTUBE_LINK + shareableVideo.getKey()
-			: SHARE_THEMOVIEDB_LINK + shareMovie.getMovieDbId();
+			: SHARE_THEMOVIEDB_LINK + shareMovieId;
 
 		String messageToFriend = getContext().getString(R.string.share_video_message, linkToShare);
 
@@ -321,11 +371,19 @@ public class MovieDetailActivityFragment extends Fragment implements LoaderManag
 	 * or not.
 	 *
 	 * @param favoriteBtn Reference to the toggle button, whose appearance will change
-	 * @param movie The movie being added or removed from the favorite movies list
+	 * @param movieId The movie being added or removed from the favorite movies list
+	 * @param posterPath The path to the movie poster
+	 * @param backdropPath The path to the movie backdrop
+	 * @param isFavorite Whether the movie is currently a favorite movie
 	 */
-	private void toggleFavorite(ImageButton favoriteBtn, Movie movie, boolean isFavorite) {
-		configureFavoriteBtn(favoriteBtn, movie, !isFavorite);
-		new ToggleFavoriteTask(getActivity(), movie.getMovieDbId(), !isFavorite).execute();
+	private void toggleFavorite(ImageButton favoriteBtn, int movieId, String posterPath, String backdropPath, boolean isFavorite) {
+		// optimistically update the "make favorite" button assuming success
+		configureFavoriteBtn(favoriteBtn, movieId, posterPath, backdropPath, !isFavorite);
+
+		if (isFavorite)
+			ToggleFavoriteTask.removeFromFavorites(getContext(), movieId, posterPath, backdropPath);
+		else
+			ToggleFavoriteTask.addToFavorites(getActivity(), movieId, posterPath, backdropPath);
 	}
 
 	private String formatOptString(final String str, final String fallback) {
@@ -367,24 +425,8 @@ public class MovieDetailActivityFragment extends Fragment implements LoaderManag
 		if (cursor == null || !cursor.moveToFirst())
 			return; // no data to handle so just stop
 
-		// convert the cursor data into a movie model
-		// TODO ideally this deserialization should happen on a background thread
-		String jsonData = cursor.getString(CURSOR_INDEX_MOVIE_JSON);
-		long dataModifiedTime = cursor.getLong(CURSOR_INDEX_MODIFIED);
-		boolean isFavorite = cursor.getInt(CURSOR_INDEX_FAVORITE) > 0;
-
-		Movie movie;
-		try {
-			MdbJSONAdapter jsonAdapter = new MdbJSONAdapter(getResources());
-			movie = jsonAdapter.toMovie(new JSONObject(jsonData));
-		}
-		catch (JSONException e) {
-			Log.e(LOG_TAG, "Unable to deserialize movie from json", e); // TODO include more details
-			return;
-		}
-
 		// update the view
-		bindModelToView(movie, isFavorite);
+		bindModelToView(cursor);
 
 		// evaluate the data: do we need to issue an web update?
 		// we need to decide if the data is current and up-to-date or need to be refreshed
@@ -395,15 +437,20 @@ public class MovieDetailActivityFragment extends Fragment implements LoaderManag
 		// connection makes "too old" a shorter amount of time
 		// TODO include network quality (none, metered, broadband) in the decision of "too old"
 
+		long dataModifiedTime = cursor.getLong(CURSOR_INDEX_MODIFIED);
+		boolean hasExtendedData = cursor.getInt(CURSOR_INDEX_EXTENDED_DATA) > 0;
+
 		long dataAge = System.currentTimeMillis() - dataModifiedTime;
 		long maxAge = BuildConfig.MOVIE_DATA_TIMEOUT;
 
-		if (!movie.hasExtendedData() || dataAge > maxAge) {
+		if (!hasExtendedData || dataAge > maxAge) {
 			final boolean verbose = BuildConfig.DEBUG && Log.isLoggable(LOG_TAG, Log.VERBOSE);
 			if (verbose) Log.v(LOG_TAG, "Movie data is missing or stale - updating");
 
-			UpdateMovieTask asyncTask = new UpdateMovieTask(this.getActivity());
-			asyncTask.execute(movie.getMovieDbId());
+			int movieId = cursor.getInt(CURSOR_INDEX_ID);
+
+			UpdateMovieTask asyncTask = new UpdateMovieTask(getContext());
+			asyncTask.execute(movieId);
 		}
 	}
 

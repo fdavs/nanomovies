@@ -71,11 +71,13 @@ public class MainDiscoveryActivityFragment extends Fragment implements LoaderMan
 
 	private final static String[] CURSOR_PROJECTION = new String[] {
 		PopularMoviesContract.MovieContract.Column._ID,
-		PopularMoviesContract.MovieContract.Column.JSONDATA
+		PopularMoviesContract.MovieContract.Column.POSTER_PATH,
+		PopularMoviesContract.MovieContract.Column.TITLE
 	};
 
 	private final static int CURSOR_INDEX_MOVIE_ID = 0;
-	private final static int CURSOR_INDEX_MOVIE_JSON = 1;
+	private final static int CURSOR_INDEX_MOVIE_POSTER_PATH = 1;
+	private final static int CURSOR_INDEX_MOVIE_TITLE = 2;
 
 	// --- other configuration ---
 
@@ -140,7 +142,8 @@ public class MainDiscoveryActivityFragment extends Fragment implements LoaderMan
 			viewAdapter = new MoviePosterAdapter(
 				getContext(),
 				CURSOR_INDEX_MOVIE_ID,
-				CURSOR_INDEX_MOVIE_JSON,
+				CURSOR_INDEX_MOVIE_POSTER_PATH,
+				CURSOR_INDEX_MOVIE_TITLE,
 				movieClickListener));
 
 	    // -- how many posters to display on each row

@@ -44,18 +44,20 @@ public class UpdateMovieTask extends AsyncTask<Integer, Void, Void> {
 			DiscoverMovies webQuery = new DiscoverMovies();
 			String jsonData = webQuery.getMovieDetails(BuildConfig.THEMOVIEDB_API_KEY, movieId);
 
-			if (verbose) Log.v(LOG_TAG, "Download of data for movie " + movieId + " result: " + jsonData.substring(0, Math.min(30, jsonData.length())));
+			if (verbose) Log.v(LOG_TAG, "Download of data for movie " + movieId + " result: " + jsonData.substring(0, Math.min(40, jsonData.length())));
 
 			if (verbose) Log.v(LOG_TAG, "Updating database entry for movie " + movieId + "...");
 
-			// strip out the parts of the JSON data we don't need to keep
-			MdbJSONAdapter jsonAdapter = new MdbJSONAdapter(null);
-			Movie movie = jsonAdapter.toMovie(new JSONObject(jsonData));
-			jsonData = jsonAdapter.toJSONString(movie);
+			Movie movie = MdbJSONAdapter.toMovie(new JSONObject(jsonData));
 
 			ContentValues cv = new ContentValues();
-			cv.put(PopularMoviesContract.MovieContract.Column.JSONDATA, jsonData);
-			cv.put(PopularMoviesContract.MovieContract.Column.MODIFIED, System.currentTimeMillis());
+			cv.put(MovieContract.Column.MODIFIED, System.currentTimeMillis());
+			cv.put(MovieContract.Column.VOTE_COUNT, movie.getVoteCount());
+			cv.put(MovieContract.Column.VOTE_AVERAGE, movie.getVoteAverage());
+			cv.put(MovieContract.Column.POPULARITY, movie.getPopularity());
+			cv.put(MovieContract.Column.EXTENDED_DATA, 1);
+			cv.put(MovieContract.Column.REVIEWS_JSON, MdbJSONAdapter.toReviewJSONString(movie.getReviews()));
+			cv.put(MovieContract.Column.VIDEOS_JSON, MdbJSONAdapter.toVideoJSONString(movie.getVideos()));
 
 			Uri movieItemUri = MovieContract.buildMovieItemUri(movieId);
 			int rowCount = context.getContentResolver().update(movieItemUri, cv, null, null);

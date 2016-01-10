@@ -26,8 +26,6 @@ public class Movie {
 	private final double optVoteAverage;
 	private final int optVoteCount;
 	private final Date optReleaseDate;
-	private final List<Integer> genres;
-	private final int fallbackColor;
 
 	private final boolean hasExtendedData;
 	private final List<Review> optReviews;
@@ -52,11 +50,9 @@ public class Movie {
 		final double popularity,
 		final double voteAverage,
 		final int voteCount,
-		final List<Integer> genres,
 		final boolean hasExtendedData,
 		final List<Review> reviews,
-		final List<Video> videos,
-		final int fallbackColor) {
+		final List<Video> videos) {
 
 		if (title == null || title.trim().length() == 0)
 			throw new IllegalArgumentException("required: title");
@@ -72,11 +68,6 @@ public class Movie {
 		this.optReleaseDate = releaseDate;
 		this.hasExtendedData = hasExtendedData;
 
-		if (genres != null && !genres.isEmpty())
-			this.genres = Collections.unmodifiableList(genres);
-		else
-			this.genres = Collections.emptyList();
-
 		if (reviews != null && !reviews.isEmpty())
 			this.optReviews = Collections.unmodifiableList(reviews);
 		else
@@ -86,8 +77,6 @@ public class Movie {
 			this.optVideos = Collections.unmodifiableList(videos);
 		else
 			this.optVideos = Collections.emptyList();
-
-		this.fallbackColor = fallbackColor;
 	}
 
 	/** Returns the integer identifier for this movie at themoviedb.org */
@@ -144,14 +133,6 @@ public class Movie {
 		return hasExtendedData;
 	}
 
-	/**
-	 * Returns a (potentially empty but non-null) list of genres associated with
-	 * this movie.
-	 */
-	public List<Integer> getGenres() {
-		return genres;
-	}
-
 	/** Returns the set of reviews for this movie. May be an empty list. */
 	public List<Review> getReviews() {
 		return optReviews;
@@ -167,22 +148,16 @@ public class Movie {
 	 *
 	 * Equivalent to <code>videos.filter(v => v.site == targetSite)</code> in Scala.
 	 */
-	public List<Video> getVideosFilterBySite(final String site) {
-		if (TextUtils.isEmpty(site))
+	public static List<Video> filterVideosBySite(final List<Video> videoList, final String site) {
+		if (TextUtils.isEmpty(site) || videoList == null)
 			return Collections.emptyList();
 
 		List<Video> result = new ArrayList<>();
-		for (Video v : optVideos) {
+		for (Video v : videoList) {
 			if (site.equals(v.getSite()))
 				result.add(v);
 		}
 
 		return result;
 	}
-
-	/**
-	 * Returns a random color code that can be used to represent the movie in the
-	 * event that a true movie poster is absent.
- 	 */
-	public int getFallbackColorCode() { return fallbackColor; }
 }
