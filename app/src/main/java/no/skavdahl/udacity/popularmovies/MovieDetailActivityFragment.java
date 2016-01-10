@@ -28,7 +28,6 @@ import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.List;
 import java.util.Locale;
-import java.util.Objects;
 
 import no.skavdahl.udacity.popularmovies.data.ToggleFavoriteTask;
 import no.skavdahl.udacity.popularmovies.data.UpdateMovieTask;
@@ -123,8 +122,11 @@ public class MovieDetailActivityFragment extends Fragment implements LoaderManag
 
 		Log.d(LOG_TAG, "onCreateView: contentUri=" + contentUri);
 
-		if (contentUri != null)
-			return inflater.inflate(R.layout.fragment_movie_detail, container, false);
+		if (contentUri != null) {
+			View view = inflater.inflate(R.layout.fragment_movie_detail, container, false);
+			bindEmptyModelToView(view);
+			return view;
+		}
 		else
 			return inflater.inflate(R.layout.fragment_movie_empty, container, false);
 	}
@@ -155,6 +157,21 @@ public class MovieDetailActivityFragment extends Fragment implements LoaderManag
 		Log.d(LOG_TAG, "onActivityCreated contentUri=" + contentUri);
 
 		getLoaderManager().initLoader(LOADER_ID, loaderArgs, this);
+	}
+
+	private void bindEmptyModelToView(View view) {
+		TextView movieTitleView = (TextView) view.findViewById(R.id.movie_title_textview);
+		movieTitleView.setText("");
+
+		TextView synopsisView = (TextView) view.findViewById(R.id.synopsis_textview);
+		synopsisView.setText("");
+
+		TextView releaseDateTextView = (TextView) view.findViewById(R.id.release_rate_textview);
+		releaseDateTextView.setText("");
+
+		TextView userRatingTextView = (TextView) view.findViewById(R.id.user_rating_textview);
+		userRatingTextView.setText("");
+
 	}
 
 	// disable "findViewById() may return null" warning; it's true but will be caught quickly in testing
@@ -202,6 +219,7 @@ public class MovieDetailActivityFragment extends Fragment implements LoaderManag
 				backdropView);
 		}
 
+		// the following fields may change when movie details are downloaded again
 		TextView userRatingTextView = (TextView) view.findViewById(R.id.user_rating_textview);
 		userRatingTextView.setText(
 			context.getResources().getQuantityString(
