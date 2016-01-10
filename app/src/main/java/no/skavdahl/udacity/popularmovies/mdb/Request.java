@@ -98,8 +98,8 @@ public class Request {
 	private static String calculateOptimalPosterWidth(int availableWidthPixels) {
 		// TODO the available sizes should be retrieved from the configuration
 		//      http://api.themoviedb.org/3/configuration
-		final int widthOptions[] = { 92, 154, 185, 342, 500, 780, 1024 };
-		final String optionCodes[]= { "w92", "w154", "w185", "w342", "w500", "w780", "original"};
+		final int widthOptions[] = { 92, 154, 185, 342, 500, 780 };
+		final String optionCodes[]= { "w92", "w154", "w185", "w342", "w500", "w780" };
 
 		return bestMatch(widthOptions, optionCodes, availableWidthPixels);
 	}
@@ -117,8 +117,8 @@ public class Request {
 	private static String calculateOptimalBackdropWidth(int availableWidthPixels) {
 		// TODO the available sizes should be retrieved from the configuration
 		//      http://api.themoviedb.org/3/configuration
-		final int widthOptions[] = { 300, 780, 1280, (int) (1280 * 1.5) };
-		final String optionCodes[]= { "w300", "w780", "w1280", "original" };
+		final int widthOptions[] = { 300, 780, 1280 };
+		final String optionCodes[]= { "w300", "w780", "w1280" };
 
 		return bestMatch(widthOptions, optionCodes, availableWidthPixels);
 	}
