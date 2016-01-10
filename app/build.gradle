@@ -38,6 +38,7 @@ dependencies {
     compile 'com.android.support:recyclerview-v7:23.1.1'
     compile 'com.squareup.picasso:picasso:2.5.2'  // for async downloading of movie posters
     compile 'com.squareup.okhttp3:okhttp:3.0.0-RC1' // for robust communication with themoviedb.org
+    compile 'com.jakewharton:butterknife:7.0.1'
     //androidTestCompile 'junit:junit:4.12'
     // TODO androidTestCompile 'com.squareup.assertj:assertj-android:1.1.1' // for testing of activities
 }

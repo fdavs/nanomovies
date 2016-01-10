@@ -29,6 +29,9 @@ import java.util.GregorianCalendar;
 import java.util.List;
 import java.util.Locale;
 
+import butterknife.Bind;
+import butterknife.ButterKnife;
+
 import no.skavdahl.udacity.popularmovies.data.ToggleFavoriteTask;
 import no.skavdahl.udacity.popularmovies.data.UpdateMovieTask;
 import no.skavdahl.udacity.popularmovies.mdb.MdbJSONAdapter;
@@ -105,6 +108,17 @@ public class MovieDetailActivityFragment extends Fragment implements LoaderManag
 	private static final String SHARE_YOUTUBE_LINK = "http://www.youtube.com/watch?v=";
 	private static final String SHARE_THEMOVIEDB_LINK = "https://www.themoviedb.org/movie/";
 
+	// --- UI ---
+
+	private @Bind(R.id.movie_title_textview) TextView titleView;
+	private @Bind(R.id.synopsis_textview) TextView synopsisView;
+	private @Bind(R.id.release_rate_textview) TextView releaseDateView;
+	private @Bind(R.id.user_rating_textview) TextView userRatingView;
+	private @Bind(R.id.poster_imageview) ImageView posterView;
+	private @Bind(R.id.backdrop_imageview) ImageView backdropView;
+	private @Bind(R.id.favorite_button) ImageButton favoriteBtn;
+	private @Bind(R.id.videos_container) ViewGroup videosContainer;
+	private @Bind(R.id.review_container) ViewGroup reviewsContainer;
 
 	public MovieDetailActivityFragment() {
 		setHasOptionsMenu(true); // required for "share" actions
@@ -124,7 +138,8 @@ public class MovieDetailActivityFragment extends Fragment implements LoaderManag
 
 		if (contentUri != null) {
 			View view = inflater.inflate(R.layout.fragment_movie_detail, container, false);
-			bindEmptyModelToView(view);
+			ButterKnife.bind(this, view);
+			bindEmptyModelToView();
 			return view;
 		}
 		else
@@ -159,59 +174,46 @@ public class MovieDetailActivityFragment extends Fragment implements LoaderManag
 		getLoaderManager().initLoader(LOADER_ID, loaderArgs, this);
 	}
 
-	private void bindEmptyModelToView(View view) {
-		TextView movieTitleView = (TextView) view.findViewById(R.id.movie_title_textview);
-		movieTitleView.setText("");
-
-		TextView synopsisView = (TextView) view.findViewById(R.id.synopsis_textview);
+	/**
+	 * Clears all views that have some default content (typically from an xliff tag).
+	 */
+	private void bindEmptyModelToView() {
+		titleView.setText("");
 		synopsisView.setText("");
-
-		TextView releaseDateTextView = (TextView) view.findViewById(R.id.release_rate_textview);
-		releaseDateTextView.setText("");
-
-		TextView userRatingTextView = (TextView) view.findViewById(R.id.user_rating_textview);
-		userRatingTextView.setText("");
-
+		releaseDateView.setText("");
+		userRatingView.setText("");
 	}
 
-	// disable "findViewById() may return null" warning; it's true but will be caught quickly in testing
-	@SuppressWarnings("ConstantConditions")
+	/**
+	 * Updates the view with content from the given cursor.
+	 */
 	private void bindModelToView(final Cursor cursor) {
-		final View view = getView();
 		final Context context = getActivity();
 
 		// Some fields can change when the movie information is updated from the online
 		// database. Other fields are more static. In order to avoid a "flashing" effect,
 		// prevent updating the static fields unless it's necessary.
-		TextView movieTitleView = (TextView) view.findViewById(R.id.movie_title_textview);
-		String currentTitle = movieTitleView.getText().toString();
+		String currentTitle = titleView.getText().toString(); // non-null
 		String cursorTitle = cursor.getString(CURSOR_INDEX_TITLE);
-		boolean hasChanged =
-			(currentTitle == null && cursorTitle != null) ||
-			(currentTitle != null && !currentTitle.equals(cursorTitle));
+		boolean hasChanged = !currentTitle.equals(cursorTitle);
 
 		if (hasChanged) {
-			movieTitleView.setText(cursorTitle);
-
-			TextView synopsisView = (TextView) view.findViewById(R.id.synopsis_textview);
+			titleView.setText(cursorTitle);
 			synopsisView.setText(formatOptString(cursor.getString(CURSOR_INDEX_SYNOPSIS), ""));
 
-			TextView releaseDateTextView = (TextView) view.findViewById(R.id.release_rate_textview);
-			releaseDateTextView.setText(
+			releaseDateView.setText(
 				context.getString(
 					R.string.movie_release_date,
 					formatOptYear(
 						new Date(cursor.getLong(CURSOR_INDEX_RELEASE_DATE)),
 						context.getString(R.string.data_unknown))));
 
-			ImageView posterView = (ImageView) view.findViewById(R.id.poster_imageview);
 			PicassoUtils.displayPosterWithOfflineFallback(
 				context,
 				cursor.getString(CURSOR_INDEX_POSTER_PATH),
 				cursor.getString(CURSOR_INDEX_TITLE),
 				posterView);
 
-			ImageView backdropView = (ImageView) view.findViewById(R.id.backdrop_imageview);
 			PicassoUtils.displayBackdrop(
 				context,
 				cursor.getString(CURSOR_INDEX_BACKDROP_PATH),
@@ -220,27 +222,22 @@ public class MovieDetailActivityFragment extends Fragment implements LoaderManag
 		}
 
 		// the following fields may change when movie details are downloaded again
-		TextView userRatingTextView = (TextView) view.findViewById(R.id.user_rating_textview);
-		userRatingTextView.setText(
+		userRatingView.setText(
 			context.getResources().getQuantityString(
 				R.plurals.movie_user_rating, // id
 				cursor.getInt(CURSOR_INDEX_VOTE_COUNT), // quantity
 				cursor.getDouble(CURSOR_INDEX_VOTE_AVERAGE), cursor.getInt(CURSOR_INDEX_VOTE_COUNT))); // format args
 
-		final ImageButton favoriteBtn = (ImageButton) view.findViewById(R.id.favorite_button);
 		configureFavoriteBtn(
-			favoriteBtn,
 			cursor.getInt(CURSOR_INDEX_ID),
 			cursor.getString(CURSOR_INDEX_POSTER_PATH),
 			cursor.getString(CURSOR_INDEX_BACKDROP_PATH),
 			cursor.getInt(CURSOR_INDEX_FAVORITE) > 0);
 
 		// videos
-		ViewGroup videoContainer = (ViewGroup) view.findViewById(R.id.videos_container);
-		bindVideosToView(cursor, videoContainer);
+		bindVideosToView(cursor, videosContainer);
 
 		// reviews
-		ViewGroup reviewsContainer = (ViewGroup) view.findViewById(R.id.review_container);
 		bindReviewsToView(cursor, reviewsContainer);
 
 		// configure the share action
@@ -316,7 +313,6 @@ public class MovieDetailActivityFragment extends Fragment implements LoaderManag
 	 * click listener to toggle the favorite state.
 	 */
 	private void configureFavoriteBtn(
-		final ImageButton favoriteBtn,
 		final int movieId,
 		final String posterPath,
 		final String backdropPath,
@@ -330,8 +326,7 @@ public class MovieDetailActivityFragment extends Fragment implements LoaderManag
 		favoriteBtn.setOnClickListener(new View.OnClickListener() {
 			@Override
 			public void onClick(View v) {
-				ImageButton favoriteBtn = (ImageButton) v;
-				toggleFavorite(favoriteBtn, movieId, posterPath, backdropPath, isFavorite);
+				toggleFavorite(movieId, posterPath, backdropPath, isFavorite);
 			}
 		});
 	}
@@ -388,15 +383,14 @@ public class MovieDetailActivityFragment extends Fragment implements LoaderManag
 	 * Toggles whether the currently displayed movie is one of the user's favorite movies
 	 * or not.
 	 *
-	 * @param favoriteBtn Reference to the toggle button, whose appearance will change
 	 * @param movieId The movie being added or removed from the favorite movies list
 	 * @param posterPath The path to the movie poster
 	 * @param backdropPath The path to the movie backdrop
 	 * @param isFavorite Whether the movie is currently a favorite movie
 	 */
-	private void toggleFavorite(ImageButton favoriteBtn, int movieId, String posterPath, String backdropPath, boolean isFavorite) {
+	private void toggleFavorite(int movieId, String posterPath, String backdropPath, boolean isFavorite) {
 		// optimistically update the "make favorite" button assuming success
-		configureFavoriteBtn(favoriteBtn, movieId, posterPath, backdropPath, !isFavorite);
+		configureFavoriteBtn(movieId, posterPath, backdropPath, !isFavorite);
 
 		if (isFavorite)
 			ToggleFavoriteTask.removeFromFavorites(getContext(), movieId, posterPath, backdropPath);

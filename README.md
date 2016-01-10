@@ -10,8 +10,8 @@ service.
   * Add the following line to the file `$HOME/.gradle/gradle.properties` (create the file if necessary)
 
         themoviedb_api_key = "<API KEY>"
-          
-  
+
+
   * Replace the string `<API KEY>` with your API key.
 
 Implementation notes
@@ -50,7 +50,7 @@ Refactorings and other improvements:
   - [ ] Bonus: Support the local language with english as fallback
     - [ ] Include original title in the movie detail activity
   - [ ] Possible: change movie list by tapping the list name, opening a list menu (removing these options from the "settings" menu)
-        See http://developer.android.com/training/appbar/action-views.html
+    -- See http://developer.android.com/training/appbar/action-views.html
   - [ ] Possible: Move the favorite button to the action bar or to a floating action button
   - [ ] Possible: Expose the favorite movies as searchable through the content provider
   - [ ] Possible: consider alternative JSON serialization frameworks (like [gson] [gson])
@@ -58,8 +58,8 @@ Refactorings and other improvements:
 
 Simplifications:
 
-  - [ ] Refactor: Utilize [Butterknife] [butterknife] for view binding (ref. stage 1 feedback)
-  - [ ] Refactor: Utilize [Retrofit] [retrofit] or [OkHttp] [okhttp] for REST services (ref. stage 1 feedback)
+  - [x] ~~Refactor: Utilize [Butterknife] [butterknife] for view binding (ref. stage 1 feedback)~~
+  - [x] ~~Refactor: Utilize [Retrofit] [retrofit] or [OkHttp] [okhttp] for REST services (ref. stage 1 feedback)~~
   - [x] ~~Replace the homemade favorite icon with a standard icon ("favorite" and "favorite border", or "star" and "star border" -- see https://design.google.com/icons/)~~
   - [ ] Show a rating bar for the movie's vote score
 
