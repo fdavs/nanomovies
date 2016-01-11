@@ -52,8 +52,6 @@ public class MdbJSONAdapter extends JSONAdapter {
 	private static final String JSON_REVIEW_AUTHOR  = "author";
 	private static final String JSON_REVIEW_CONTENT  = "content";
 
-	private static final String JSON_EXTENDED_DATA = "extended_data";
-
 	// --- class properties ---
 
 	/**
@@ -223,87 +221,43 @@ public class MdbJSONAdapter extends JSONAdapter {
 		return new Review(id, author, content);
 	}
 
-	/**
-	 * Converts a Movie model object to a JSON-formatted string.
-	 *
-	 * @param movie the Movie object to convert to JSON. <code>null</code> not allowed.
-	 *
-	 * @return a JSON string containing the attributes for movies.
-	 *
-	 * @throws JSONException if unable to convert
-	 */
-	public static String toJSONString(Movie movie) throws JSONException {
-		JSONObject obj = new JSONObject();
-
-		// put a marker (here in front) that allows us to quickly decide whether this movie
-		// contains extended movie data, such as reviews and video, which are not included
-		// in a basic discovery or list request
-		if (movie.hasExtendedData())
-			obj.put(JSON_EXTENDED_DATA, true);
-
-		obj.put(JSON_MOVIE_ID, movie.getMovieDbId());
-		obj.put(JSON_MOVIE_TITLE, movie.getTitle());
-		obj.put(JSON_MOVIE_POSTER_PATH, movie.getPosterPath());
-		obj.put(JSON_MOVIE_BACKDROP_PATH, movie.getBackdropPath());
-		obj.put(JSON_MOVIE_SYNOPSIS, movie.getSynopsis());
-		obj.put(JSON_MOVIE_POPULARITY, movie.getPopularity());
-		obj.put(JSON_MOVIE_VOTE_AVERAGE, movie.getVoteAverage());
-		obj.put(JSON_MOVIE_VOTE_COUNT, movie.getVoteCount());
-		putOptDate(obj, JSON_MOVIE_RELEASE_DATE, movie.getReleaseDate());
-
-		if (movie.hasExtendedData()) {
-			obj.put(JSON_MOVIE_REVIEWS, toReviewJSONArray(movie.getReviews()));
-			obj.put(JSON_MOVIE_VIDEOS, toVideoJSONArray(movie.getVideos()));
-		}
-
-		return obj.toString();
-	}
-
 	public static String toReviewJSONString(List<Review> reviews) {
 		try {
-			return toReviewJSONArray(reviews).toString();
+			JSONArray arr = new JSONArray();
+			if (reviews != null) {
+				for (Review review : reviews) {
+					JSONObject obj = new JSONObject();
+					obj.put(JSON_REVIEW_ID, review.getId());
+					obj.put(JSON_REVIEW_AUTHOR, review.getAuthor());
+					obj.put(JSON_REVIEW_CONTENT, review.getContent());
+					arr.put(obj);
+				}
+			}
+			return arr.toString();
 		}
 		catch (JSONException e) {
 			Log.e(LOG_TAG, "JSON error", e);
 			return null;
 		}
-	}
-
-	private static JSONArray toReviewJSONArray(List<Review> reviews) throws JSONException {
-		JSONArray arr = new JSONArray();
-		if (reviews != null) {
-			for (Review review : reviews) {
-				JSONObject obj = new JSONObject();
-				obj.put(JSON_REVIEW_ID, review.getId());
-				obj.put(JSON_REVIEW_AUTHOR, review.getAuthor());
-				obj.put(JSON_REVIEW_CONTENT, review.getContent());
-				arr.put(obj);
-			}
-		}
-		return arr;
 	}
 
 	public static String toVideoJSONString(List<Video> videos) {
 		try {
-			return toVideoJSONArray(videos).toString();
+			JSONArray arr = new JSONArray();
+			if (videos != null) {
+				for (Video video : videos) {
+					JSONObject obj = new JSONObject();
+					obj.put(JSON_VIDEOS_KEY, video.getKey());
+					obj.put(JSON_VIDEOS_SITE, video.getSite());
+					obj.put(JSON_VIDEOS_NAME, video.getName());
+					arr.put(obj);
+				}
+			}
+			return arr.toString();
 		}
 		catch (JSONException e) {
 			Log.e(LOG_TAG, "JSON error", e);
 			return null;
 		}
-	}
-
-	private static JSONArray toVideoJSONArray(List<Video> videos) throws JSONException {
-		JSONArray arr = new JSONArray();
-		if (videos != null) {
-			for (Video video : videos) {
-				JSONObject obj = new JSONObject();
-				obj.put(JSON_VIDEOS_KEY, video.getKey());
-				obj.put(JSON_VIDEOS_SITE, video.getSite());
-				obj.put(JSON_VIDEOS_NAME, video.getName());
-				arr.put(obj);
-			}
-		}
-		return arr;
 	}
 }
