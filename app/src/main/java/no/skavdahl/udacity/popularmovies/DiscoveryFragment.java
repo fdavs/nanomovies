@@ -112,8 +112,6 @@ public class DiscoveryFragment extends Fragment implements LoaderManager.LoaderC
                              Bundle savedInstanceState) {
 	    setHasOptionsMenu(true);
 
-		Log.v(LOG_TAG, "onCreateView");
-
 		// initialize the view
 	    final View view = inflater.inflate(R.layout.fragment_discovery, container, false);
 
