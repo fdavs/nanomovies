@@ -47,10 +47,8 @@ public class MovieProviderTest extends AndroidTestCase {
 		s.add(MovieProvider.LIST_MEMBER_ITEM);
 		s.add(MovieProvider.MOVIE_DIRECTORY);
 		s.add(MovieProvider.MOVIE_ITEM);
-		s.add(MovieProvider.IMAGE_DIRECTORY);
-		s.add(MovieProvider.IMAGE_ITEM);
 
-		assertEquals(8, s.size());
+		assertEquals(6, s.size());
 	}
 
 }

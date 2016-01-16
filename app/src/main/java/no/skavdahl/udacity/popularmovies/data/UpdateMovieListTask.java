@@ -131,8 +131,7 @@ public class UpdateMovieListTask extends AsyncTask<UpdateMovieListTask.Input, Vo
 			if (verbose) Log.v(LOG_TAG, "Received web query response:" + jsonResponse.substring(0, Math.min(40, jsonResponse.length())) + "...");
 
 			// convert the data to ContentValues for insertion into database
-			MdbJSONAdapter jsonAdapter = new MdbJSONAdapter();
-			List<Movie> movieList = jsonAdapter.getMoviesList(jsonResponse);
+			List<Movie> movieList = MdbJSONAdapter.getMoviesList(jsonResponse);
 
 			final long now = System.currentTimeMillis();
 

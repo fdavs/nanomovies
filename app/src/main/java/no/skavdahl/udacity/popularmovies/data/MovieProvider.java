@@ -115,17 +115,6 @@ public class MovieProvider extends ContentProvider {
 	public Cursor query(@NonNull Uri uri, String[] projection, String selection, String[] selectionArgs, String sortOrder) {
 		final Cursor cursor;
 		switch (uriMatcher.match(uri)) {
-			/*case MOVIE_DIRECTORY:
-				cursor = dbHelper.getReadableDatabase().query(
-					ListMembershipContract.TABLE_NAME,
-					projection,
-					ListMembershipContract.Column.LIST_ID,
-					selectionArgs,
-					null, // groupBy
-					null, // having
-					sortOrder);
-				break;*/
-
 			case LIST_ITEM:
 				cursor = queryListItem(uri, projection);
 				break;
@@ -648,18 +637,6 @@ public class MovieProvider extends ContentProvider {
 		final boolean debug = BuildConfig.DEBUG && Log.isLoggable(LOG_TAG, Log.DEBUG);
 
 		if (verbose) Log.v(LOG_TAG, "Start delete: " + uri.getPath() + "?" + uri.getQuery());
-
-		/*dbHelper.getWritableDatabase().execSQL(
-			"DELETE FROM " + MovieContract.TABLE_NAME + " " +
-			"WHERE " + MovieContract.Column._ID + " NOT IN (" +
-				"SELECT " + ListMembershipContract.Column.MOVIE_ID + " " +
-				"FROM " + ListMembershipContract.TABLE_NAME +
-			")");
-		int deletedCount = 1;*/
-
-		/* The code below causes "SQLiteException: no such column: movie._id (code 1)"
-		   though I can't find anything wrong with the SQL statement itself:
-		   DELETE FROM movie WHERE _id NOT IN (SELECT movieid FROM listmember)*/
 
 		int deletedCount = dbHelper.getWritableDatabase().delete(
 			MovieContract.TABLE_NAME,

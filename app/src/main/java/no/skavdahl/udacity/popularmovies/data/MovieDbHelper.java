@@ -7,7 +7,6 @@ import android.database.sqlite.SQLiteOpenHelper;
 import android.os.Build;
 import android.util.Log;
 
-import no.skavdahl.udacity.popularmovies.BuildConfig;
 import no.skavdahl.udacity.popularmovies.mdb.StandardMovieList;
 
 import static no.skavdahl.udacity.popularmovies.data.PopularMoviesContract.*;
@@ -21,8 +20,8 @@ public class MovieDbHelper extends SQLiteOpenHelper {
 
 	private static final String LOG_TAG = MovieDbHelper.class.getSimpleName();
 
-	private static final int DATABASE_VERSION = 1;
-	private static final String DATABASE_NAME = "movie.db";
+	public static final int DATABASE_VERSION = 1;
+	public static final String DATABASE_NAME = "movie.db";
 
 	private static final String ON_DELETE_LIST_TRIGGER = "on_delete_list_trigger";
 	private static final String ON_DELETE_MOVIE_TRIGGER = "on_delete_movie_trigger";
@@ -70,6 +69,7 @@ public class MovieDbHelper extends SQLiteOpenHelper {
 		Log.i(LOG_TAG, "Movie database successfully initialized");
 	}
 
+	/* #ifdef BuildConfig.DEBUG
 	private void dropExistingTables(SQLiteDatabase db) {
 		db.execSQL("DROP TRIGGER IF EXISTS " + ON_DELETE_LIST_TRIGGER);
 		db.execSQL("DROP TRIGGER IF EXISTS " + ON_DELETE_MOVIE_TRIGGER);
@@ -80,6 +80,7 @@ public class MovieDbHelper extends SQLiteOpenHelper {
 
 		Log.d(LOG_TAG, "Movie database tables dropped");
 	}
+	#endif */
 
 	private void createListTable_v1(SQLiteDatabase db) {
 		db.execSQL(

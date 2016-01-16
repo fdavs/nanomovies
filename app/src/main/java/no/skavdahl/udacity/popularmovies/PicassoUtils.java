@@ -2,6 +2,7 @@ package no.skavdahl.udacity.popularmovies;
 
 import android.content.Context;
 import android.graphics.drawable.Drawable;
+import android.support.annotation.NonNull;
 import android.util.DisplayMetrics;
 import android.widget.ImageView;
 
@@ -31,7 +32,7 @@ public class PicassoUtils {
 		if (posterPath == null)
 			targetView.setImageDrawable(offlinePoster);
 		else {
-			if (!isLocalFile(posterPath)) {
+			if (isRemoteFile(posterPath)) {
 				int posterWidth = (int) context.getResources().getDimension(R.dimen.poster_width);
 				posterPath = Request.getPosterThumbnailDownloadURL(posterPath, posterWidth);
 			}
@@ -55,7 +56,7 @@ public class PicassoUtils {
 			return; // don't display anything
 			// TODO consider displaying an alternative layout if there is no backdrop
 
-		if (!isLocalFile(path)) {
+		if (isRemoteFile(path)) {
 			DisplayMetrics dm = context.getResources().getDisplayMetrics();
 			path = Request.getImageDownloadURL(Request.ImageType.BACKDROP, path, dm.widthPixels);
 		}
@@ -63,7 +64,7 @@ public class PicassoUtils {
 		Picasso.with(context).load(path).into(targetView);
 	}
 
-	private static boolean isLocalFile(String path) {
-		return path != null && path.startsWith("file://");
+	private static boolean isRemoteFile(@NonNull String path) {
+		return !path.startsWith("file://");
 	}
 }

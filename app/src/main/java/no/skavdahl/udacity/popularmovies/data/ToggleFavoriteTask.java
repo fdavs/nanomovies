@@ -37,10 +37,10 @@ public class ToggleFavoriteTask extends AsyncTask<Void, Void, Void> {
 	private final boolean makeFavorite;
 	private final int movieId;
 
-	private String currentPosterPath;
+	private final String currentPosterPath;
 	private String newPosterPath;
 
-	private String currentBackdropPath;
+	private final String currentBackdropPath;
 	private String newBackdropPath;
 
 	/**

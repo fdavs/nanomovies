@@ -12,6 +12,15 @@ import java.util.Set;
  */
 public class MovieDbHelperTest extends SQLiteTestCase {
 
+	/** Returns the set of tables that need to be present in a successfully created database. */
+	private Set<String> getRequiredTables() {
+		final Set<String> requiredTables = new HashSet<>();
+		requiredTables.add(PopularMoviesContract.ListContract.TABLE_NAME);
+		requiredTables.add(PopularMoviesContract.ListMembershipContract.TABLE_NAME);
+		requiredTables.add(PopularMoviesContract.MovieContract.TABLE_NAME);
+		return requiredTables;
+	}
+
 	/**
 	 * Tests that the database can be successfully created with all the expected
 	 * tables (no SQL errors in the CREATE statements).
@@ -20,12 +29,7 @@ public class MovieDbHelperTest extends SQLiteTestCase {
 	 * "Developing Android Apps" at udacity.com
 	 */
 	public void testThatDatabaseAndTablesCanBeCreated() {
-		// the following tables need to be present in a successfully created database
-		final Set<String> remainingTables = new HashSet<>();
-		remainingTables.add(PopularMoviesContract.ListContract.TABLE_NAME);
-		remainingTables.add(PopularMoviesContract.ListMembershipContract.TABLE_NAME);
-		remainingTables.add(PopularMoviesContract.MovieContract.TABLE_NAME);
-		remainingTables.add(PopularMoviesContract.ImageContract.TABLE_NAME);
+		final Set<String> remainingTables = getRequiredTables();
 
 		db = new MovieDbHelper(this.mContext).getWritableDatabase();
 		assertEquals(true, db.isOpen());
@@ -39,27 +43,5 @@ public class MovieDbHelperTest extends SQLiteTestCase {
 		assertTrue(
 			"Not all required tables were created: " + TextUtils.join(", ", remainingTables),
 			remainingTables.isEmpty());
-	}
-
-
-	/**
-	 *
-	 */
-	public void testSelectImageById() {
-		fail("Feature not implemented");
-	}
-
-	/**
-	 *
-	 */
-	public void testInsertImage() {
-		fail("Feature not implemented");
-	}
-
-	/**
-	 *
-	 */
-	public void testDeleteImage() {
-		fail("Feature not implemented");
 	}
 }

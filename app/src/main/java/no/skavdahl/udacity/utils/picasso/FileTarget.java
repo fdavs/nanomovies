@@ -23,15 +23,13 @@ public abstract class FileTarget implements Target {
 
 	private final String LOG_TAG = getClass().getSimpleName();
 
-
-	private final Context context;
-	private final String imageName;
-
 	/** Image quality of the compressed image (0-100, where 0 is no compression). */
-	private final int IMAGE_QUALITY = 80;
+	private static final int IMAGE_QUALITY = 80;
 
 	private static final String STORAGE_PATH = "MoviePosters";
 
+	private final Context context;
+	private final String imageName;
 
 	public FileTarget(final Context context, final String imageName) {
 		this.context = context;
@@ -78,8 +76,10 @@ public abstract class FileTarget implements Target {
 		if (targetDir == null)
 			targetDir = context.getDir(STORAGE_PATH, Context.MODE_PRIVATE);
 
-		if (!targetDir.exists())
-			targetDir.mkdirs();
+		if (!targetDir.exists()) {
+			if (!targetDir.mkdirs())
+				throw new IOException("Unable to create storage folder " + STORAGE_PATH);
+		}
 
 		return new File(targetDir, imageName);
 	}

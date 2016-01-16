@@ -27,7 +27,6 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import no.skavdahl.udacity.popularmovies.data.PopularMoviesContract;
-import no.skavdahl.udacity.popularmovies.data.SweepDatabaseTask;
 import no.skavdahl.udacity.popularmovies.data.UpdateMovieListTask;
 import no.skavdahl.udacity.popularmovies.mdb.StandardMovieList;
 
@@ -76,17 +75,6 @@ public class DiscoveryFragment extends Fragment implements LoaderManager.LoaderC
 	private final static int CURSOR_INDEX_MOVIE_ID = 0;
 	private final static int CURSOR_INDEX_MOVIE_POSTER_PATH = 1;
 	private final static int CURSOR_INDEX_MOVIE_TITLE = 2;
-
-	// --- other configuration ---
-
-	/** Do not issue database cleanup commands more frequently that this */
-	private final static long DATABASE_SWEEP_INTERVAL = 12 * 60 * 60 * 1000; // 12 hours
-
-	// --- Default constructor (required) ---
-
-	public DiscoveryFragment() {
-		// noop
-	}
 
 	// --- Interface through which to report user activity ---
 
@@ -182,14 +170,6 @@ public class DiscoveryFragment extends Fragment implements LoaderManager.LoaderC
 
 		// initialize the loader
 		getLoaderManager().initLoader(LOADER_ID, null, this);
-
-		// schedule database cleanup if enough time has passed since the last cleanup
-		long lastSweepTime = UserPreferences.getSweepTime(getActivity());
-		long now = System.currentTimeMillis();
-		if (now - lastSweepTime > DATABASE_SWEEP_INTERVAL) {
-			UserPreferences.setSweepTime(getActivity(), now);
-			new SweepDatabaseTask(getContext()).execute();
-		}
 	}
 
 	/**

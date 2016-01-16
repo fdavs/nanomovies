@@ -9,8 +9,6 @@ import android.test.AndroidTestCase;
  */
 public class SQLiteTestCase extends AndroidTestCase {
 
-	protected final String LOG_TAG = getClass().getSimpleName();
-
 	protected SQLiteDatabase db;
 	protected Cursor cursor;
 

@@ -103,7 +103,7 @@ public class MoviePosterAdapter extends RecyclerView.Adapter<MoviePosterAdapter.
 
 		Cursor oldCursor = this.cursor;
 		this.cursor = newCursor;
-		if (cursor != null) {
+		if (newCursor != null) {
 			this.notifyDataSetChanged();
 		}
 		return oldCursor;

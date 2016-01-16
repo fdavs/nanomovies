@@ -1,16 +1,12 @@
 package no.skavdahl.udacity.utils;
 
-import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Date;
-import java.util.List;
 import java.util.Locale;
 
 /**
@@ -70,66 +66,5 @@ public abstract class JSONAdapter {
 		catch (ParseException e) {
 			throw new JSONException("Invalid date string: '" + dateString + "'");
 		}
-	}
-
-	/**
-	 * Maps name to value, clobbering any existing name/value mapping with the same name.
-	 * If the value is null, any existing mapping for name is removed.
-	 *
-	 * @param obj The JSON object to mutate
-	 * @param attrName The name of the attribute to update
-	 * @param value The attribute value, <code>null</code> allowed.
-	 *
-	 * @throws JSONException if unable to store the value
-	 *
-	 * @see org.json.JSONObject#put(String, Object)
-	 */
-	protected static void putOptDate(JSONObject obj, String attrName, Date value) throws JSONException {
-		if (value == null)
-			obj.put(attrName, null); // removes the existing value for the attribute
-		else {
-			DateFormat dateFormat = new SimpleDateFormat(MOVIEDB_DATE_FORMAT, Locale.US);
-			String dateString = dateFormat.format(value);
-			obj.put(attrName, dateString);
-		}
-	}
-
-	/**
-	 * Returns the contents of a JSON array as an array of integers.
-	 *
-	 * @param arr The JSON array from which to read values
-	 *
-	 * @return a (possibly empty) list of integers.
-	 *
-	 * @throws JSONException if unable to parse the array.
-	 */
-	protected static List<Integer> getOptIntArray(JSONArray arr) throws JSONException {
-		if (arr == null)
-			return Collections.emptyList();
-
-		final int len = arr.length();
-		List<Integer> result = new ArrayList<>(len);
-		for (int i = 0; i < len; ++i) {
-			result.add(arr.getInt(i));
-		}
-
-		return result;
-	}
-
-	/**
-	 * Returns the contents of a JSON array as an array of integers.
-	 *
-	 * @param obj The JSON object to mutate
-	 * @param attrName The name of the attribute to update
-	 * @param list The attribute value, <code>null</code> allowed.
-	 *
-	 * @throws JSONException if unable to parse the array.
-	 */
-	protected static void putOptArray(JSONObject obj, String attrName, List<Integer> list) throws JSONException {
-		if (list == null)
-			obj.put(attrName, null);
-
-		JSONArray arr = new JSONArray(list);
-		obj.put(attrName, arr);
 	}
 }

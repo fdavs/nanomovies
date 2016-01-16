@@ -20,9 +20,6 @@ public class UriMatcherTest extends AndroidTestCase {
 	private final String LIST_NAME = "favorites";
 	private final int MOVIE_ID = 5;
 
-	@SuppressWarnings("FieldCanBeLocal")
-	private final int IMAGE_ID = 7;
-
 	public void setUp() {
 		matcher = MovieProvider.buildUriMatcher();
 	}
@@ -55,15 +52,5 @@ public class UriMatcherTest extends AndroidTestCase {
 	public void testThatMovieItemUriIsMatched() {
 		Uri movieListUri = MovieContract.buildMovieItemUri(MOVIE_ID);
 		assertEquals(MovieProvider.MOVIE_ITEM, matcher.match(movieListUri));
-	}
-
-	public void testThatImageDirectoryUriIsMatched() {
-		Uri movieListUri = ImageContract.buildImageDirectoryUri();
-		assertEquals(MovieProvider.IMAGE_DIRECTORY, matcher.match(movieListUri));
-	}
-
-	public void testThatImageItemUriIsMatched() {
-		Uri movieListUri = ImageContract.buildImageItemUri(IMAGE_ID);
-		assertEquals(MovieProvider.IMAGE_ITEM, matcher.match(movieListUri));
 	}
 }

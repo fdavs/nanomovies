@@ -6,6 +6,8 @@ import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 
+import no.skavdahl.udacity.popularmovies.data.SweepDatabaseTask;
+
 /**
  * Activity for browsing and discovering movies.
  *
@@ -15,19 +17,13 @@ public class DiscoveryActivity
 	extends AppCompatActivity
 	implements DiscoveryFragment.ItemSelectionListener {
 
-    // --- dual pane support (tablets) ---
-
     /**
      * If true, the device is large enough to support both the discovery and the detail views
      * at the same time.
      */
     private boolean isDualPane;
 
-    ///** Tag used by the FragmentManager to identify the movie detail fragment. */
-    //private static final String MOVIE_DETAIL_TAG = "MDF"; // Movie Detail Fragment
-
-
-    @Override
+	@Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
@@ -47,6 +43,15 @@ public class DiscoveryActivity
 				    .commit();
 		    }
 	    } */
+
+	    // schedule database cleanup if enough time has passed since the last cleanup
+	    long lastSweepTime = UserPreferences.getSweepTime(this);
+	    long now = System.currentTimeMillis();
+	    if (now - lastSweepTime > BuildConfig.DATABASE_SWEEP_INTERVAL) {
+		    UserPreferences.setSweepTime(this, now);
+		    new SweepDatabaseTask(this).execute();
+	    }
+
     }
 
 	private DiscoveryFragment getDiscoveryFragment() {

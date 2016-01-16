@@ -157,9 +157,8 @@ public class MovieDetailFragment extends Fragment implements LoaderManager.Loade
 	                         ViewGroup container,
 	                         Bundle savedInstanceState) {
 
-		// retrieve fragment arguments
+		// store arguments for future reference
 		contentUri =  unbundleContentUri(getArguments());
-		Log.w(LOG_TAG, "onCreate: contentUri=" + contentUri); // TODO delete this log statement
 
 		// create the view
 		View view = inflater.inflate(R.layout.fragment_movie_detail, container, false);
@@ -188,8 +187,6 @@ public class MovieDetailFragment extends Fragment implements LoaderManager.Loade
 			Bundle loaderArgs = bundleContentUri(contentUri);
 			getLoaderManager().initLoader(LOADER_ID, loaderArgs, this);
 		}
-
-		Log.d(LOG_TAG, "onActivityCreated contentUri=" + contentUri); // TODO remove logging
 	}
 
 	/**

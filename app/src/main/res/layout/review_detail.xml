@@ -11,14 +11,14 @@
         android:id="@+id/review_content_textview"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
-        android:text="[Review contents]"/>
+        android:text="[Review contents]" tools:ignore="HardcodedText"/> <!-- suppress lint warning: text is just placeholder -->
 
     <TextView
         android:id="@+id/review_author_textview"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
-        android:text="[Author name]"
         android:textStyle="italic"
         android:gravity="end"
-        android:layout_marginBottom="@dimen/activity_vertical_margin"/>
+        android:layout_marginBottom="@dimen/activity_vertical_margin"
+        android:text="[Author name]" tools:ignore="HardcodedText" /> <!-- suppress lint warning: text is just placeholder -->
 </LinearLayout>
