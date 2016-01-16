@@ -6,7 +6,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:fitsSystemWindows="true"
-    tools:context="no.skavdahl.udacity.popularmovies.MainDiscoveryActivity">
+    tools:context=".DiscoveryActivity">
 
     <android.support.design.widget.AppBarLayout
         android:layout_width="match_parent"
@@ -26,21 +26,38 @@
         android:orientation="horizontal"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        support:layout_behavior="@string/appbar_scrolling_view_behavior">
+        support:layout_behavior="@string/appbar_scrolling_view_behavior"
+        android:theme="@style/PopularMoviesTheme">
 
         <fragment
             android:id="@+id/fragment_discovery"
-            android:name="no.skavdahl.udacity.popularmovies.MainDiscoveryActivityFragment"
+            android:name="no.skavdahl.udacity.popularmovies.DiscoveryFragment"
             android:layout_width="0px"
-            android:layout_height="match_parent"
             android:layout_weight="1"
-            tools:layout="@layout/fragment_main_discovery"/>
+            android:layout_height="match_parent"
+            tools:layout="@layout/fragment_discovery"/>
 
-        <FrameLayout android:id="@+id/movie_detail_container"
+        <!--FrameLayout android:id="@+id/movie_detail_container"
                      android:layout_width="0px"
                      android:layout_height="match_parent"
                      android:layout_weight="2"
-                     support:layout_behavior="@string/appbar_scrolling_view_behavior"/>
-                     <!--android:background="?android:attr/detailsElementBackground" />-->
+                     support:layout_behavior="@string/appbar_scrolling_view_behavior">
+                     <!- -android:background="?android:attr/detailsElementBackground" />- ->
+        </FrameLayout-->
+
+        <FrameLayout
+            android:id="@+id/movie_detail_container"
+            android:layout_width="0px"
+            android:layout_weight="2"
+            android:layout_height="match_parent">
+
+            <TextView
+                android:id="@+id/textView"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:textAppearance="?android:attr/textAppearanceMedium"
+                android:text="@string/select_movie" />
+        </FrameLayout>
     </LinearLayout>
 </android.support.design.widget.CoordinatorLayout>

@@ -46,9 +46,9 @@ import static no.skavdahl.udacity.popularmovies.data.PopularMoviesContract.*;
  *
  * @author fdavs
  */
-public class MovieDetailActivityFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor> {
+public class MovieDetailFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor> {
 
-	private final String LOG_TAG = getClass().getSimpleName().substring(0, 23);
+	private final String LOG_TAG = getClass().getSimpleName();
 
 	// --- content ---
 
@@ -110,17 +110,45 @@ public class MovieDetailActivityFragment extends Fragment implements LoaderManag
 
 	// --- UI ---
 
-	private @Bind(R.id.movie_title_textview) TextView titleView;
-	private @Bind(R.id.synopsis_textview) TextView synopsisView;
-	private @Bind(R.id.release_rate_textview) TextView releaseDateView;
-	private @Bind(R.id.user_rating_textview) TextView userRatingView;
-	private @Bind(R.id.poster_imageview) ImageView posterView;
-	private @Bind(R.id.backdrop_imageview) ImageView backdropView;
-	private @Bind(R.id.favorite_button) ImageButton favoriteBtn;
-	private @Bind(R.id.videos_container) ViewGroup videosContainer;
-	private @Bind(R.id.review_container) ViewGroup reviewsContainer;
+	protected @Bind(R.id.movie_title_textview) TextView titleView;
+	protected @Bind(R.id.synopsis_textview) TextView synopsisView;
+	protected @Bind(R.id.release_rate_textview) TextView releaseDateView;
+	protected @Bind(R.id.user_rating_textview) TextView userRatingView;
+	protected @Bind(R.id.poster_imageview) ImageView posterView;
+	protected @Bind(R.id.backdrop_imageview) ImageView backdropView;
+	protected @Bind(R.id.favorite_button) ImageButton favoriteBtn;
+	protected @Bind(R.id.videos_container) ViewGroup videosContainer;
+	protected @Bind(R.id.reviews_container) ViewGroup reviewsContainer;
 
-	public MovieDetailActivityFragment() {
+
+	/**
+	 * Factory method.
+	 */
+	public static MovieDetailFragment newInstance(final Uri contentUri) {
+		Bundle args = bundleContentUri(contentUri);
+
+		MovieDetailFragment fragment = new MovieDetailFragment();
+		fragment.setArguments(args);
+
+		return fragment;
+	}
+
+	private static Bundle bundleContentUri(Uri contentUri) {
+		Bundle bundle = new Bundle();
+		bundle.putParcelable(CONTENT_URI, contentUri);
+		return bundle;
+	}
+
+	private static Uri unbundleContentUri(Bundle bundle) {
+		if (bundle == null)
+			return null;
+		return bundle.getParcelable(CONTENT_URI);
+	}
+
+	/**
+	 * Default constructor (required).
+	 */
+	public MovieDetailFragment() {
 		setHasOptionsMenu(true); // required for "share" actions
 	}
 
@@ -128,22 +156,16 @@ public class MovieDetailActivityFragment extends Fragment implements LoaderManag
 	public View onCreateView(LayoutInflater inflater,
 	                         ViewGroup container,
 	                         Bundle savedInstanceState) {
-		super.onCreateView(inflater, container, savedInstanceState);
 
-		Bundle arguments = getArguments();
-		if (arguments != null)
-			contentUri = arguments.getParcelable(CONTENT_URI);
+		// retrieve fragment arguments
+		contentUri =  unbundleContentUri(getArguments());
+		Log.w(LOG_TAG, "onCreate: contentUri=" + contentUri); // TODO delete this log statement
 
-		Log.d(LOG_TAG, "onCreateView: contentUri=" + contentUri);
-
-		if (contentUri != null) {
-			View view = inflater.inflate(R.layout.fragment_movie_detail, container, false);
-			ButterKnife.bind(this, view);
-			bindEmptyModelToView();
-			return view;
-		}
-		else
-			return inflater.inflate(R.layout.fragment_movie_empty, container, false);
+		// create the view
+		View view = inflater.inflate(R.layout.fragment_movie_detail, container, false);
+		ButterKnife.bind(this, view);
+		bindEmptyModelToView();
+		return view;
 	}
 
 	@Override
@@ -161,21 +183,17 @@ public class MovieDetailActivityFragment extends Fragment implements LoaderManag
 	public void onActivityCreated(Bundle savedInstanceState) {
 		super.onActivityCreated(savedInstanceState);
 
-		// register the data loader
-		Bundle loaderArgs = null;
-
+		// initialize the loader
 		if (contentUri != null) {
-			loaderArgs = new Bundle();
-			loaderArgs.putParcelable(CONTENT_URI, contentUri);
+			Bundle loaderArgs = bundleContentUri(contentUri);
+			getLoaderManager().initLoader(LOADER_ID, loaderArgs, this);
 		}
 
-		Log.d(LOG_TAG, "onActivityCreated contentUri=" + contentUri);
-
-		getLoaderManager().initLoader(LOADER_ID, loaderArgs, this);
+		Log.d(LOG_TAG, "onActivityCreated contentUri=" + contentUri); // TODO remove logging
 	}
 
 	/**
-	 * Clears all views that have some default content (typically from an xliff tag).
+	 * Clears all views that have some non-empty placeholder content (typically from xliff tags).
 	 */
 	private void bindEmptyModelToView() {
 		titleView.setText("");
@@ -419,7 +437,7 @@ public class MovieDetailActivityFragment extends Fragment implements LoaderManag
 		if (loaderArgs == null)
 			return null;
 
-		Uri contentUri = loaderArgs.getParcelable(CONTENT_URI);
+		Uri contentUri = unbundleContentUri(loaderArgs);
 		if (contentUri == null)
 			return null;
 

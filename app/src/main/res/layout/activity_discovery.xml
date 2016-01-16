@@ -6,7 +6,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:fitsSystemWindows="true"
-    tools:context="no.skavdahl.udacity.popularmovies.MainDiscoveryActivity">
+    tools:context=".DiscoveryActivity">
 
     <android.support.design.widget.AppBarLayout
         android:layout_width="match_parent"
@@ -23,10 +23,10 @@
     </android.support.design.widget.AppBarLayout>
 
     <fragment android:id="@+id/fragment_discovery"
-              android:name="no.skavdahl.udacity.popularmovies.MainDiscoveryActivityFragment"
+              android:name="no.skavdahl.udacity.popularmovies.DiscoveryFragment"
               android:layout_width="match_parent"
               android:layout_height="match_parent"
               support:layout_behavior="@string/appbar_scrolling_view_behavior"
-              tools:layout="@layout/fragment_main_discovery"/>
+              tools:layout="@layout/fragment_discovery"/>
 
 </android.support.design.widget.CoordinatorLayout>

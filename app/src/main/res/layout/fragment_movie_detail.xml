@@ -2,13 +2,11 @@
 <ScrollView
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/movie_detail_fragment"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:theme="@style/PopularMoviesTheme"
     android:orientation="vertical"
-    tools:context="no.skavdahl.udacity.popularmovies.mdb.MovieDetailActivityFragment"
-    tools:showIn="@layout/activity_movie_detail">
+    tools:context="no.skavdahl.udacity.popularmovies.mdb.MovieDetailActivityFragment">
 
     <RelativeLayout
         android:layout_width="match_parent"
@@ -44,6 +42,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:textViewStyle="@style/TextAppearance.AppCompat.Title"
+            android:textColor="@android:color/holo_blue_dark"
             android:text="@string/movie_title" />
 
         <TextView
@@ -128,7 +127,7 @@
             style="@style/TextAppearance.AppCompat.Medium.Inverse"/>
 
         <LinearLayout
-            android:id="@+id/review_container"
+            android:id="@+id/reviews_container"
             android:orientation="vertical"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"

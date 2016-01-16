@@ -22,11 +22,17 @@
 
     </android.support.design.widget.AppBarLayout>
 
-    <fragment android:id="@+id/fragment"
-              android:name="no.skavdahl.udacity.popularmovies.MovieDetailActivityFragment"
+    <FrameLayout
+        android:id="@+id/movie_detail_container"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        support:layout_behavior="@string/appbar_scrolling_view_behavior" />
+    <!--
+    <fragment android:id="@+id/fragment_detail"
+              android:name="no.skavdahl.udacity.popularmovies.MovieDetailFragment"
               android:layout_width="match_parent"
               android:layout_height="match_parent"
               support:layout_behavior="@string/appbar_scrolling_view_behavior"
-              tools:layout="@layout/fragment_movie_detail"/>
+              tools:layout="@layout/fragment_movie_detail"/> -->
 
 </android.support.design.widget.CoordinatorLayout>

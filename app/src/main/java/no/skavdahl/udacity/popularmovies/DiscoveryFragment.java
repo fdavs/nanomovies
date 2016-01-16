@@ -36,11 +36,9 @@ import no.skavdahl.udacity.popularmovies.mdb.StandardMovieList;
  *
  * @author fdavs
  */
-public class MainDiscoveryActivityFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor> {
+public class DiscoveryFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor> {
 
-	// Log tags must be <= 23 characters
-	// see Log.isLoggable() throws description
-    private final String LOG_TAG = getClass().getSimpleName().substring(0, 23);
+    private final String LOG_TAG = getClass().getSimpleName();
 
 	//private RecyclerView posterGrid;
 	private MoviePosterAdapter viewAdapter;
@@ -84,6 +82,12 @@ public class MainDiscoveryActivityFragment extends Fragment implements LoaderMan
 	/** Do not issue database cleanup commands more frequently that this */
 	private final static long DATABASE_SWEEP_INTERVAL = 12 * 60 * 60 * 1000; // 12 hours
 
+	// --- Default constructor (required) ---
+
+	public DiscoveryFragment() {
+		// noop
+	}
+
 	// --- Interface through which to report user activity ---
 
 	public interface ItemSelectionListener {
@@ -123,7 +127,7 @@ public class MainDiscoveryActivityFragment extends Fragment implements LoaderMan
 		Log.v(LOG_TAG, "onCreateView");
 
 		// initialize the view
-	    final View view = inflater.inflate(R.layout.fragment_main_discovery, container, false);
+	    final View view = inflater.inflate(R.layout.fragment_discovery, container, false);
 
 	    // Configure the grid display of movie posters
 	    final RecyclerView posterGrid = (RecyclerView) view.findViewById(R.id.poster_grid);
