@@ -1,4 +1,6 @@
 apply plugin: 'com.android.application'
+// This does not break the build when Android Studio is missing the JRebel for Android plugin.
+apply plugin: 'com.zeroturnaround.jrebel.android'
 
 android {
     compileSdkVersion 23
@@ -24,7 +26,11 @@ android {
     }
 
     buildTypes.each {
+        // access to the API key to themoviedb.org
         it.buildConfigField 'String', 'THEMOVIEDB_API_KEY', themoviedb_api_key
+
+        // how often to remove cached but unreferenced movie data from the local database
+        it.buildConfigField 'long', 'DATABASE_SWEEP_INTERVAL', '12 * 60 * 60 * 1000' // 12 hours
     }
 }
 
