@@ -1,8 +1,11 @@
 package no.skavdahl.udacity.popularmovies;
 
 import android.Manifest;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
@@ -27,7 +30,7 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import no.skavdahl.udacity.popularmovies.data.PopularMoviesContract;
-import no.skavdahl.udacity.popularmovies.data.UpdateMovieListTask;
+import no.skavdahl.udacity.popularmovies.data.MovieListUpdateService;
 import no.skavdahl.udacity.popularmovies.mdb.StandardMovieList;
 
 /**
@@ -63,6 +66,16 @@ public class DiscoveryFragment extends Fragment implements LoaderManager.LoaderC
 	// garbage collection -- see the Android API docs at http://goo.gl/0yFyTy
 	// (SharedPreferences#registerOnSharedPreferenceChangeListener)
 	private SharedPreferences.OnSharedPreferenceChangeListener prefChangeListener;
+
+	private final BroadcastReceiver listServiceReceiver = new BroadcastReceiver() {
+		@Override
+		public void onReceive(Context context, Intent intent) {
+			//String listName = MovieListUpdateService.unpackListName(intent);
+			int page = MovieListUpdateService.unpackPage(intent, -1);
+
+			onListUpdateCompleted(page);
+		}
+	};
 
 	// --- cursor configuration ---
 
@@ -166,6 +179,10 @@ public class DiscoveryFragment extends Fragment implements LoaderManager.LoaderC
 		// choose which movie list to show first
 		configureStartupMovieList();
 
+		// register broadcast receiver for MovieListUpdateService messages
+		IntentFilter intentFilter = new IntentFilter(MovieListUpdateService.ACTION_NOTIFY);
+		getActivity().registerReceiver(listServiceReceiver, intentFilter);
+
 		// initialize the loader
 		getLoaderManager().initLoader(LOADER_ID, null, this);
 	}
@@ -184,18 +201,6 @@ public class DiscoveryFragment extends Fragment implements LoaderManager.LoaderC
 
 		if (networkInfo == null || !networkInfo.isConnected())
 			UserPreferences.setMovieList(getActivity(), StandardMovieList.FAVORITE);
-	}
-
-	@Override
-	public void onDestroyView() {
-		super.onDestroyView();
-
-		if (prefChangeListener != null) {
-			getActivity()
-				.getPreferences(Context.MODE_PRIVATE)
-				.unregisterOnSharedPreferenceChangeListener(prefChangeListener);
-			prefChangeListener = null;
-		}
 	}
 
     @Override
@@ -250,6 +255,26 @@ public class DiscoveryFragment extends Fragment implements LoaderManager.LoaderC
 		return super.onOptionsItemSelected(item);
     }
 
+	@Override
+	public void onDestroyView() {
+		super.onDestroyView();
+
+		if (prefChangeListener != null) {
+			getActivity()
+				.getPreferences(Context.MODE_PRIVATE)
+				.unregisterOnSharedPreferenceChangeListener(prefChangeListener);
+			prefChangeListener = null;
+		}
+	}
+
+	@Override
+	public void onDestroy() {
+		super.onDestroy();
+
+		// unregister broadcast receivers
+		getActivity().unregisterReceiver(listServiceReceiver);
+	}
+
 	private int mapMovieListToMenuItem(String listName) {
 		switch (listName) {
 			case StandardMovieList.POPULAR:
@@ -303,15 +328,14 @@ public class DiscoveryFragment extends Fragment implements LoaderManager.LoaderC
 
 	// --- LoaderManager.LoaderCallback<Loader> interface ---
 
-	private class SequentialUpdateMovieListTask extends UpdateMovieListTask {
-		public SequentialUpdateMovieListTask(Context context) {
-			super(context);
-		}
-
-		@Override
-		protected void onPostExecute(Void unused) {
-			currentlyLoadingPage = NO_PAGE;
-		}
+	private void onListUpdateCompleted(final int page) {
+		getActivity().runOnUiThread(new Runnable() {
+			@Override
+			public void run() {
+				if (page == currentlyLoadingPage)
+					currentlyLoadingPage = NO_PAGE;
+			}
+		});
 	}
 
 	/**
@@ -347,8 +371,8 @@ public class DiscoveryFragment extends Fragment implements LoaderManager.LoaderC
 
 		String listName = UserPreferences.getMovieList(getActivity());
 
-		SequentialUpdateMovieListTask updateTask = new SequentialUpdateMovieListTask(getActivity());
-		updateTask.execute(new UpdateMovieListTask.Input(listName, pageToLoad));
+		Intent intent = MovieListUpdateService.createExplicitIntent(getContext(), listName, pageToLoad);
+		getActivity().startService(intent);
 	}
 
 	@Override

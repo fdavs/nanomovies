@@ -38,8 +38,8 @@
             android:authorities="no.skavdahl.udacity.popularmovies"
             android:name=".data.MovieProvider" />
 
-        <service
-            android:name=".data.MovieUpdateService"/>
+        <service android:name=".data.MovieUpdateService"/>
+        <service android:name=".data.MovieListUpdateService"/>
     </application>
 
 </manifest>

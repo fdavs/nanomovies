@@ -1,10 +1,11 @@
 package no.skavdahl.udacity.popularmovies.data;
 
+import android.app.IntentService;
 import android.content.ContentValues;
 import android.content.Context;
+import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
-import android.os.AsyncTask;
 import android.util.Log;
 import android.util.Pair;
 
@@ -20,40 +21,71 @@ import static no.skavdahl.udacity.popularmovies.data.PopularMoviesContract.*;
 /**
  * @author fdavs
  */
-public class UpdateMovieListTask extends AsyncTask<UpdateMovieListTask.Input, Void, Void> {
+public class MovieListUpdateService extends IntentService {
 
-	public static class Input {
-		public final String listName;
-		public final int page;
+	private final String LOG_TAG = getClass().getSimpleName();
 
-		public Input(String listName, int page) {
-			this.listName = listName;
-			this.page = page;
-		}
-	}
+	private static final String SERVICE_NAME = "MDBListDownload";
 
-	private final String LOG_TAG = getClass().getSimpleName().substring(0, Math.min(23, getClass().getSimpleName().length()));
+	public static final String ACTION_NOTIFY = "MDBListUpdateNotify";
+
+	private static final String EXTRA_LIST_NAME = "listName";
+	private static final String EXTRA_PAGE = "page";
+
 	private final boolean verbose = BuildConfig.DEBUG && Log.isLoggable(LOG_TAG, Log.VERBOSE);
 	private final boolean debug = BuildConfig.DEBUG && Log.isLoggable(LOG_TAG, Log.DEBUG);
 
-	private final Context context;
+	public static Intent createExplicitIntent(Context packageContext, String listName, int page) {
+		Intent intent = new Intent(packageContext, MovieListUpdateService.class);
+		intent.putExtra(EXTRA_LIST_NAME, listName);
+		intent.putExtra(EXTRA_PAGE, page);
+		return intent;
+	}
 
-	public UpdateMovieListTask(final Context context) {
-		this.context = context;
+	public static Intent createBroadcastIntent(String listName, int page) {
+		Intent intent = new Intent(ACTION_NOTIFY);
+		intent.putExtra(EXTRA_LIST_NAME, listName);
+		intent.putExtra(EXTRA_PAGE, page);
+		return intent;
+	}
+
+	public static String unpackListName(Intent intent) {
+		return intent.getStringExtra(EXTRA_LIST_NAME);
+	}
+
+	public static int unpackPage(Intent intent, int defaultValue) {
+		return intent.getIntExtra(EXTRA_PAGE, defaultValue);
+	}
+
+	public MovieListUpdateService() {
+		super(SERVICE_NAME);
 	}
 
 	@Override
-	protected Void doInBackground(Input... input) {
+	protected void onHandleIntent(Intent intent) {
+		final String listName = unpackListName(intent);
+		if (listName == null) {
+			Log.e(LOG_TAG, "Starting intent missing required extra 'listName'");
+			notifyFinished(null, 0);
+			return;
+		}
 
-		final String listName = input[0].listName;
-		final int page = input[0].page;
+		final int page = unpackPage(intent, -1);
+		if (page == -1) {
+			Log.e(LOG_TAG, "Starting intent missing required extra 'page'");
+			notifyFinished(listName, page);
+			return;
+		}
 
 		if (verbose) Log.v(LOG_TAG, "Starting update of movie list: name=" + listName + ", page=" + page);
 
 		// find the list's id and type
 		Pair<Integer, Integer> listIdAndType = queryListAttributes(listName);
-		if (listIdAndType == null)
-			return null; // we can't proceed
+		if (listIdAndType == null) {
+			Log.e(LOG_TAG, "Unable to identify list " + listName);
+			notifyFinished(listName, page);
+			return;
+		}
 
 		int listId = listIdAndType.first;
 		int listType = listIdAndType.second;
@@ -71,7 +103,7 @@ public class UpdateMovieListTask extends AsyncTask<UpdateMovieListTask.Input, Vo
 				// TODO implement support for public lists on themoviedb.org
 		}
 
-		return null;
+		notifyFinished(listName, page);
 	}
 
 	/**
@@ -89,7 +121,7 @@ public class UpdateMovieListTask extends AsyncTask<UpdateMovieListTask.Input, Vo
 		Cursor listCursor = null;
 		try {
 			Uri listItemUri = ListContract.buildListItemUri(listName);
-			listCursor = context.getContentResolver().query(
+			listCursor = getContentResolver().query(
 				listItemUri,
 				new String[]{PopularMoviesContract.ListContract.Column._ID, PopularMoviesContract.ListContract.Column.TYPE},
 				null,
@@ -158,12 +190,18 @@ public class UpdateMovieListTask extends AsyncTask<UpdateMovieListTask.Input, Vo
 
 			// perform insertion into the local database
 			Uri listMemberUri = ListContract.buildListMemberDirectoryUri(listName);
-			context.getContentResolver().bulkInsert(listMemberUri, values);
+			getContentResolver().bulkInsert(listMemberUri, values);
 
 			if (debug) Log.d(LOG_TAG, "Movie list " + listName + " (page " + page + ") updated");
 		}
 		catch (Exception e) {
 			Log.e(LOG_TAG, "Web query failed for list name=" + listName, e);
 		}
+	}
+
+	/** Signals that the list update operation has completed. */
+	private void notifyFinished(String listName, int page) {
+		Intent intent = createBroadcastIntent(listName, page);
+		sendBroadcast(intent);
 	}
 }
