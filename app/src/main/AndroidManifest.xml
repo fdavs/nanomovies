@@ -37,6 +37,9 @@
         <provider
             android:authorities="no.skavdahl.udacity.popularmovies"
             android:name=".data.MovieProvider" />
+
+        <service
+            android:name=".data.MovieUpdateService"/>
     </application>
 
 </manifest>

@@ -32,8 +32,8 @@ import java.util.Locale;
 import butterknife.Bind;
 import butterknife.ButterKnife;
 
+import no.skavdahl.udacity.popularmovies.data.MovieUpdateService;
 import no.skavdahl.udacity.popularmovies.data.ToggleFavoriteTask;
-import no.skavdahl.udacity.popularmovies.data.UpdateMovieTask;
 import no.skavdahl.udacity.popularmovies.mdb.MdbJSONAdapter;
 import no.skavdahl.udacity.popularmovies.model.Movie;
 import no.skavdahl.udacity.popularmovies.model.Review;
@@ -476,8 +476,8 @@ public class MovieDetailFragment extends Fragment implements LoaderManager.Loade
 
 			int movieId = cursor.getInt(CURSOR_INDEX_ID);
 
-			UpdateMovieTask asyncTask = new UpdateMovieTask(getContext());
-			asyncTask.execute(movieId);
+			Intent serviceIntent = MovieUpdateService.createExplicitIntent(getContext(), movieId);
+			getActivity().startService(serviceIntent);
 		}
 	}
 
